@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script src="js/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUSEX - Guias da OCS</title>
+  <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+</head>
+<body>
+
+  <aside>
+    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Guias, Lotes e Fechamento (OCS)</small></span></a>
+    <nav class="nav">
+      <a href="guias-ocs.html" class="on">Guias do mês</a>
+      <a href="lotes-ocs.html">Lotes de fatura</a>
+      <a href="fechamento-ocs.html">Fechamento mensal</a>
+    </nav>
+    <div class="who" id="who">
+      <b>Não autenticado</b>
+      Faça login para continuar
+    </div>
+  </aside>
+
+  <main>
+    <h1>Guias da OCS</h1>
+    <p class="sub">Anexe cada guia assinada durante o mês de competência.</p>
+
+    <div class="card">
+      <h2>Autenticação</h2>
+      <div class="row">
+        <div><label for="user">Usuário</label><input id="user" value="ocs"></div>
+        <div><label for="pass">Senha</label><input id="pass" type="password" placeholder="••••••••"></div>
+        <div style="display: flex; align-items: flex-end;">
+          <button id="carregarBtn" class="btn" style="width: 100%;">Entrar e Carregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="erroGlobal" class="erro" hidden></div>
+
+    <div class="stats">
+      <div class="stat"><b id="sGuias">0</b><span>Guias anexadas no mês</span></div>
+      <div class="stat"><b id="sSemLote">0</b><span>Guias ainda sem lote</span></div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h2>Guias anexadas</h2>
+        <button class="btn" id="abrirModalBtn">+ Anexar guia</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Nº da guia</th>
+              <th>Beneficiário (Prec CP)</th>
+              <th>Data do atendimento</th>
+              <th>Arquivo</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+          <tbody id="tbGuias">
+            <tr><td colspan="5">Entre com usuário e senha para carregar as guias.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="ov" id="mAnexo" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal">
+      <h2 id="mTitle">Anexar guia</h2>
+      <div class="row">
+        <div><label for="gNum">Nº da guia</label><input id="gNum" placeholder="Ex.: 202610606"></div>
+        <div><label for="gBen">Beneficiário (Prec CP)</label><input id="gBen" placeholder="Ex.: 34596112300"></div>
+      </div>
+      <div class="row" style="margin-top: 12px">
+        <div><label for="gData">Data do atendimento</label><input type="date" id="gData"></div>
+      </div>
+      <div style="margin-top: 12px">
+        <label for="gFile">Guia assinada (PDF)</label>
+        <input type="file" id="gFile" accept="application/pdf">
+      </div>
+      <div class="sign">
+        <input type="checkbox" id="gSign">
+        <label for="gSign" style="color: var(--tx); font-size: 14px; margin: 0;">
+          <b>Esta guia está assinada corretamente pelo beneficiário?</b><br>
+          <span style="color: var(--mut); font-size: 12px;">Marque para confirmar. Sem a confirmação o envio fica bloqueado.</span>
+        </label>
+      </div>
+      <div id="modalErro" class="erro" hidden></div>
+      <div class="acts">
+        <button class="btn o" id="cancelarAnexoBtn">Cancelar</button>
+        <button class="btn g" id="gSend" disabled>Enviar guia</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const STATUS_LABEL = { SEM_LOTE: 'Sem lote', EM_LOTE: 'Em lote' };
+    let tt;
+
+    function toast(m, err) {
+      const t = $('toast');
+      t.textContent = m;
+      t.className = 'toast on' + (err ? ' err' : '');
+      clearTimeout(tt);
+      tt = setTimeout(() => t.classList.remove('on'), 3600);
+    }
+
+    function authHeader() {
+      const user = $('user').value.trim();
+      const pass = $('pass').value;
+      if (!user || !pass) return null;
+      return 'Basic ' + btoa(user + ':' + pass);
+    }
+
+    function mostrarErroGlobal(msg) {
+      const el = $('erroGlobal');
+      el.textContent = msg;
+      el.hidden = false;
+    }
+
+    async function carregarGuias() {
+      $('erroGlobal').hidden = true;
+      const auth = authHeader();
+      if (!auth) {
+        mostrarErroGlobal('Informe usuário e senha.');
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/api/guias', { headers: { 'Authorization': auth } });
+        const data = await res.json();
+
+        if (!res.ok) {
+          mostrarErroGlobal(data.error || 'Não foi possível carregar as guias.');
+          return;
+        }
+
+        $('who').innerHTML = `<b>${$('user').value.trim()}</b>Autenticado`;
+
+        $('tbGuias').innerHTML = data.length
+          ? data.map(g => `<tr>
+              <td>${g.numeroGuia}</td>
+              <td>${g.beneficiarioPrecCp}</td>
+              <td>${new Date(g.dataAtendimento + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+              <td>${g.nomeArquivo}</td>
+              <td><span class="tag ${g.status === 'SEM_LOTE' ? 't-wait' : 't-ok'}">${STATUS_LABEL[g.status] || g.status}</span></td>
+            </tr>`).join('')
+          : '<tr><td colspan="5">Nenhuma guia anexada ainda.</td></tr>';
+
+        $('sGuias').textContent = data.length;
+        $('sSemLote').textContent = data.filter(g => g.status === 'SEM_LOTE').length;
+      } catch (err) {
+        mostrarErroGlobal('Erro ao carregar as guias. Tente novamente.');
+      }
+    }
+
+    function abrirModal() {
+      ['gNum', 'gBen', 'gData', 'gFile'].forEach(id => $(id).value = '');
+      $('gSign').checked = false;
+      $('gSend').disabled = true;
+      $('modalErro').hidden = true;
+      $('mAnexo').classList.add('on');
+      $('gNum').focus();
+    }
+
+    function fecharModal() {
+      $('mAnexo').classList.remove('on');
+    }
+
+    async function enviarGuia() {
+      const auth = authHeader();
+      if (!auth) {
+        $('modalErro').textContent = 'Informe usuário e senha.';
+        $('modalErro').hidden = false;
+        return;
+      }
+
+      const numeroGuia = $('gNum').value.trim();
+      const beneficiarioPrecCp = $('gBen').value.trim();
+      const dataAtendimento = $('gData').value;
+      const arquivo = $('gFile').files[0];
+
+      if (!numeroGuia || !beneficiarioPrecCp || !dataAtendimento || !arquivo) {
+        $('modalErro').textContent = 'Preencha todos os campos e anexe o PDF da guia.';
+        $('modalErro').hidden = false;
+        return;
+      }
+      if (!$('gSign').checked) return;
+
+      const formData = new FormData();
+      formData.append('numeroGuia', numeroGuia);
+      formData.append('beneficiarioPrecCp', beneficiarioPrecCp);
+      formData.append('dataAtendimento', dataAtendimento);
+      formData.append('arquivo', arquivo);
+
+      try {
+        const res = await fetch(API_BASE + '/api/guias', {
+          method: 'POST',
+          headers: { 'Authorization': auth },
+          body: formData
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          $('modalErro').textContent = data.error || 'Não foi possível anexar a guia.';
+          $('modalErro').hidden = false;
+          return;
+        }
+
+        fecharModal();
+        await carregarGuias();
+        toast('Guia ' + data.numeroGuia + ' anexada com sucesso.');
+      } catch (err) {
+        $('modalErro').textContent = 'Erro ao anexar a guia. Tente novamente.';
+        $('modalErro').hidden = false;
+      }
+    }
+
+    $('carregarBtn').addEventListener('click', carregarGuias);
+    $('abrirModalBtn').addEventListener('click', abrirModal);
+    $('cancelarAnexoBtn').addEventListener('click', fecharModal);
+    $('gSign').addEventListener('change', () => { $('gSend').disabled = !$('gSign').checked; });
+    $('gSend').addEventListener('click', enviarGuia);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+  </script>
+</body>
+</html>
