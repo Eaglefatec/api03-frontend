@@ -1,34 +1,52 @@
-# FUSEX — Frontend (Sprint 2)
+# FUSEX — Frontend
 
-Interface HTML/CSS/JavaScript separada do backend Spring Boot.
+Interface HTML, CSS e JavaScript do projeto FUSEX, mantida separada da API Spring Boot.
 
-## Executar com Docker
+## Executar o frontend com Docker
 
-Na raiz da branch de integração, execute:
+Requisitos: Docker Desktop com Docker Compose.
 
-```bash
-docker compose up --build
+Na raiz deste repositório, execute:
+
+```powershell
+docker compose up --build -d
 ```
 
-A interface ficará disponível em http://localhost:5500 e o backend em http://localhost:8080. O Compose inicia MySQL, backend e frontend. A configuração padrão do frontend chama a API em `http://localhost:8080`.
+Acesse http://localhost:5500.
 
-## Executar apenas o frontend para desenvolvimento
+Para parar o servidor:
 
-Se o backend já estiver executando na porta 8080, é possível servir os arquivos estáticos com Python:
-
-```bash
-python -m http.server 5500
+```powershell
+docker compose down
 ```
 
-No Windows, também pode usar `py -m http.server 5500`. Acesse http://localhost:5500. Esse servidor Python é opcional e serve somente os arquivos estáticos; ele não inicia nem substitui o backend.
+Esse contêiner serve somente os arquivos estáticos do frontend. Ele não inicia o banco nem o backend Spring Boot.
 
-## Configuração da API
+## Executar o backend
 
-O arquivo `js/config.js` define `API_BASE`, por padrão, como `http://localhost:8080`. Para outro ambiente, ajuste o valor ou defina `window.FUSEX_API_BASE` antes de carregar o arquivo.
+O backend está no repositório [api03-backend](https://github.com/Eaglefatec/api03-backend). Para testar a aplicação completa, mantenha o backend ativo na porta `8080` antes de usar telas que consultam ou alteram dados.
 
-## Escopo
+No backend, o fluxo local é:
+1. `docker compose up -d` para iniciar o MySQL.
+2. `.\mvnw.cmd test` para executar os testes.
+3. `.\mvnw.cmd spring-boot:run` para iniciar a API.
 
-- Inclui as 10 páginas HTML da versão integrada da Sprint 2 e os estilos CSS.
-- As chamadas `fetch` usam uma URL base configurável.
-- Parte do JavaScript continua embutida nos HTMLs; sua extração em arquivos próprios pode ser feita posteriormente.
-- Este projeto contém apenas a interface. Autenticação, regras de negócio e persistência dependem do backend.
+A API usa o contexto `/api`; a URL base configurada no frontend é `http://localhost:8080`.
+
+## Configurar a URL da API
+
+Edite `js/config.js`:
+
+```javascript
+const API_BASE = window.FUSEX_API_BASE || 'http://localhost:8080';
+```
+
+O backend deve permitir a origem do frontend via CORS. A configuração atual permite origens de desenvolvimento `localhost` e `127.0.0.1`.
+
+## Estrutura
+
+- `*.html`: telas do sistema.
+- `css/`: folhas de estilo.
+- `js/config.js`: URL base da API.
+
+Parte do JavaScript permanece embutida nos HTMLs, preservando a estrutura das telas atuais. A extração desses scripts para arquivos separados pode ser feita em outra etapa, se necessário.
