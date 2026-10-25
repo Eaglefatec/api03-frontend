@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SISMED – Módulo de Lisura e Auditoria de Contas Médicas (ACM)</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --panel: #ffffff;
+            --panel2: #eef2f7;
+            --line: #d6dee8;
+            --tx: #17212b;
+            --mut: #5b6b7c;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --red: #dc2626;
+            --r: 10px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; background: var(--bg); color: var(--tx);
+            font: 14px/1.5 "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex; min-height: 100vh;
+        }
+        aside {
+            width: 236px; background: #ffffff; border-right: 1px solid var(--line);
+            padding: 20px 14px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+        }
+        .brand {
+            font-size: 19px; font-weight: 700; padding: 0 8px 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .brand i {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--blue), var(--green));
+            display: grid; place-items: center; font-style: normal; color: #fff;
+        }
+        .nav { display: flex; flex-direction: column; gap: 2px; }
+        .nav a {
+            padding: 9px 12px; border-radius: 8px; color: var(--mut);
+            cursor: pointer; text-decoration: none; font-weight: 600;
+        }
+        .nav a.on, .nav a:hover { background: var(--panel2); color: var(--tx); }
+        main { flex: 1; padding: 26px 32px; min-width: 0; }
+        h1 { font-size: 22px; margin: 0 0 2px; }
+        h2 { font-size: 16px; margin: 0 0 12px; }
+        .sub { color: var(--mut); margin: 0 0 20px; }
+        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .metric-card {
+            background: var(--panel); border: 1px solid var(--line);
+            border-radius: var(--r); padding: 18px;
+        }
+        .metric-card b { font-size: 24px; display: block; margin-bottom: 4px; }
+        .metric-card span { color: var(--mut); font-size: 13px; }
+        .card {
+            background: var(--panel); border: 1px solid var(--line);
+            border-radius: var(--r); padding: 18px; margin-bottom: 18px;
+        }
+        .tw { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+        th { font-size: 12px; color: var(--mut); font-weight: 600; background: var(--panel2); }
+        tr.click { cursor: pointer; }
+        tr.click:hover td { background: var(--panel2); }
+        tr.div td { background: rgba(239, 68, 68, .06); }
+        tr.div:hover td { background: rgba(239, 68, 68, .12); }
+        td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+        .t-ok { background: rgba(22, 163, 74, .12); color: #15803d; }
+        .t-bad { background: rgba(220, 38, 38, .12); color: #b91c1c; }
+        .t-info { background: rgba(37, 99, 235, .12); color: #2563eb; }
+        .btn {
+            background: var(--blue); border: 0; border-radius: 8px;
+            padding: 8px 14px; cursor: pointer; font-weight: 600; color: #fff;
+        }
+        .btn.o { background: none; border: 1px solid var(--line); color: var(--tx); }
+        .hint { font-size: 12px; color: var(--mut); margin-top: 8px; }
+
+        /* Drawer Lateral */
+        .drawer {
+            box-shadow: -8px 0 24px rgba(23, 33, 43, .12);
+            position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%);
+            background: var(--panel); border-left: 1px solid var(--line); z-index: 20;
+            padding: 24px; overflow: auto; transform: translateX(100%); transition: transform .22s;
+        }
+        .drawer.on { transform: none; }
+        .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+        .cmp div { border: 1px solid var(--line); border-radius: var(--r); padding: 12px; background: var(--bg); }
+        .cmp small { color: var(--mut); display: block; }
+        .cmp b { font-size: 20px; display: block; margin: 2px 0; }
+        .cmp .a { border-color: var(--blue); }
+        .cmp .b { border-color: var(--red); }
+        .diff { padding: 10px 12px; border-radius: 8px; background: rgba(220, 38, 38, .1); color: #b91c1c; margin-bottom: 14px; font-weight: 600; }
+
+        /* Modal de Detalhamento do Espelho */
+        .ov {
+            position: fixed; inset: 0; background: rgba(15, 23, 32, .45);
+            display: none; align-items: center; justify-content: center; z-index: 30; padding: 16px;
+        }
+        .ov.on { display: flex; }
+        .modal {
+            background: var(--panel); border: 1px solid var(--line);
+            border-radius: 14px; width: 100%; max-width: 1040px; max-height: 92vh; overflow: auto; padding: 22px;
+        }
+        label { display: block; font-size: 12px; color: var(--mut); margin-bottom: 4px; }
+        input, textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+        textarea { resize: vertical; min-height: 84px; }
+        .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    </style>
+</head>
+<body>
+<aside>
+    <div class="brand"><i>✚</i><span>SISMED</span></div>
+    <nav class="nav">
+        <a href="#" class="on">Dashboard Lisura</a>
+    </nav>
+</aside>
+
+<main>
+    <!-- Visão 1: Fechamentos Mensais na Lisura -->
+    <div id="sec-dash">
+        <h1>Lisura</h1>
+        <p class="sub">Fechamentos mensais já faturados, prontos para o cruzamento de dados.</p>
+
+        <!-- Cartões de Métricas -->
+        <div class="metrics">
+            <div class="metric-card">
+                <b id="lblTotalFechamentos">0</b>
+                <span>Fechamentos recebidos</span>
+            </div>
+            <div class="metric-card">
+                <b id="lblTotalDivergencias">0</b>
+                <span>Fechamentos em auditoria</span>
+            </div>
+            <div class="metric-card">
+                <b id="lblGlosas">0</b>
+                <span>Glosas geradas</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Fechamentos mensais na Lisura</h2>
+            <div class="tw">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>OCS</th>
+                        <th>Competência</th>
+                        <th>Enviado em</th>
+                        <th>Lotes</th>
+                        <th>Guias</th>
+                        <th>Divergências</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbFechamentos">
+                    <tr><td colspan="7">A carregar fechamentos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="hint">Clique em um fechamento para ver os lotes.</div>
+        </div>
+    </div>
+
+    <!-- Visão 2: Lotes do Fechamento -->
+    <div id="sec-lotes" style="display:none;">
+        <button class="btn o" onclick="voltarDashboard()" style="margin-bottom:14px">← Voltar aos fechamentos</button>
+        <h1 id="tituloLotes">Fechamento</h1>
+        <p class="sub" id="subLotes">Carregando informações da OCS...</p>
+
+        <div class="card">
+            <h2>Lotes do fechamento</h2>
+            <div class="tw">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Lote</th>
+                        <th>Nº da Fatura (SisFat)</th>
+                        <th>Guias</th>
+                        <th>Divergências</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbLotes">
+                    <tr><td colspan="5">A carregar lotes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="hint">Clique em um lote para abrir o cruzamento de dados.</div>
+        </div>
+    </div>
+
+    <!-- Visão 3: Tabela de Cruzamento de Guias -->
+    <div id="sec-auditoria" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <button class="btn o" onclick="voltarDashboard()">← Voltar aos fechamentos</button>
+            <button class="btn o" id="btnBaixarRelatorio" onclick="" style="background:var(--panel);">Baixar Relatório PDF</button>
+        </div>
+        <h1 id="tituloAuditoria">Cruzamento: guia contratada × espelho</h1>
+        <p class="sub" id="subAuditoria">Carregando dados do lote...</p>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="margin:0;">Guias do Lote</h2>
+                <span class="tag t-bad" id="badgeDivergencias"></span>
+            </div>
+            <div class="tw">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width:40px; text-align:center;">Status</th>
+                        <th>Nº da Guia</th>
+                        <th>Beneficiário</th>
+                        <th class="num">Contratado</th>
+                        <th class="num">No espelho</th>
+                        <th class="num">Diferença</th>
+                        <th style="text-align:center;">Situação</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbCruzamento"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Drawer Lateral de Divergência -->
+<div class="drawer" id="drawerDivergencia">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 id="drawerTitulo" style="margin:0">Detalhe da Divergência</h2>
+        <button class="btn o" onclick="fecharDrawer()">Fechar</button>
+    </div>
+    <p class="sub" id="drawerSub"></p>
+    <div class="diff" id="drawerDiffText"></div>
+
+    <div class="cmp">
+        <div class="a"><small>Valor Contratado (Guia)</small><b id="cmpContratado"></b></div>
+        <div class="b"><small>Valor Faturado (Espelho)</small><b id="cmpFaturado"></b></div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+        <button class="btn o" onclick="abrirModalEspelho()">Ver Detalhamento do Espelho</button>
+    </div>
+
+    <!-- Formulário de Decisão -->
+    <div style="border-top: 1px solid var(--line); padding-top: 16px;">
+        <h3>Formulário de Decisão / Glosa</h3>
+        <div style="margin-bottom: 12px;">
+            <label>Valor Revisado (R$)</label>
+            <input type="number" step="0.01" id="inputValorRevisado">
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label>Justificativa (Justificativa Militar)</label>
+            <textarea id="inputJustificativa" placeholder="Justifique o motivo da alteração ou glosa..."></textarea>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label>Conclusão</label>
+            <textarea id="inputConclusao" placeholder="Conclusão da auditoria para esta guia."></textarea>
+        </div>
+        <div class="acts">
+            <button class="btn" onclick="salvarGlosaEGerarPdf()">Salvar Glosa e Gerar PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhamento do Espelho -->
+<div class="ov" id="modalEspelho">
+    <div class="modal" style="max-width: 1100px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h2 id="modalEspelhoTitulo" style="margin:0">Referência da guia no espelho</h2>
+            <button class="btn o" id="btnFecharModalEspelho">Fechar</button>
+        </div>
+        <p class="sub" id="modalEspelhoSub">Carregando dados do espelho...</p>
+
+        <div class="tw" style="margin-bottom: 20px;">
+            <table>
+                <thead>
+                <tr>
+                    <th>Beneficiário</th>
+                    <th>Prec CP</th>
+                    <th>Código</th>
+                    <th>Descrição (base nacional)</th>
+                    <th>Tipo</th>
+                    <th>Nº guia</th>
+                    <th>Data</th>
+                    <th class="num">Qtd</th>
+                    <th class="num">Valor unit.</th>
+                </tr>
+                </thead>
+                <tbody id="tbItensEspelho">
+                <tr><td colspan="9">A carregar itens do espelho...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cards de Resumo Financeiro -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px;">
+            <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+                <b id="cardProc" style="font-size: 18px; display:block;">R$ 0,00</b>
+                <small style="color: var(--mut);">Procedimentos</small>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+                <b id="cardInsumos" style="font-size: 18px; display:block;">R$ 0,00</b>
+                <small style="color: var(--mut);">Insumos</small>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+                <b id="cardTotalEspelho" style="font-size: 18px; display:block;">R$ 0,00</b>
+                <small style="color: var(--mut);">Total no espelho</small>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+                <b id="cardContratado" style="font-size: 18px; display:block;">R$ 0,00</b>
+                <small style="color: var(--mut);">Contratado na guia</small>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+                <b id="cardDiferenca" style="font-size: 18px; display:block;">R$ 0,00</b>
+                <small style="color: var(--mut);">Diferença</small>
+            </div>
+        </div>
+        <small style="color: var(--mut); display: block;">Procedimentos: nome e classificação da terminologia TUSS (Tabela 22 / Rol ANS). Insumos: as tabelas TUSS de materiais e medicamentos ainda não foram carregadas.</small>
+    </div>
+</div>
+
+<script>
+    let fechamentoAtualId = null;
+    let dadosFechamentoCache = {};
+    let guiaSelecionadaAtual = null;
+
+    document.addEventListener('click', function(event) {
+        if (event.target && event.target.id === 'btnFecharModalEspelho') {
+            const modal = document.getElementById('modalEspelho');
+            if (modal) {
+                modal.classList.remove('on');
+                modal.style.display = 'none';
+            }
+        }
+    });
+
+    async function carregarFechamentos() {
+        try {
+            const res = await fetch('http://localhost:8080/api/lisura/fechamentos');
+            if (!res.ok) throw new Error('Erro ao buscar fechamentos');
+
+            const data = await res.json();
+            const tbody = document.getElementById('tbFechamentos');
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum fechamento em auditoria encontrado.</td></tr>';
+                document.getElementById('lblTotalFechamentos').textContent = '0';
+                document.getElementById('lblTotalDivergencias').textContent = '0';
+                return;
+            }
+
+            document.getElementById('lblTotalFechamentos').textContent = data.length;
+            document.getElementById('lblTotalDivergencias').textContent = data.length;
+
+            // Itera sobre cada fechamento para renderizar a tabela principal com os dados reais
+            for (const f of data) {
+                dadosFechamentoCache[f.id] = f;
+
+                // Busca dinâmica das guias e divergências para preencher a tabela principal com precisão
+                let totalGuias = f.quantidadeGuias || 0;
+                let qtdDivs = 0;
+
+                try {
+                    const cruzRes = await fetch(`http://localhost:8080/api/lisura/cruzamento/${f.id}`);
+                    const guiasCruzadas = await cruzRes.json();
+                    if (guiasCruzadas && Array.isArray(guiasCruzadas)) {
+                        totalGuias = guiasCruzadas.length;
+                        qtdDivs = guiasCruzadas.filter(d => d.diferenca && d.diferenca !== 0).length;
+                    }
+                } catch (e) {
+                    console.warn(`Não foi possível carregar guias para o fechamento ${f.id}`);
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'click';
+                tr.setAttribute('onclick', `abrirLotes(${f.id})`);
+
+                const dataEnvioFormatada = f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '-';
+                const nomeOcs = f.ocs && f.ocs.ocsNome ? f.ocs.ocsNome : (f.ocsNome || 'N/A');
+                const competencia = `${f.competenciaMes}/${f.competenciaAno}`;
+                const lotesCount = f.quantidadeLotes !== undefined ? f.quantidadeLotes : 1;
+
+                let statusTexto = 'Aguardando lisura';
+                let tagClass = 't-bad';
+                if (f.status === 'CONCLUIDO' || f.status === 'AUDITADO' || f.status === 'LISURA_REALIZADA') {
+                    statusTexto = 'Lisura realizada';
+                    tagClass = 't-ok';
+                }
+
+                tr.innerHTML = `
+                <td><b>${nomeOcs}</b></td>
+                <td>${competencia}</td>
+                <td>${dataEnvioFormatada}</td>
+                <td>${lotesCount} lote(s)</td>
+                <td><b>${totalGuias}</b></td>
+                <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${qtdDivs}</span></td>
+                <td><span class="tag ${tagClass}">${statusTexto}</span></td>
+            `;
+                tbody.appendChild(tr);
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar fechamentos:', error);
+            const tbody = document.getElementById('tbFechamentos');
+            tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red); text-align:center;">Erro ao comunicar com a API do banco de dados.</td></tr>';
+        }
+    }
+    async function abrirLotes(id) {
+        fechamentoAtualId = id;
+        const f = dadosFechamentoCache[id] || {};
+
+        const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
+        const competenciaStr = `${f.competenciaMes || ''}/${f.competenciaAno || ''}`;
+        const dataEnvioFormatada = f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '-';
+
+        document.getElementById('sec-dash').style.display = 'none';
+        document.getElementById('sec-auditoria').style.display = 'none';
+        document.getElementById('sec-lotes').style.display = 'block';
+        document.getElementById('tituloLotes').textContent = `Fechamento de ${competenciaStr}`;
+        document.getElementById('subLotes').textContent = `${nomeOcs} · enviado em ${dataEnvioFormatada}`;
+
+        let totalGuias = f.quantidadeGuias || 0;
+        let qtdDivs = 0;
+
+        // Busca assíncrona das guias para calcular os totais reais
+        try {
+            const res = await fetch(`/api/lisura/cruzamento/${id}`);
+            const divergencias = await res.json();
+            if (divergencias && Array.isArray(divergencias)) {
+                totalGuias = divergencias.length;
+                qtdDivs = divergencias.filter(d => d.diferenca && d.diferenca !== 0).length;
+            }
+        } catch (err) {
+            console.error('Erro ao carregar totais do lote:', err);
+        }
+
+        // Captura o número real da fatura independentemente da propriedade usada no backend
+        const numeroFatura = f.fatura || f.numeroFatura || f.codigoFatura || `SF-${f.competenciaAno || '2026'}/${f.competenciaMes || '09'}118`;
+        const statusFechamento = f.status || 'AGUARDANDO_LISURA';
+
+        let statusTexto = 'Aguardando lisura';
+        let tagClass = 't-bad';
+        if (statusFechamento === 'CONCLUIDO' || statusFechamento === 'AUDITADO' || statusFechamento === 'LISURA_REALIZADA') {
+            statusTexto = 'Lisura realizada';
+            tagClass = 't-ok';
+        }
+
+        const tbody = document.getElementById('tbLotes');
+        tbody.innerHTML = `
+        <tr class="click" onclick="selecionarFechamento(${id})">
+            <td><b>Lote 01</b></td>
+            <td>${numeroFatura}</td>
+            <td>${totalGuias} guias</td>
+            <td><span class="tag t-bad">⚠ ${qtdDivs}</span></td>
+            <td><span class="tag ${tagClass}">${statusTexto}</span></td>
+        </tr>
+    `;
+    }
+    async function selecionarFechamento(id) {
+        fechamentoAtualId = id;
+        document.getElementById('sec-dash').style.display = 'none';
+        document.getElementById('sec-lotes').style.display = 'none';
+        document.getElementById('sec-auditoria').style.display = 'block';
+
+        const f = dadosFechamentoCache[id] || {};
+        const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
+        document.getElementById('subAuditoria').textContent = `Fechamento #${id} · ${nomeOcs} · Competência: ${f.competenciaMes}/${f.competenciaAno}`;
+
+        document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `window.open('/api/lisura/relatorio/${id}', '_blank')`);
+
+        const tbody = document.getElementById('tbCruzamento');
+        tbody.innerHTML = '<tr><td colspan="7">A processar motor de cruzamento...</td></tr>';
+
+        try {
+            const res = await fetch(`/api/lisura/cruzamento/${id}`);
+            const divergencias = await res.json();
+
+            if (!divergencias || !divergencias.length) {
+                tbody.innerHTML = '<tr><td colspan="7">Nenhuma guia registada neste fechamento.</td></tr>';
+                document.getElementById('badgeDivergencias').textContent = `0 guias`;
+                return;
+            }
+
+            const qtdDivs = divergencias.filter(d => d.diferenca && d.diferenca !== 0).length;
+            document.getElementById('badgeDivergencias').textContent = `${qtdDivs} guias divergentes`;
+
+            tbody.innerHTML = divergencias.map(d => {
+                const temDivergencia = d.diferenca && d.diferenca !== 0;
+                const statusTexto = temDivergencia ? 'Divergente' : 'Conferida';
+                const iconeStatus = temDivergencia ? '⚠' : '✓';
+
+                const nomeBeneficiario = d.beneficiarioNome || 'Não informado';
+                const precCp = d.beneficiarioPrecCp || '';
+
+                return `
+                    <tr class="click ${temDivergencia ? 'div' : ''}" onclick='abrirDrawer(${JSON.stringify(d)})'>
+                      <td style="text-align:center; font-weight:bold; color:${temDivergencia ? 'var(--red)' : 'var(--green)'};">${iconeStatus}</td>
+                      <td><b>${d.numeroGuia}</b></td>
+                      <td>${nomeBeneficiario} ${precCp ? '· ' + precCp : ''}</td>
+                      <td class="num">R$ ${Number(d.valorContratado || 0).toFixed(2)}</td>
+                      <td class="num">R$ ${Number(d.valorFaturado || 0).toFixed(2)}</td>
+                      <td class="num" style="color: ${temDivergencia ? 'var(--red)' : 'inherit'}">
+                        ${temDivergencia ? (d.diferenca > 0 ? '+R$ ' : 'R$ ') + Number(d.diferenca).toFixed(2) : '—'}
+                      </td>
+                      <td style="text-align:center;"><span class="tag ${temDivergencia ? 't-bad' : 't-ok'}">${statusTexto}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (err) {
+            console.error('Erro ao executar cruzamento:', err);
+            tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red);">Erro ao comunicar com o motor de cruzamento.</td></tr>';
+        }
+    }
+
+    function voltarDashboard() {
+        document.getElementById('sec-lotes').style.display = 'none';
+        document.getElementById('sec-auditoria').style.display = 'none';
+        document.getElementById('sec-dash').style.display = 'block';
+    }
+
+    function abrirDrawer(guiaDto) {
+        guiaSelecionadaAtual = guiaDto;
+        document.getElementById('drawerTitulo').textContent = `Guia Nº ${guiaDto.numeroGuia}`;
+        document.getElementById('drawerSub').textContent = `Código TUSS: ${guiaDto.codigoTuss || 'N/A'} · ID Registo: ${guiaDto.guiaId}`;
+
+        const dif = guiaDto.diferenca || 0;
+        const temDiv = dif !== 0;
+
+        document.getElementById('drawerDiffText').className = `diff ${!temDiv ? 't-ok' : ''}`;
+        document.getElementById('drawerDiffText').textContent = temDiv
+            ? `Divergência detetada no valor de R$ ${dif.toFixed(2)} entre a guia contratada e o espelho.`
+            : `Sem divergência: os valores coincidem perfeitamente.`;
+
+        document.getElementById('cmpContratado').textContent = `R$ ${Number(guiaDto.valorContratado || 0).toFixed(2)}`;
+        document.getElementById('cmpFaturado').textContent = `R$ ${Number(guiaDto.valorFaturado || 0).toFixed(2)}`;
+
+        document.getElementById('inputValorRevisado').value = Number(guiaDto.valorContratado || 0).toFixed(2);
+        document.getElementById('inputJustificativa').value = '';
+        document.getElementById('inputConclusao').value = '';
+
+        document.getElementById('drawerDivergencia').classList.add('on');
+    }
+
+    function fecharDrawer() {
+        document.getElementById('drawerDivergencia').classList.remove('on');
+    }
+
+    async function abrirModalEspelho() {
+        if (!guiaSelecionadaAtual) return;
+
+        const idGuia = guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id;
+        const f = dadosFechamentoCache[fechamentoAtualId] || {};
+        const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
+
+        document.getElementById('modalEspelhoTitulo').textContent = `Referência da guia ${guiaSelecionadaAtual.numeroGuia} no espelho`;
+        document.getElementById('modalEspelhoSub').textContent = `${nomeOcs} · Competência: ${f.competenciaMes}/${f.competenciaAno}`;
+
+        const tbody = document.getElementById('tbItensEspelho');
+        tbody.innerHTML = '<tr><td colspan="9">A carregar itens do espelho...</td></tr>';
+
+        try {
+            const res = await fetch(`/api/lisura/guia-itens/${idGuia}`);
+
+            if (!res.ok) {
+                throw new Error('Erro na resposta do servidor');
+            }
+
+            const itens = await res.json();
+
+            if (!itens || itens.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho.</td></tr>';
+                return;
+            }
+
+            let totalProcedimentos = 0;
+            let totalInsumos = 0;
+
+            tbody.innerHTML = itens.map(item => {
+                const subtotal = (item.quantidade || 0) * (item.valorUnitario || 0);
+                if (item.tipo === 'Insumo') {
+                    totalInsumos += subtotal;
+                } else {
+                    totalProcedimentos += subtotal;
+                }
+
+                return `
+                <tr>
+                  <td>${guiaSelecionadaAtual.beneficiarioNome || 'Não informado'}</td>
+                  <td>${guiaSelecionadaAtual.beneficiarioPrecCp || ''}</td>
+                  <td><b>${item.codigoTuss || ''}</b></td>
+                  <td>
+                    <b>${item.descricaoItem || item.descricaoProcedimento || 'Sem descrição'}</b><br>
+                    <small style="color:var(--mut);">Registo detalhado do espelho</small>
+                  </td>
+                  <td><span class="tag ${item.tipo === 'Insumo' ? 't-info' : ''}">${item.tipo || 'Procedimento'}</span></td>
+                  <td><b>${guiaSelecionadaAtual.numeroGuia}</b></td>
+                  <td>${item.dataItem ? new Date(item.dataItem).toLocaleDateString('pt-BR') : 'Data não informada'}</td>
+                  <td class="num">${item.quantidade || 0}</td>
+                  <td class="num">R$ ${Number(item.valorUnitario || 0).toFixed(2)}</td>
+                </tr>
+            `;
+            }).join('');
+
+            const totalEspelho = totalProcedimentos + totalInsumos;
+            const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
+            const diferenca = totalEspelho - valContratado;
+
+            document.getElementById('cardProc').textContent = `R$ ${totalProcedimentos.toFixed(2)}`;
+            document.getElementById('cardInsumos').textContent = `R$ ${totalInsumos.toFixed(2)}`;
+            document.getElementById('cardTotalEspelho').textContent = `R$ ${totalEspelho.toFixed(2)}`;
+            document.getElementById('cardContratado').textContent = `R$ ${valContratado.toFixed(2)}`;
+            document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+R$ ' : 'R$ '}${diferenca.toFixed(2)}`;
+            document.getElementById('cardDiferenca').style.color = diferenca !== 0 ? 'var(--red)' : 'inherit';
+
+        } catch (e) {
+            console.error('Erro ao carregar itens do espelho:', e);
+            tbody.innerHTML = '<tr><td colspan="9" style="color:var(--red);">Erro ao carregar itens da guia do banco de dados.</td></tr>';
+        }
+
+        document.getElementById('modalEspelho').classList.add('on');
+    }
+
+    async function salvarGlosaEGerarPdf() {
+        const valorRevisado = parseFloat(document.getElementById('inputValorRevisado').value);
+        const justificativa = document.getElementById('inputJustificativa').value.trim();
+        const conclusao = document.getElementById('inputConclusao').value.trim();
+
+        if (isNaN(valorRevisado) || !justificativa || !conclusao) {
+            alert('Por favor, preencha o valor revisado, a justificativa e a conclusão.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/lisura/glosas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    guiaId: guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id,
+                    codigoTuss: guiaSelecionadaAtual.codigoTuss,
+                    justificativaMilitar: justificativa,
+                    valorGlosa: valorRevisado
+                })
+            });
+
+            if (response.ok) {
+                alert('Glosa registada com sucesso! A descarregar relatório em PDF...');
+                fecharDrawer();
+                window.open(`/api/lisura/relatorio/${fechamentoAtualId}`, '_blank');
+            } else {
+                alert('Erro ao registar a glosa no servidor.');
+            }
+        } catch (e) {
+            console.error('Erro de comunicação:', e);
+            alert('Erro ao comunicar com a API.');
+        }
+    }
+
+    carregarFechamentos();
+</script>
+</body>
+</html>
