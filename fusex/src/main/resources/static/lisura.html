@@ -591,15 +591,7 @@
         const tbody = document.getElementById('tbItensEspelho');
         tbody.innerHTML = '<tr><td colspan="9">A carregar itens do espelho...</td></tr>';
 
-        // Limpa os cartões preventivamente enquanto carrega
-        document.getElementById('cardProc').textContent = `R$ 0,00`;
-        document.getElementById('cardInsumos').textContent = `R$ 0,00`;
-        document.getElementById('cardTotalEspelho').textContent = `R$ 0,00`;
-        document.getElementById('cardContratado').textContent = `R$ ${Number(guiaSelecionadaAtual.valorContratado || 0).toFixed(2)}`;
-        document.getElementById('cardDiferenca').textContent = `R$ 0,00`;
-        document.getElementById('cardDiferenca').style.color = 'inherit';
-
-        // Abre o modal imediatamente adicionando a classe .on
+        // Abre o modal imediatamente
         document.getElementById('modalEspelho').classList.add('on');
 
         try {
@@ -611,13 +603,25 @@
 
             const itens = await res.json();
 
-            if (!itens || itens.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho.</td></tr>';
+            const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
 
-                const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
-                const diferenca = valContratado - 0;
-                document.getElementById('cardDiferenca').textContent = `R$ ${diferenca.toFixed(2)}`;
-                document.getElementById('cardDiferenca').style.color = diferenca > 0 ? 'var(--green)' : (diferenca < 0 ? 'var(--red)' : 'inherit');
+            if (!itens || itens.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho. (A exibir valor consolidado da guia)</td></tr>';
+
+                // Se não há itens detalhados, usa o valor faturado consolidado da guia
+                const valFaturadoConsolidado = Number(guiaSelecionadaAtual.valorFaturado || 0);
+                const diferenca = valContratado - valFaturadoConsolidado;
+
+                let corCardDiff = 'inherit';
+                if (diferenca > 0) corCardDiff = 'var(--green)';
+                else if (diferenca < 0) corCardDiff = 'var(--red)';
+
+                document.getElementById('cardProc').textContent = `R$ 0,00`;
+                document.getElementById('cardInsumos').textContent = `R$ 0,00`;
+                document.getElementById('cardTotalEspelho').textContent = `R$ ${valFaturadoConsolidado.toFixed(2)}`;
+                document.getElementById('cardContratado').textContent = `R$ ${valContratado.toFixed(2)}`;
+                document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+R$ ' : (diferenca < 0 ? '-R$ ' : 'R$ ')}${Math.abs(diferenca).toFixed(2)}`;
+                document.getElementById('cardDiferenca').style.color = corCardDiff;
                 return;
             }
 
@@ -651,7 +655,6 @@
             }).join('');
 
             const totalEspelho = totalProcedimentos + totalInsumos;
-            const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
             const diferenca = valContratado - totalEspelho;
 
             let corCardDiff = 'inherit';
