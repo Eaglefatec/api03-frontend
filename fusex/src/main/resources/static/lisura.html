@@ -331,7 +331,6 @@
             const modal = document.getElementById('modalEspelho');
             if (modal) {
                 modal.classList.remove('on');
-                modal.style.display = 'none';
             }
         }
     });
@@ -355,11 +354,9 @@
             document.getElementById('lblTotalFechamentos').textContent = data.length;
             document.getElementById('lblTotalDivergencias').textContent = data.length;
 
-            // Itera sobre cada fechamento para renderizar a tabela principal com os dados reais
             for (const f of data) {
                 dadosFechamentoCache[f.id] = f;
 
-                // Busca dinâmica das guias e divergências para preencher a tabela principal com precisão
                 let totalGuias = f.quantidadeGuias || 0;
                 let qtdDivs = 0;
 
@@ -408,6 +405,7 @@
             tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red); text-align:center;">Erro ao comunicar com a API do banco de dados.</td></tr>';
         }
     }
+
     async function abrirLotes(id) {
         fechamentoAtualId = id;
         const f = dadosFechamentoCache[id] || {};
@@ -425,7 +423,6 @@
         let totalGuias = f.quantidadeGuias || 0;
         let qtdDivs = 0;
 
-        // Busca assíncrona das guias para calcular os totais reais
         try {
             const res = await fetch(`/api/lisura/cruzamento/${id}`);
             const divergencias = await res.json();
@@ -437,7 +434,6 @@
             console.error('Erro ao carregar totais do lote:', err);
         }
 
-        // Captura o número real da fatura independentemente da propriedade usada no backend
         const numeroFatura = f.fatura || f.numeroFatura || f.codigoFatura || `SF-${f.competenciaAno || '2026'}/${f.competenciaMes || '09'}118`;
         const statusFechamento = f.status || 'AGUARDANDO_LISURA';
 
@@ -472,7 +468,7 @@
         document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `window.open('/api/lisura/relatorio/${id}', '_blank')`);
 
         const tbody = document.getElementById('tbCruzamento');
-        tbody.innerHTML = '<tr><td colspan="7">A processar motor de cruzamento...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7">A processar motor de cruzamento e itens do espelho...</td></tr>';
 
         try {
             const res = await fetch(`/api/lisura/cruzamento/${id}`);
@@ -484,16 +480,50 @@
                 return;
             }
 
-            const qtdDivs = divergencias.filter(d => d.diferenca && d.diferenca !== 0).length;
+            // Para cada guia, busca os itens no espelho e calcula o valor faturado exatamente igual ao modal
+            const divergenciasComSomaReal = await Promise.all(divergencias.map(async (d) => {
+                const idGuia = d.guiaId || d.id;
+                let valorFaturadoReal = Number(d.valorFaturado || 0);
+
+                try {
+                    const resItens = await fetch(`/api/lisura/guia-itens/${idGuia}`);
+                    if (resItens.ok) {
+                        const itens = await resItens.json();
+                        if (itens && itens.length > 0) {
+                            valorFaturadoReal = itens.reduce((acc, item) => {
+                                return acc + ((item.quantidade || 0) * (item.valorUnitario || 0));
+                            }, 0);
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Erro ao buscar itens da guia ${idGuia}, usando valor padrão.`);
+                }
+
+                const valContratado = Number(d.valorContratado || 0);
+                const diferenca = valContratado - valorFaturadoReal;
+
+                return {
+                    ...d,
+                    valorFaturado: valorFaturadoReal,
+                    diferenca: diferenca
+                };
+            }));
+
+            const qtdDivs = divergenciasComSomaReal.filter(d => d.diferenca !== 0).length;
             document.getElementById('badgeDivergencias').textContent = `${qtdDivs} guias divergentes`;
 
-            tbody.innerHTML = divergencias.map(d => {
-                const temDivergencia = d.diferenca && d.diferenca !== 0;
+            tbody.innerHTML = divergenciasComSomaReal.map(d => {
+                const temDivergencia = d.diferenca !== 0;
                 const statusTexto = temDivergencia ? 'Divergente' : 'Conferida';
                 const iconeStatus = temDivergencia ? '⚠' : '✓';
 
                 const nomeBeneficiario = d.beneficiarioNome || 'Não informado';
                 const precCp = d.beneficiarioPrecCp || '';
+
+                // Cor dinâmica: Verde para positivo (> 0), Vermelho para negativo (< 0)
+                let corDiferenca = 'inherit';
+                if (d.diferenca > 0) corDiferenca = 'var(--green)';
+                else if (d.diferenca < 0) corDiferenca = 'var(--red)';
 
                 return `
                     <tr class="click ${temDivergencia ? 'div' : ''}" onclick='abrirDrawer(${JSON.stringify(d)})'>
@@ -502,8 +532,8 @@
                       <td>${nomeBeneficiario} ${precCp ? '· ' + precCp : ''}</td>
                       <td class="num">R$ ${Number(d.valorContratado || 0).toFixed(2)}</td>
                       <td class="num">R$ ${Number(d.valorFaturado || 0).toFixed(2)}</td>
-                      <td class="num" style="color: ${temDivergencia ? 'var(--red)' : 'inherit'}">
-                        ${temDivergencia ? (d.diferenca > 0 ? '+R$ ' : 'R$ ') + Number(d.diferenca).toFixed(2) : '—'}
+                      <td class="num" style="color: ${corDiferenca}; font-weight: ${temDivergencia ? '600' : 'normal'}">
+                        ${temDivergencia ? (d.diferenca > 0 ? '+R$ ' : '-R$ ') + Math.abs(d.diferenca).toFixed(2) : '—'}
                       </td>
                       <td style="text-align:center;"><span class="tag ${temDivergencia ? 't-bad' : 't-ok'}">${statusTexto}</span></td>
                     </tr>
@@ -561,6 +591,9 @@
         const tbody = document.getElementById('tbItensEspelho');
         tbody.innerHTML = '<tr><td colspan="9">A carregar itens do espelho...</td></tr>';
 
+        // Abre o modal imediatamente adicionando a classe .on
+        document.getElementById('modalEspelho').classList.add('on');
+
         try {
             const res = await fetch(`/api/lisura/guia-itens/${idGuia}`);
 
@@ -606,21 +639,24 @@
 
             const totalEspelho = totalProcedimentos + totalInsumos;
             const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
-            const diferenca = totalEspelho - valContratado;
+            const diferenca = valContratado - totalEspelho;
+
+            // Definição da cor dinâmica do card de diferença (Verde se positivo, Vermelho se negativo)
+            let corCardDiff = 'inherit';
+            if (diferenca > 0) corCardDiff = 'var(--green)';
+            else if (diferenca < 0) corCardDiff = 'var(--red)';
 
             document.getElementById('cardProc').textContent = `R$ ${totalProcedimentos.toFixed(2)}`;
             document.getElementById('cardInsumos').textContent = `R$ ${totalInsumos.toFixed(2)}`;
             document.getElementById('cardTotalEspelho').textContent = `R$ ${totalEspelho.toFixed(2)}`;
             document.getElementById('cardContratado').textContent = `R$ ${valContratado.toFixed(2)}`;
             document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+R$ ' : 'R$ '}${diferenca.toFixed(2)}`;
-            document.getElementById('cardDiferenca').style.color = diferenca !== 0 ? 'var(--red)' : 'inherit';
+            document.getElementById('cardDiferenca').style.color = corCardDiff;
 
         } catch (e) {
             console.error('Erro ao carregar itens do espelho:', e);
             tbody.innerHTML = '<tr><td colspan="9" style="color:var(--red);">Erro ao carregar itens da guia do banco de dados.</td></tr>';
         }
-
-        document.getElementById('modalEspelho').classList.add('on');
     }
 
     async function salvarGlosaEGerarPdf() {
