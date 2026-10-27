@@ -322,6 +322,18 @@
 </div>
 
 <script>
+    // Gera o token Basic Auth em Base64 (substitua 'admin' e 'admin123' se preferir outro usuário do seu SecurityConfig)
+const credenciais = btoa('admin:admin123');
+
+// Função auxiliar para padronizar as requisições autenticadas
+async function fetchAutenticado(url, options = {}) {
+    options.headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${credenciais}`,
+        ...(options.headers || {})
+    };
+    return fetch(url, options);
+}
     let fechamentoAtualId = null;
     let dadosFechamentoCache = {};
     let guiaSelecionadaAtual = null;
@@ -337,8 +349,18 @@
 
     async function carregarFechamentos() {
         try {
-            const res = await fetch('http://localhost:8080/api/lisura/fechamentos');
-            if (!res.ok) throw new Error('Erro ao buscar fechamentos');
+            const res = await fetch('/api/lisura/fechamentos', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    throw new Error('Sessão expirada ou usuário não autenticado (401). Faça login novamente.');
+                }
+                throw new Error(`Erro ao buscar fechamentos (Status: ${res.status})`);
+            }
 
             const data = await res.json();
             const tbody = document.getElementById('tbFechamentos');
@@ -354,6 +376,10 @@
             document.getElementById('lblTotalFechamentos').textContent = data.length;
             document.getElementById('lblTotalDivergencias').textContent = data.length;
 
+            if (typeof dadosFechamentoCache === 'undefined') {
+                window.dadosFechamentoCache = {};
+            }
+
             for (const f of data) {
                 dadosFechamentoCache[f.id] = f;
 
@@ -361,11 +387,16 @@
                 let qtdDivs = 0;
 
                 try {
-                    const cruzRes = await fetch(`http://localhost:8080/api/lisura/cruzamento/${f.id}`);
-                    const guiasCruzadas = await cruzRes.json();
-                    if (guiasCruzadas && Array.isArray(guiasCruzadas)) {
-                        totalGuias = guiasCruzadas.length;
-                        qtdDivs = guiasCruzadas.filter(d => d.diferenca && d.diferenca !== 0).length;
+                    const cruzRes = await fetch(`/api/lisura/cruzamento/${f.id}`, {
+                        credentials: 'include'
+                    });
+
+                    if (cruzRes.ok) {
+                        const guiasCruzadas = await cruzRes.json();
+                        if (guiasCruzadas && Array.isArray(guiasCruzadas)) {
+                            totalGuias = guiasCruzadas.length;
+                            qtdDivs = guiasCruzadas.filter(d => d.diferenca && d.diferenca !== 0).length;
+                        }
                     }
                 } catch (e) {
                     console.warn(`Não foi possível carregar guias para o fechamento ${f.id}`);
@@ -388,21 +419,21 @@
                 }
 
                 tr.innerHTML = `
-                <td><b>${nomeOcs}</b></td>
-                <td>${competencia}</td>
-                <td>${dataEnvioFormatada}</td>
-                <td>${lotesCount} lote(s)</td>
-                <td><b>${totalGuias}</b></td>
-                <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${qtdDivs}</span></td>
-                <td><span class="tag ${tagClass}">${statusTexto}</span></td>
-            `;
+                    <td><b>${nomeOcs}</b></td>
+                    <td>${competencia}</td>
+                    <td>${dataEnvioFormatada}</td>
+                    <td>${lotesCount} lote(s)</td>
+                    <td><b>${totalGuias}</b></td>
+                    <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${qtdDivs}</span></td>
+                    <td><span class="tag ${tagClass}">${statusTexto}</span></td>
+                `;
                 tbody.appendChild(tr);
             }
 
         } catch (error) {
             console.error('Erro ao carregar fechamentos:', error);
             const tbody = document.getElementById('tbFechamentos');
-            tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red); text-align:center;">Erro ao comunicar com a API do banco de dados.</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red); text-align:center;">${error.message || 'Erro ao comunicar com a API do banco de dados.'}</td></tr>`;
         }
     }
 
@@ -424,7 +455,7 @@
         let qtdDivs = 0;
 
         try {
-            const res = await fetch(`/api/lisura/cruzamento/${id}`);
+            const res = await fetch(`/api/lisura/cruzamento/${id}`, { credentials: 'include' });
             const divergencias = await res.json();
             if (divergencias && Array.isArray(divergencias)) {
                 totalGuias = divergencias.length;
@@ -446,15 +477,16 @@
 
         const tbody = document.getElementById('tbLotes');
         tbody.innerHTML = `
-        <tr class="click" onclick="selecionarFechamento(${id})">
-            <td><b>Lote 01</b></td>
-            <td>${numeroFatura}</td>
-            <td>${totalGuias} guias</td>
-            <td><span class="tag t-bad">⚠ ${qtdDivs}</span></td>
-            <td><span class="tag ${tagClass}">${statusTexto}</span></td>
-        </tr>
-    `;
+            <tr class="click" onclick="selecionarFechamento(${id})">
+                <td><b>Lote 01</b></td>
+                <td>${numeroFatura}</td>
+                <td>${totalGuias} guias</td>
+                <td><span class="tag t-bad">⚠ ${qtdDivs}</span></td>
+                <td><span class="tag ${tagClass}">${statusTexto}</span></td>
+            </tr>
+        `;
     }
+
     async function selecionarFechamento(id) {
         fechamentoAtualId = id;
         document.getElementById('sec-dash').style.display = 'none';
@@ -471,7 +503,7 @@
         tbody.innerHTML = '<tr><td colspan="7">A processar motor de cruzamento e itens do espelho...</td></tr>';
 
         try {
-            const res = await fetch(`/api/lisura/cruzamento/${id}`);
+            const res = await fetch(`/api/lisura/cruzamento/${id}`, { credentials: 'include' });
             const divergencias = await res.json();
 
             if (!divergencias || !divergencias.length) {
@@ -480,13 +512,12 @@
                 return;
             }
 
-            // Para cada guia, busca os itens no espelho e calcula o valor faturado exatamente igual ao modal
             const divergenciasComSomaReal = await Promise.all(divergencias.map(async (d) => {
                 const idGuia = d.guiaId || d.id;
                 let valorFaturadoReal = Number(d.valorFaturado || 0);
 
                 try {
-                    const resItens = await fetch(`/api/lisura/guia-itens/${idGuia}`);
+                    const resItens = await fetch(`/api/lisura/guia-itens/${idGuia}`, { credentials: 'include' });
                     if (resItens.ok) {
                         const itens = await resItens.json();
                         if (itens && itens.length > 0) {
@@ -520,7 +551,6 @@
                 const nomeBeneficiario = d.beneficiarioNome || 'Não informado';
                 const precCp = d.beneficiarioPrecCp || '';
 
-                // Cor dinâmica: Verde para positivo (> 0), Vermelho para negativo (< 0)
                 let corDiferenca = 'inherit';
                 if (d.diferenca > 0) corDiferenca = 'var(--green)';
                 else if (d.diferenca < 0) corDiferenca = 'var(--red)';
@@ -591,24 +621,21 @@
         const tbody = document.getElementById('tbItensEspelho');
         tbody.innerHTML = '<tr><td colspan="9">A carregar itens do espelho...</td></tr>';
 
-        // Abre o modal imediatamente
         document.getElementById('modalEspelho').classList.add('on');
 
         try {
-            const res = await fetch(`/api/lisura/guia-itens/${idGuia}`);
+            const res = await fetch(`/api/lisura/guia-itens/${idGuia}`, { credentials: 'include' });
 
             if (!res.ok) {
                 throw new Error('Erro na resposta do servidor');
             }
 
             const itens = await res.json();
-
             const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
 
             if (!itens || itens.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho. (A exibir valor consolidado da guia)</td></tr>';
 
-                // Se não há itens detalhados, usa o valor faturado consolidado da guia
                 const valFaturadoConsolidado = Number(guiaSelecionadaAtual.valorFaturado || 0);
                 const diferenca = valContratado - valFaturadoConsolidado;
 
@@ -673,6 +700,7 @@
             tbody.innerHTML = '<tr><td colspan="9" style="color:var(--red);">Erro ao carregar itens da guia do banco de dados.</td></tr>';
         }
     }
+
     async function salvarGlosaEGerarPdf() {
         const valorRevisado = parseFloat(document.getElementById('inputValorRevisado').value);
         const justificativa = document.getElementById('inputJustificativa').value.trim();
@@ -687,6 +715,7 @@
             const response = await fetch('/api/lisura/glosas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     guiaId: guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id,
                     codigoTuss: guiaSelecionadaAtual.codigoTuss,
