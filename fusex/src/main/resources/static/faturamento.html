@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUSEX - Faturamento</title>
+  <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+</head>
+<body>
+
+  <aside>
+    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Setor de Faturamento</small></span></a>
+    <nav class="nav">
+      <a href="faturamento.html" class="on">Fechamentos recebidos</a>
+    </nav>
+    <div class="who" id="who">
+      <b>Não autenticado</b>
+      Faça login para continuar
+    </div>
+  </aside>
+
+  <main>
+    <h1>Faturamento</h1>
+    <p class="sub">Fechamentos mensais enviados pelas OCSs. Para cada lote, confira os anexos, gere a fatura no SisFat e informe o número.</p>
+
+    <div class="card">
+      <h2>Autenticação</h2>
+      <div class="row">
+        <div><label for="user">Usuário</label><input id="user" value="faturamento"></div>
+        <div><label for="pass">Senha</label><input id="pass" type="password" placeholder="••••••••"></div>
+        <div style="display: flex; align-items: flex-end;">
+          <button id="carregarBtn" class="btn" style="width: 100%;">Entrar e Carregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="erroGlobal" class="erro" hidden></div>
+
+    <div class="stats">
+      <div class="stat"><b id="sPend" style="color: var(--amber);">0</b><span>Fechamentos aguardando faturamento</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Fechamentos mensais recebidos</h2>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>OCS</th>
+              <th>Competência</th>
+              <th>Enviado em</th>
+              <th class="num">Lotes</th>
+              <th class="num">Guias</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbFila">
+            <tr><td colspan="6">Entre com usuário e senha para carregar os fechamentos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">Clique em um fechamento para conferir os lotes.</p>
+    </div>
+  </main>
+
+  <div class="ov" id="mFat" role="dialog" aria-modal="true" aria-labelledby="cT">
+    <div class="modal" style="max-width: 800px;">
+      <h2 id="cT">Conferência do fechamento mensal</h2>
+      <div class="row">
+        <div><label>OCS</label><input id="cOcs" readonly></div>
+        <div><label>Competência</label><input id="cComp" readonly></div>
+        <div><label>Enviado em</label><input id="cEnvio" readonly></div>
+      </div>
+      <h2 style="margin-top: 18px; font-size: 15px;">Lotes do mês</h2>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Lote</th>
+              <th class="num">Guias</th>
+              <th>Anexos da OCS</th>
+              <th>Nº da Fatura (SisFat)</th>
+            </tr>
+          </thead>
+          <tbody id="tbLotesFat"></tbody>
+        </table>
+      </div>
+      <p class="hint">Confira os PDFs de cada lote, gere a fatura no SisFat e informe o número. O fechamento só segue para a Lisura quando todos os lotes tiverem número.</p>
+      <div id="modalErro" class="erro" hidden></div>
+      <div class="acts">
+        <button class="btn o" id="cancelarBtn">Cancelar</button>
+        <button class="btn g" id="confirmarBtn">Confirmar e Enviar para Lisura</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const competencia = (ano, mes) => `${MESES[mes]}/${ano}`;
+    const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    let fechamentoAtual = null;
+    let lotesAtuais = [];
+    let tt;
+
+    function toast(m, err) {
+      const t = $('toast');
+      t.textContent = m;
+      t.className = 'toast on' + (err ? ' err' : '');
+      clearTimeout(tt);
+      tt = setTimeout(() => t.classList.remove('on'), 3600);
+    }
+
+    function authHeader() {
+      const user = $('user').value.trim();
+      const pass = $('pass').value;
+      if (!user || !pass) return null;
+      return 'Basic ' + btoa(user + ':' + pass);
+    }
+
+    function mostrarErro(msg) {
+      $('erroGlobal').textContent = msg;
+      $('erroGlobal').hidden = false;
+    }
+
+    async function carregarFila() {
+      $('erroGlobal').hidden = true;
+      const auth = authHeader();
+      if (!auth) { mostrarErro('Informe usuário e senha.'); return; }
+
+      try {
+        const res = await fetch('/api/faturamento/fechamentos', { headers: { 'Authorization': auth } });
+        const data = await res.json();
+        if (!res.ok) { mostrarErro(data.error || 'Não foi possível carregar os fechamentos.'); return; }
+
+        $('who').innerHTML = `<b>${esc($('user').value.trim())}</b>Setor de Faturamento`;
+        $('sPend').textContent = data.length;
+        $('tbFila').innerHTML = data.length
+          ? data.map(f => `<tr class="click" data-id="${f.id}">
+              <td>${esc(f.ocsNome)}</td>
+              <td>${competencia(f.competenciaAno, f.competenciaMes)}</td>
+              <td>${new Date(f.dataEnvio).toLocaleDateString('pt-BR')}</td>
+              <td class="num">${f.quantidadeLotes}</td>
+              <td class="num">${f.quantidadeGuias}</td>
+              <td><span class="tag t-wait">Aguardando faturamento</span></td>
+            </tr>`).join('')
+          : '<tr><td colspan="6">Nenhum fechamento aguardando faturamento.</td></tr>';
+
+        document.querySelectorAll('#tbFila tr.click').forEach(tr => {
+          tr.addEventListener('click', () => abrirConferencia(data.find(f => f.id === Number(tr.dataset.id))));
+        });
+      } catch (err) {
+        mostrarErro('Erro ao carregar os fechamentos. Tente novamente.');
+      }
+    }
+
+    async function abrirConferencia(fechamento) {
+      const auth = authHeader();
+      if (!auth) return;
+
+      try {
+        const res = await fetch(`/api/faturamento/fechamentos/${fechamento.id}/lotes`, { headers: { 'Authorization': auth } });
+        const lotes = await res.json();
+        if (!res.ok) { mostrarErro(lotes.error || 'Não foi possível carregar os lotes.'); return; }
+
+        fechamentoAtual = fechamento;
+        lotesAtuais = lotes;
+        $('cOcs').value = fechamento.ocsNome;
+        $('cComp').value = competencia(fechamento.competenciaAno, fechamento.competenciaMes);
+        $('cEnvio').value = new Date(fechamento.dataEnvio).toLocaleDateString('pt-BR');
+        $('tbLotesFat').innerHTML = lotes.map(l => `<tr>
+            <td>Lote ${l.numeroLote}</td>
+            <td class="num">${l.quantidadeGuias}</td>
+            <td style="white-space: nowrap;">
+              <button class="btn o" data-arquivo="fatura" data-lote="${l.id}">Ver fatura</button>
+              <button class="btn o" data-arquivo="espelho" data-lote="${l.id}">Ver espelho</button>
+            </td>
+            <td><input class="sf" data-lote="${l.id}" placeholder="Nº SisFat" style="min-width: 150px;"></td>
+          </tr>`).join('');
+
+        document.querySelectorAll('#tbLotesFat [data-arquivo]').forEach(btn => {
+          btn.addEventListener('click', () => visualizarArquivo(btn.dataset.lote, btn.dataset.arquivo));
+        });
+
+        $('modalErro').hidden = true;
+        $('mFat').classList.add('on');
+      } catch (err) {
+        mostrarErro('Erro ao abrir o fechamento. Tente novamente.');
+      }
+    }
+
+    async function visualizarArquivo(loteId, tipo) {
+      const auth = authHeader();
+      if (!auth) return;
+
+      const aba = window.open('', '_blank');
+      try {
+        const res = await fetch(`/api/faturamento/lotes/${loteId}/${tipo}`, { headers: { 'Authorization': auth } });
+        if (!res.ok) {
+          if (aba) aba.close();
+          const data = await res.json().catch(() => ({}));
+          $('modalErro').textContent = data.error || 'Não foi possível abrir o arquivo.';
+          $('modalErro').hidden = false;
+          return;
+        }
+        const url = URL.createObjectURL(await res.blob());
+        if (aba) { aba.location = url; } else { window.location = url; }
+      } catch (err) {
+        if (aba) aba.close();
+        $('modalErro').textContent = 'Erro ao abrir o arquivo. Tente novamente.';
+        $('modalErro').hidden = false;
+      }
+    }
+
+    function fecharConferencia() {
+      $('mFat').classList.remove('on');
+    }
+
+    async function confirmar() {
+      const auth = authHeader();
+      if (!auth || !fechamentoAtual) return;
+
+      const itens = [...document.querySelectorAll('#tbLotesFat .sf')]
+        .map(input => ({ loteId: Number(input.dataset.lote), numeroSisfat: input.value.trim() }));
+
+      if (itens.some(i => !i.numeroSisfat)) {
+        $('modalErro').textContent = 'Informe o Nº da Fatura (SisFat) de todos os lotes.';
+        $('modalErro').hidden = false;
+        return;
+      }
+      if (new Set(itens.map(i => i.numeroSisfat)).size < itens.length) {
+        $('modalErro').textContent = 'Cada lote precisa de um Nº de fatura diferente.';
+        $('modalErro').hidden = false;
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/faturamento/fechamentos/${fechamentoAtual.id}/confirmar`, {
+          method: 'POST',
+          headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lotes: itens })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const detalhe = data.campos ? Object.values(data.campos).join('; ') : '';
+          $('modalErro').textContent = data.error || detalhe || 'Não foi possível confirmar o faturamento.';
+          $('modalErro').hidden = false;
+          return;
+        }
+
+        fecharConferencia();
+        await carregarFila();
+        toast(`Fechamento de ${competencia(data.competenciaAno, data.competenciaMes)} enviado para a Lisura com ${itens.length} ${itens.length === 1 ? 'fatura' : 'faturas'}.`);
+      } catch (err) {
+        $('modalErro').textContent = 'Erro ao confirmar o faturamento. Tente novamente.';
+        $('modalErro').hidden = false;
+      }
+    }
+
+    $('carregarBtn').addEventListener('click', carregarFila);
+    $('cancelarBtn').addEventListener('click', fecharConferencia);
+    $('confirmarBtn').addEventListener('click', confirmar);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharConferencia(); });
+  </script>
+</body>
+</html>
