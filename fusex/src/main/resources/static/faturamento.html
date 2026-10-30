@@ -94,6 +94,20 @@
     </div>
   </div>
 
+  <div class="ov" id="mPrev" role="dialog" aria-modal="true" aria-labelledby="pT">
+    <div class="modal" style="max-width: 1100px;">
+      <h2 id="pT">Pré-visualização</h2>
+      <div class="tw" style="max-height: 60vh; overflow: auto;">
+        <table id="tbPrev"></table>
+      </div>
+      <p class="hint" id="avisoPrev" hidden>Exibindo apenas as primeiras 500 linhas. Baixe o arquivo para ver tudo.</p>
+      <div class="acts">
+        <button class="btn" id="baixarPrevBtn">Baixar arquivo</button>
+        <button class="btn o" id="fecharPrevBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -103,6 +117,7 @@
     const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let fechamentoAtual = null;
     let lotesAtuais = [];
+    let arquivoPrevia = null;
     let tt;
 
     function toast(m, err) {
@@ -174,14 +189,14 @@
             <td>Lote ${l.numeroLote}</td>
             <td class="num">${l.quantidadeGuias}</td>
             <td style="white-space: nowrap;">
-              <button class="btn o" data-arquivo="fatura" data-lote="${l.id}">Ver fatura</button>
-              <button class="btn o" data-arquivo="espelho" data-lote="${l.id}">Ver espelho</button>
+              <button class="btn o" data-arquivo="fatura" data-lote="${l.id}" data-nome="${esc(l.faturaNomeArquivo)}">Ver fatura</button>
+              <button class="btn o" data-arquivo="espelho" data-lote="${l.id}" data-nome="${esc(l.espelhoNomeArquivo)}">Ver espelho</button>
             </td>
             <td><input class="sf" data-lote="${l.id}" placeholder="Nº SisFat" style="min-width: 150px;"></td>
           </tr>`).join('');
 
         document.querySelectorAll('#tbLotesFat [data-arquivo]').forEach(btn => {
-          btn.addEventListener('click', () => visualizarArquivo(btn.dataset.lote, btn.dataset.arquivo));
+          btn.addEventListener('click', () => visualizarArquivo(btn.dataset.lote, btn.dataset.arquivo, btn.dataset.nome));
         });
 
         $('modalErro').hidden = true;
@@ -191,9 +206,39 @@
       }
     }
 
-    async function visualizarArquivo(loteId, tipo) {
+    async function visualizarTabela(loteId, tipo) {
+      const auth = authHeader();
+      try {
+        const res = await fetch(`/api/faturamento/lotes/${loteId}/${tipo}/tabela`, { headers: { 'Authorization': auth } });
+        const data = await res.json();
+        if (!res.ok) {
+          $('modalErro').textContent = data.error || 'Não foi possível abrir a planilha.';
+          $('modalErro').hidden = false;
+          return;
+        }
+        arquivoPrevia = { loteId, tipo, nome: data.nome };
+        $('avisoPrev').hidden = data.linhas.length < 500;
+        $('pT').textContent = data.nome;
+        const cab = data.linhas.findIndex(l => l.filter(c => c).length >= 3);
+        const colunas = Math.max(...data.linhas.map(l => l.length));
+        $('tbPrev').innerHTML = data.linhas.map((linha, i) => {
+          const preenchidas = linha.filter(c => c).length;
+          if (!preenchidas) return '';
+          if (preenchidas === 1 && i !== cab) return `<tr><td colspan="${colunas}"><b>${esc(linha.find(c => c))}</b></td></tr>`;
+          const tag = i === cab ? 'th' : 'td';
+          return `<tr>${linha.map(c => `<${tag}>${esc(c)}</${tag}>`).join('')}</tr>`;
+        }).join('');
+        $('mPrev').classList.add('on');
+      } catch (err) {
+        $('modalErro').textContent = 'Erro ao abrir a planilha. Tente novamente.';
+        $('modalErro').hidden = false;
+      }
+    }
+
+    async function visualizarArquivo(loteId, tipo, nome) {
       const auth = authHeader();
       if (!auth) return;
+      if (/\.(xlsx|csv)$/i.test(nome || '')) return visualizarTabela(loteId, tipo);
 
       const aba = window.open('', '_blank');
       try {
@@ -211,6 +256,21 @@
         if (aba) aba.close();
         $('modalErro').textContent = 'Erro ao abrir o arquivo. Tente novamente.';
         $('modalErro').hidden = false;
+      }
+    }
+
+    async function baixarArquivo() {
+      if (!arquivoPrevia) return;
+      try {
+        const res = await fetch(`/api/faturamento/lotes/${arquivoPrevia.loteId}/${arquivoPrevia.tipo}`, { headers: { 'Authorization': authHeader() } });
+        if (!res.ok) { toast('Não foi possível baixar o arquivo.', true); return; }
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(await res.blob());
+        link.download = arquivoPrevia.nome;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      } catch (err) {
+        toast('Erro ao baixar o arquivo.', true);
       }
     }
 
@@ -262,7 +322,9 @@
     $('carregarBtn').addEventListener('click', carregarFila);
     $('cancelarBtn').addEventListener('click', fecharConferencia);
     $('confirmarBtn').addEventListener('click', confirmar);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharConferencia(); });
+    $('baixarPrevBtn').addEventListener('click', baixarArquivo);
+    $('fecharPrevBtn').addEventListener('click', () => $('mPrev').classList.remove('on'));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('mPrev').classList.remove('on'); fecharConferencia(); } });
   </script>
 </body>
 </html>
