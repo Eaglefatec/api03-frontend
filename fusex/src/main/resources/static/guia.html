@@ -99,16 +99,8 @@
             <span class="kv-val" id="benIdade">-</span>
           </div>
           <div class="kv-row">
-            <span class="kv-label">CPF</span>
+            <span class="kv-label">CPF / PREC</span>
             <span class="kv-val" id="benCpf">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">PREC</span>
-            <span class="kv-val" id="benPrec">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">E-mail</span>
-            <span class="kv-val" id="benEmail">-</span>
           </div>
           <div class="kv-row">
             <span class="kv-label">Telefone de Contato</span>
@@ -251,14 +243,6 @@
       document.getElementById('user').value = savedUser;
     }
 
-    function formatarCpf(v) {
-      v = (v || '').replace(/\D/g, '').slice(0, 11);
-      if (v.length === 11) {
-        return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
-      }
-      return v;
-    }
-
     function preencher(id, valor, rotuloPendente) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -316,10 +300,7 @@
         const ben = data.beneficiario || {};
         preencher('benNome', ben.nome);
         preencher('benIdade', ben.idade ? `${ben.idade} anos` : null);
-        const cpfFormatado = formatarCpf(ben.cpf || ben.cpfPrec);
-        preencher('benCpf', cpfFormatado);
-        preencher('benPrec', ben.prec);
-        preencher('benEmail', ben.email);
+        preencher('benCpf', ben.cpfPrec);
         preencher('benTelefone', ben.telefone);
 
         // Preenche OCS
