@@ -397,6 +397,17 @@
     </div>
   </div>
 
+  <div class="ov" id="patientModal" role="dialog" aria-modal="true" aria-labelledby="patientModalTitle">
+    <div class="modal narrow">
+      <h2 id="patientModalTitle">Beneficiário não cadastrado</h2>
+      <div id="patientModalBody"></div>
+      <div class="acts" id="patientModalActs">
+        <button type="button" class="btn o" onclick="cancelarCadastroPaciente()">Cancelar e descartar guia</button>
+        <button id="patientConfirmBtn" type="button" class="btn g" onclick="iniciarFormularioCadastroPaciente()">Sim, cadastrar beneficiário</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -684,6 +695,10 @@
         $('processing').classList.add('hidden');
 
         if (!res.ok) {
+          if (data.codigo === 'PACIENTE_NAO_ENCONTRADO' || (res.status === 422 && data.dadosExtraidos)) {
+            abrirModalPacienteNaoEncontrado(data.dadosExtraidos, data.error);
+            return;
+          }
           uploadErr(data.error || 'Não foi possível enviar o PDF da guia.');
           $('uploadBtn').disabled = false;
           if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
@@ -704,6 +719,175 @@
         $('uploadBtn').disabled = false;
         if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
         uploadErr('Erro ao comunicar com o servidor para envio da guia.');
+      }
+    }
+
+    let pendingExtractedData = null;
+
+    function abrirModalPacienteNaoEncontrado(dados, msg) {
+      pendingExtractedData = dados || {};
+      $('patientModalTitle').textContent = 'Beneficiário não cadastrado';
+      $('patientModalBody').innerHTML = `
+        <div style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 14px;border-radius:6px;margin-bottom:14px;font-size:0.9rem">
+          ⚠️ <b>Atenção:</b> O beneficiário identificado nesta guia não foi localizado no cadastro do FuSEx. Para prosseguir no fluxo de emissão e envio da guia, é necessário incluí-lo na base de dados.
+        </div>
+        <div style="background:var(--panel2);padding:12px 16px;border:1px solid var(--line);border-radius:8px;margin-bottom:16px;font-size:0.9rem;line-height:1.6">
+          <p style="margin:2px 0"><b>Nº da Guia:</b> ${esc(pendingExtractedData.numeroGuia || 'Identificado no PDF')}</p>
+          <p style="margin:2px 0"><b>Beneficiário:</b> ${esc(pendingExtractedData.beneficiarioNome || 'Não identificado')}</p>
+          <p style="margin:2px 0"><b>Prec CP:</b> ${esc(pendingExtractedData.beneficiarioPrecCp || 'Não identificado')}</p>
+          <p style="margin:2px 0"><b>OCS:</b> ${esc(pendingExtractedData.ocsNome || 'Não identificada')}</p>
+        </div>
+        <p style="margin-bottom:6px">Deseja cadastrar este beneficiário agora utilizando os dados extraídos da guia?</p>
+      `;
+      $('patientModalActs').innerHTML = `
+        <button type="button" class="btn o" onclick="cancelarCadastroPaciente()">Cancelar e descartar guia</button>
+        <button type="button" class="btn g" onclick="iniciarFormularioCadastroPaciente()">Sim, cadastrar beneficiário</button>
+      `;
+      $('patientModal').classList.add('on');
+    }
+
+    function cancelarCadastroPaciente() {
+      $('patientModal').classList.remove('on');
+      pendingExtractedData = null;
+      clearFile();
+      $('uploadBtn').disabled = false;
+      if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
+      uploadErr('Operação cancelada. A guia não foi registrada e o beneficiário não foi cadastrado.');
+    }
+
+    function iniciarFormularioCadastroPaciente() {
+      const d = pendingExtractedData || {};
+      $('patientModalTitle').textContent = 'Cadastrar Beneficiário no FuSEx';
+      $('patientModalBody').innerHTML = `
+        <p class="small muted" style="margin-bottom:12px">Confira os dados extraídos da guia e informe o e-mail do beneficiário para prosseguir com a emissão:</p>
+        <form id="cadPacienteForm" onsubmit="event.preventDefault(); submeterCadastroPaciente();" style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label class="small muted" style="display:block;margin-bottom:4px">Nome Completo *</label>
+            <input type="text" id="cadNome" value="${esc(d.beneficiarioNome || '')}" required style="width:100%;box-sizing:border-box">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">Prec CP *</label>
+              <input type="text" id="cadPrec" value="${esc(d.beneficiarioPrecCp || '')}" required style="width:100%;box-sizing:border-box">
+            </div>
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">CPF</label>
+              <input type="text" id="cadCpf" value="${esc(d.beneficiarioPrecCp || '')}" style="width:100%;box-sizing:border-box">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">OM (Organização Militar) *</label>
+              <input type="text" id="cadOm" value="FUSEX" required style="width:100%;box-sizing:border-box">
+            </div>
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">Telefone</label>
+              <input type="text" id="cadTelefone" placeholder="(XX) XXXXX-XXXX" style="width:100%;box-sizing:border-box">
+            </div>
+          </div>
+          <div>
+            <label class="small muted" style="display:block;margin-bottom:4px"><b>E-mail do Beneficiário *</b> (onde receberá a guia assinada)</label>
+            <input type="email" id="cadEmail" placeholder="exemplo@email.com.br" required style="width:100%;box-sizing:border-box;border-color:var(--pri)">
+            <p class="hint" style="margin-top:4px">Este e-mail será salvo no cadastro oficial e utilizado para o envio da guia.</p>
+          </div>
+          <div id="cadPacienteMsg" class="hidden" style="color:var(--err);font-size:0.88rem"></div>
+        </form>
+      `;
+      $('patientModalActs').innerHTML = `
+        <button type="button" class="btn o" onclick="cancelarCadastroPaciente()">Cancelar</button>
+        <button id="btnSalvarPac" type="button" class="btn g" onclick="submeterCadastroPaciente()">Cadastrar Beneficiário e Emitir Guia</button>
+      `;
+      setTimeout(() => {
+        const emailEl = $('cadEmail');
+        if (emailEl) emailEl.focus();
+      }, 100);
+    }
+
+    async function submeterCadastroPaciente() {
+      const msgBox = $('cadPacienteMsg');
+      if (!selectedFile) {
+        if (msgBox) {
+          msgBox.textContent = 'O arquivo da guia não está mais selecionado. Por favor, feche e anexe o arquivo novamente.';
+          msgBox.classList.remove('hidden');
+        }
+        return;
+      }
+      const nome = ($('cadNome') ? $('cadNome').value : '').trim();
+      const prec = ($('cadPrec') ? $('cadPrec').value : '').trim();
+      const cpf = ($('cadCpf') ? $('cadCpf').value : '').trim();
+      const om = ($('cadOm') ? $('cadOm').value : '').trim();
+      const email = ($('cadEmail') ? $('cadEmail').value : '').trim();
+      const telefone = ($('cadTelefone') ? $('cadTelefone').value : '').trim();
+      const msgBox = $('cadPacienteMsg');
+
+      if (!nome || !prec || !email) {
+        if (msgBox) {
+          msgBox.textContent = 'Por favor, preencha os campos obrigatórios (Nome, Prec CP e E-mail).';
+          msgBox.classList.remove('hidden');
+        }
+        return;
+      }
+      if (!email.includes('@') || !email.includes('.')) {
+        if (msgBox) {
+          msgBox.textContent = 'Informe um endereço de e-mail válido.';
+          msgBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if ($('btnSalvarPac')) {
+        $('btnSalvarPac').disabled = true;
+        $('btnSalvarPac').textContent = 'Processando e emitindo...';
+      }
+
+      const formData = new FormData();
+      formData.append('arquivo', selectedFile);
+      formData.append('confirmarCadastro', 'true');
+      formData.append('pacienteNome', nome);
+      formData.append('pacientePrec', prec);
+      formData.append('pacienteCpf', cpf || prec);
+      formData.append('pacienteOm', om || 'FUSEX');
+      formData.append('pacienteEmail', email);
+      if (telefone) formData.append('pacienteTelefone', telefone);
+
+      try {
+        const res = await fetch('/api/assinaturas/guias', {
+          method: 'POST',
+          headers: { 'Authorization': getAuthHeader('emitter') },
+          body: formData
+        });
+        const data = await safeJson(res);
+
+        if (!res.ok) {
+          if ($('btnSalvarPac')) {
+            $('btnSalvarPac').disabled = false;
+            $('btnSalvarPac').textContent = 'Cadastrar Beneficiário e Emitir Guia';
+          }
+          if (msgBox) {
+            msgBox.textContent = data.error || 'Erro ao cadastrar paciente e emitir guia.';
+            msgBox.classList.remove('hidden');
+          }
+          return;
+        }
+
+        $('patientModal').classList.remove('on');
+        pendingExtractedData = null;
+
+        $('successText').textContent = data.mensagem || 'Guia emitida e paciente cadastrado com sucesso!';
+        $('extracted').innerHTML = `
+          <p><b>Nº da guia:</b> ${esc(data.numeroGuia)} &nbsp; <b>Beneficiário:</b> ${esc(data.beneficiarioNome)} &nbsp; <b>OCS:</b> ${esc(data.ocsNome)}</p>
+          <p class="muted">Beneficiário cadastrado no banco com o e-mail: <b>${esc(data.beneficiarioEmail)}</b></p>
+        `;
+        $('success').classList.remove('hidden');
+        clearFile();
+        await refreshData();
+        toast('Beneficiário cadastrado e guia enviada para assinatura do Médico Chefe!');
+      } catch (err) {
+        if ($('btnSalvarPac')) $('btnSalvarPac').disabled = false;
+        if (msgBox) {
+          msgBox.textContent = 'Erro ao comunicar com o servidor.';
+          msgBox.classList.remove('hidden');
+        }
       }
     }
 
@@ -798,15 +982,15 @@
             ${procs.map(p => `<tr><td>${esc(p.descricao)}</td><td>${esc(p.codigo)}</td><td>${p.quantidade}</td></tr>`).join('')}
           </tbody>
         </table>
-        <p style="margin-top:20px"><b>Validade:</b> 60 dias a partir da assinatura do Chefe da Seção.</p>
+        <p style="margin-top:20px"><b>Validade:</b> 60 dias a partir da assinatura do Chefe do FuSEx.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:34px">
           <div>
             <div class="signature-preview">${renderSigSlot(selectedGuide.assinaturaMedicoBase64, selectedGuide.dataAssinaturaMedico)}</div>
-            <small>Médico Chefe FUSEX</small>
+            <small>Assinatura Auditoria Prévia Med/Dent</small>
           </div>
           <div>
             <div class="signature-preview">${renderSigSlot(selectedGuide.assinaturaSecaoBase64, selectedGuide.dataAssinaturaSecao)}</div>
-            <small>Chefe da Seção FUSEX</small>
+            <small>Chefe do FuSEx</small>
           </div>
         </div>
         <p class="hint">Pré-visualização do documento anexado: ${esc(selectedGuide.nomeArquivoOriginal)}</p>
