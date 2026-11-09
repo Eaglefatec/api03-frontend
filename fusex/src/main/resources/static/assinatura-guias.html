@@ -49,6 +49,9 @@
       cursor: pointer;
       transition: border-color .15s, background .15s;
     }
+    .drop * {
+      pointer-events: none;
+    }
     .drop:hover, .drop.drag {
       border-color: var(--blue);
       background: #eff6ff;
@@ -232,12 +235,13 @@
             <p class="small muted">Não é necessário preencher beneficiário, OCS ou número da guia.</p>
           </div>
         </div>
-        <div id="drop" class="drop" tabindex="0">
-          <div style="font-size: 30px;">⇧</div>
-          <b>Arraste o PDF da guia para cá</b>
-          <p class="muted small">ou clique para selecionar um arquivo · PDF até 5 MB</p>
-          <input id="file" type="file" accept="application/pdf,.pdf" hidden>
-        </div>
+        <label for="file" id="drop" class="drop" tabindex="0" style="display:block;cursor:pointer">
+          <div style="font-size: 32px;margin-bottom:6px">⇧</div>
+          <b style="font-size:15px">Arraste o PDF da guia para cá</b>
+          <p class="muted small" style="margin:6px 0 14px">ou clique para selecionar um arquivo do seu computador · PDF até 5 MB</p>
+          <span class="btn o" style="margin:0 auto;display:inline-block">Selecionar arquivo PDF...</span>
+        </label>
+        <input id="file" type="file" accept="application/pdf,.pdf" style="display:none">
         <div id="fileInfo" class="file hidden">
           <span id="fileName"></span>
           <button id="clearFileBtn" type="button" class="btn o" onclick="clearFile()">Remover</button>
@@ -272,10 +276,11 @@
                 <th>Médico Chefe</th>
                 <th>Chefe da Seção</th>
                 <th>Status</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="track">
-              <tr><td colspan="7">Carregando guias...</td></tr>
+              <tr><td colspan="8">Carregando guias...</td></tr>
             </tbody>
           </table>
         </div>
@@ -375,10 +380,11 @@
                 <th>Beneficiário</th>
                 <th>E-mail</th>
                 <th>Enviada em</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="sent">
-              <tr><td colspan="4">Carregando histórico de envios...</td></tr>
+              <tr><td colspan="5">Carregando histórico de envios...</td></tr>
             </tbody>
           </table>
         </div>
@@ -575,8 +581,11 @@
             <td>${fmt(g.dataAssinaturaMedico)}</td>
             <td>${fmt(g.dataAssinaturaSecao)}</td>
             <td>${badge(g)}</td>
+            <td>
+              <button type="button" class="btn o" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF" onclick="visualizarPdfGuia(${g.id})">👁️ Ver / Imprimir PDF</button>
+            </td>
           </tr>`).join('')
-        : `<tr><td colspan="7">Nenhuma guia enviada ainda.</td></tr>`;
+        : `<tr><td colspan="8">Nenhuma guia enviada ainda.</td></tr>`;
 
       const medQ = guides.filter(g => g.statusCodigo === 'AM').slice().reverse();
       $('pendingMed').innerHTML = medQ.length
@@ -618,32 +627,67 @@
       const sent = guides.filter(g => g.statusCodigo === 'EN');
       $('sent').innerHTML = sent.length
         ? sent.map(g => `<tr>
-            <td>${esc(g.numeroGuia)}</td>
+            <td><b>${esc(g.numeroGuia)}</b></td>
             <td>${esc(g.beneficiarioNome)}</td>
             <td>${esc(g.beneficiarioEmail)}</td>
             <td>${fmt(g.dataEnvioEmail)}</td>
+            <td>
+              <button type="button" class="btn o" style="padding:5px 10px;font-size:12px" title="Ver ou imprimir PDF da Guia" onclick="visualizarPdfGuia(${g.id})">👁️ Ver / Imprimir PDF</button>
+            </td>
           </tr>`).join('')
-        : `<tr><td colspan="4">Nenhuma guia enviada ainda.</td></tr>`;
+        : `<tr><td colspan="5">Nenhuma guia enviada ainda.</td></tr>`;
     }
 
     const drop = $('drop');
-    drop.onclick = () => $('file').click();
+    const fileInput = $('file');
+
     drop.onkeydown = e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        $('file').click();
+        fileInput.click();
       }
     };
-    $('file').onchange = e => setFile(e.target.files[0]);
-    ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => {
+
+    fileInput.onchange = e => {
+      if (e.target.files && e.target.files.length > 0) {
+        setFile(e.target.files[0]);
+      }
+    };
+
+    // Previne que o navegador abra o arquivo caso o usuário solte fora da caixa
+    window.addEventListener('dragover', e => e.preventDefault());
+    window.addEventListener('drop', e => e.preventDefault());
+
+    drop.addEventListener('dragenter', e => {
       e.preventDefault();
+      e.stopPropagation();
       drop.classList.add('drag');
-    }));
-    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+    });
+
+    drop.addEventListener('dragover', e => {
       e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'copy';
+      }
+      drop.classList.add('drag');
+    });
+
+    drop.addEventListener('dragleave', e => {
+      e.preventDefault();
+      e.stopPropagation();
       drop.classList.remove('drag');
-    }));
-    drop.addEventListener('drop', e => setFile(e.dataTransfer.files[0]));
+    });
+
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.classList.remove('drag');
+      const files = (e.dataTransfer && e.dataTransfer.files) ? e.dataTransfer.files : null;
+      if (files && files.length > 0) {
+        setFile(files[0]);
+      }
+    });
 
     function setFile(f) {
       if (!f) return;
@@ -818,7 +862,6 @@
       const om = ($('cadOm') ? $('cadOm').value : '').trim();
       const email = ($('cadEmail') ? $('cadEmail').value : '').trim();
       const telefone = ($('cadTelefone') ? $('cadTelefone').value : '').trim();
-      const msgBox = $('cadPacienteMsg');
 
       if (!nome || !prec || !email) {
         if (msgBox) {
@@ -1026,6 +1069,38 @@
       }
     }
 
+    const visualizarPdfGuia = baixarPdfGuia;
+
+    async function imprimirPdfGuia(id, roleOverride) {
+      try {
+        toast('Carregando guia para impressão...');
+        const res = await fetch(`/api/assinaturas/guias/${id}/pdf`, {
+          headers: { 'Authorization': getAuthHeader(roleOverride || role || profile) }
+        });
+        if (!res.ok) throw new Error('Não foi possível carregar o PDF para impressão.');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, '_blank');
+        if (win) {
+          win.onload = () => {
+            try { win.print(); } catch (_) {}
+          };
+          toast('Guia aberta para impressão.');
+        } else {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `guia_${id}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast('Arquivo baixado. Abra para imprimir.');
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
+      } catch (err) {
+        toast(err.message || 'Erro ao imprimir PDF.', true);
+      }
+    }
+
     function closeDetail() {
       ['signDetailMed', 'signDetailSec'].forEach(id => {
         const el = $(id);
@@ -1185,7 +1260,7 @@
         <div id="readyMessageText" style="background:var(--panel2);padding:14px;border:1px solid var(--line);border-radius:8px;white-space:pre-line">${esc(g.mensagemPronta)}</div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button type="button" class="btn o" onclick="copyMessage()">Copiar mensagem</button>
-          <button type="button" class="btn o" onclick="baixarPdfGuia(${g.id}, 'emitter')">Ver PDF assinado</button>
+          <button type="button" class="btn o" onclick="baixarPdfGuia(${g.id}, 'emitter')">👁️ Ver / Imprimir PDF</button>
         </div>
       `;
       $('modal').classList.add('on');
