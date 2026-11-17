@@ -127,12 +127,16 @@
       <div class="section-title">📝 Observações Clínicas (Opcional)</div>
       <textarea id="observacao" placeholder="Informações clínicas complementares, justificativa ou histórico breve..."></textarea>
 
+      <div class="section-title">📎 Encaminhamento Médico (PDF)</div>
+      <input type="file" id="arquivoEncaminhamento" accept="application/pdf,.pdf,image/png,image/jpeg">
+
       <button type="submit" class="btn btn-primary" id="submitBtn">Criar Solicitação Médica</button>
     </form>
 
     <div id="result" class="alert alert-success alert-column" hidden>
       <div style="font-size: 1.1em;"><strong>✅ Solicitação gerada com sucesso!</strong></div>
       <div id="emailStatusMsg" style="font-size: 0.9em; margin-top: 4px; font-weight: 500;"></div>
+      <div id="encaminhamentoMsg" style="font-size: 0.9em; margin-top: 4px; font-weight: 500;"></div>
 
       <div id="printArea" style="text-align: center; margin: 16px auto; background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #ddd; max-width: 320px;">
         <div style="font-weight: bold; color: #0b3d1b; margin-bottom: 8px; font-size: 0.95em;">ACESSO DO BENEFICIÁRIO</div>
@@ -564,6 +568,7 @@
       }
 
       ultimaSolicitacaoId = data.id;
+      await enviarEncaminhamento(data.id, Number(medico.id || 1));
       const beneficiarioLink = window.location.origin + '/api/beneficiario.html?token=' + data.tokenPublico;
       linkBeneficiarioAtual = beneficiarioLink;
 
@@ -590,6 +595,34 @@
   });
 
   let ultimaSolicitacaoId = null;
+
+  async function enviarEncaminhamento(solicitacaoId, medicoId) {
+    const campo = document.getElementById('arquivoEncaminhamento');
+    const msg = document.getElementById('encaminhamentoMsg');
+    const arquivo = campo.files[0];
+    if (!arquivo) {
+      msg.textContent = 'Nenhum encaminhamento anexado.';
+      return;
+    }
+    const formulario = new FormData();
+    formulario.append('arquivo', arquivo);
+    formulario.append('medicoId', medicoId);
+    formulario.append('solicitacaoId', solicitacaoId);
+    try {
+      const res = await fetch('/api/encaminhamentos', {
+        method: 'POST',
+        headers: { 'Authorization': 'Basic ' + auth },
+        body: formulario
+      });
+      if (!res.ok) {
+        const corpo = await res.json().catch(() => ({}));
+        throw new Error(corpo.error || 'falha ao enviar o arquivo');
+      }
+      msg.textContent = 'Encaminhamento anexado à solicitação.';
+    } catch (err) {
+      msg.textContent = 'A solicitação foi criada, mas o encaminhamento não foi anexado: ' + err.message;
+    }
+  }
 
   function atualizarPainelEmail(data, emailDigitado) {
     const status = data.statusEmail || (data.emailEnviado ? 'ENVIADO' : 'SIMULADO');

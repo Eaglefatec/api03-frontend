@@ -192,6 +192,7 @@
     <nav class="nav" aria-label="Navegação principal">
       <div id="navEmitterGroup">
         <div class="nav-label">Emissor de guias</div>
+        <button id="nav-pre-guias" onclick="location.href='pre-guias.html'">▤ &nbsp; Consultar pré-guias <span id="badgePreGuias" class="tag t-pending" style="float:right">0</span></button>
         <button id="nav-upload" class="on" onclick="go('upload')">⇧ &nbsp; Envio de guias</button>
         <button id="nav-email" onclick="go('email')">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info" style="float:right">0</span></button>
       </div>
@@ -217,7 +218,7 @@
         <h1 id="pageTitle">Envio de guias</h1>
         <p class="sub" id="pageSub">Anexe somente o PDF. O sistema identifica os dados necessários.</p>
       </div>
-      <div style="min-width: 220px;">
+      <div style="min-width: 220px;" id="simularLoginBox">
         <label for="loginRole">Simular login</label>
         <select id="loginRole" onchange="switchRole(this.value, null, true)">
           <option value="emitter">Emissor de Guias</option>
@@ -229,12 +230,37 @@
 
     <section id="upload" class="page">
       <div class="card">
+        <div class="head">
+          <h2>Pré-guias liberadas para envio</h2>
+          <span class="small muted">Pré-guias com a emissão confirmada na consulta de pré-guias</span>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Pré-guia</th>
+                <th>Beneficiário</th>
+                <th>PREC</th>
+                <th>OCS</th>
+                <th>Emissão confirmada em</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="liberadas">
+              <tr><td colspan="6">Carregando pré-guias...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="section-title">
           <div>
             <h2>Nova guia</h2>
-            <p class="small muted">Não é necessário preencher beneficiário, OCS ou número da guia.</p>
+            <p class="small muted">Selecione uma pré-guia liberada e anexe o PDF da guia emitida.</p>
           </div>
         </div>
+        <div id="preGuiaSelecionada" class="warn">Nenhuma pré-guia selecionada. Escolha uma pré-guia liberada na lista acima.</div>
         <label for="file" id="drop" class="drop" tabindex="0" style="display:block;cursor:pointer">
           <div style="font-size: 32px;margin-bottom:6px">⇧</div>
           <b style="font-size:15px">Arraste o PDF da guia para cá</b>
@@ -437,6 +463,8 @@
     let currentView = 'upload';
     let guides = [];
     let selectedFile = null;
+    let preGuiaSelecionada = null;
+    let preGuiasLiberadas = [];
     let selectedGuide = null;
     let profile = 'med';
     let emailGuideId = null;
@@ -507,6 +535,7 @@
       }
       role = r;
       $('loginRole').value = r;
+      $('simularLoginBox').hidden = !!sessionAuthToken;
       closeDetail();
 
       const groups = {
@@ -564,6 +593,13 @@
         $('badgeMed').textContent = painel.pendentesMedico ?? 0;
         $('badgeSec').textContent = painel.pendentesSecao ?? 0;
         $('badgeEmail').textContent = painel.prontasEnvio ?? 0;
+        if (role === 'emitter') {
+          fetch('/api/pre-guias?status=PENDENTE', { headers: { 'Authorization': getAuthHeader('emitter') } })
+            .then(r => r.ok ? r.json() : [])
+            .then(lista => { $('badgePreGuias').textContent = lista.length; })
+            .catch(() => {});
+          carregarPreGuiasLiberadas();
+        }
 
         renderTables();
       } catch (err) {
@@ -689,9 +725,64 @@
       }
     });
 
+    function codigoPreGuia(p) {
+      const ano = p.dataRegistro ? new Date(p.dataRegistro).getFullYear() : new Date().getFullYear();
+      return 'PG-' + ano + '-' + String(p.id).padStart(4, '0');
+    }
+
+    async function carregarPreGuiasLiberadas() {
+      try {
+        const res = await fetch('/api/pre-guias?status=LIBERADA', { headers: { 'Authorization': getAuthHeader('emitter') } });
+        preGuiasLiberadas = res.ok ? await safeJson(res) : [];
+      } catch (err) {
+        preGuiasLiberadas = [];
+      }
+      const doLink = new URLSearchParams(window.location.search).get('preGuia');
+      if (preGuiaSelecionada && !preGuiasLiberadas.some(p => p.token === preGuiaSelecionada.token)) {
+        preGuiaSelecionada = null;
+      }
+      if (!preGuiaSelecionada && doLink) {
+        preGuiaSelecionada = preGuiasLiberadas.find(p => p.token === doLink) || null;
+      }
+      renderPreGuiasLiberadas();
+    }
+
+    function renderPreGuiasLiberadas() {
+      const atual = preGuiaSelecionada ? preGuiaSelecionada.token : null;
+      $('liberadas').innerHTML = preGuiasLiberadas.map(p => `
+        <tr${p.token === atual ? ' style="background:var(--panel2)"' : ''}>
+          <td><b>${codigoPreGuia(p)}</b></td>
+          <td>${esc(p.beneficiarioNome)}</td>
+          <td>${esc(p.beneficiarioPrec)}</td>
+          <td>${esc(p.ocsNome)}</td>
+          <td>${fmtD(p.dataEmissao)}</td>
+          <td><button type="button" class="btn o" data-token="${esc(p.token)}">${p.token === atual ? 'Selecionada' : 'Selecionar'}</button></td>
+        </tr>`).join('') || '<tr><td colspan="6">Nenhuma pré-guia liberada. Confirme a emissão em Consultar pré-guias.</td></tr>';
+
+      const box = $('preGuiaSelecionada');
+      if (preGuiaSelecionada) {
+        box.className = 'sign';
+        box.innerHTML = `<div><b>Pré-guia ${codigoPreGuia(preGuiaSelecionada)}</b> · ${esc(preGuiaSelecionada.beneficiarioNome)} · ${esc(preGuiaSelecionada.ocsNome)}</div>`;
+      } else {
+        box.className = 'warn';
+        box.textContent = 'Nenhuma pré-guia selecionada. Escolha uma pré-guia liberada na lista acima.';
+      }
+      $('uploadBtn').disabled = !(selectedFile && preGuiaSelecionada);
+    }
+
+    function selecionarPreGuia(token) {
+      preGuiaSelecionada = preGuiasLiberadas.find(p => p.token === token) || null;
+      $('uploadError').hidden = true;
+      renderPreGuiasLiberadas();
+    }
+
     function setFile(f) {
       if (!f) return;
       $('uploadError').hidden = true;
+      if (!preGuiaSelecionada) {
+        $('file').value = '';
+        return uploadErr('Selecione primeiro a pré-guia liberada à qual esta guia pertence.');
+      }
       if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
         return uploadErr('Selecione um arquivo PDF.');
       }
@@ -701,9 +792,14 @@
       selectedFile = f;
       $('fileName').textContent = '📄 ' + f.name + ' · ' + Math.max(1, Math.round(f.size / 1024)) + ' KB';
       $('fileInfo').classList.remove('hidden');
-      $('uploadBtn').disabled = false;
+      $('uploadBtn').disabled = !preGuiaSelecionada;
       $('success').classList.add('hidden');
     }
+
+    document.addEventListener('click', e => {
+      const botao = e.target.closest('#liberadas button[data-token]');
+      if (botao) selecionarPreGuia(botao.dataset.token);
+    });
 
     function uploadErr(m) {
       $('uploadError').textContent = m;
@@ -719,7 +815,7 @@
     }
 
     async function uploadPdf() {
-      if (!selectedFile) return;
+      if (!selectedFile || !preGuiaSelecionada) return;
       const uploadedName = selectedFile.name;
       $('uploadError').hidden = true;
       $('processing').classList.remove('hidden');
@@ -730,7 +826,7 @@
       formData.append('arquivo', selectedFile);
 
       try {
-        const res = await fetch('/api/assinaturas/guias', {
+        const res = await fetch('/api/pre-guias/' + encodeURIComponent(preGuiaSelecionada.token) + '/guia-assinatura', {
           method: 'POST',
           headers: { 'Authorization': getAuthHeader('emitter') },
           body: formData
@@ -752,10 +848,11 @@
         $('successText').textContent = data.mensagem || ('Arquivo ' + uploadedName + ' recebido.');
         $('extracted').innerHTML = `
           <p><b>Nº da guia:</b> ${esc(data.numeroGuia)} &nbsp; <b>Beneficiário:</b> ${esc(data.beneficiarioNome)} &nbsp; <b>OCS:</b> ${esc(data.ocsNome)}</p>
-          <p class="muted">Dados identificados automaticamente a partir do PDF enviado.</p>
+          <p class="muted">Beneficiário e OCS vinculados a partir da pré-guia selecionada.</p>
         `;
         $('success').classList.remove('hidden');
         clearFile();
+        preGuiaSelecionada = null;
         await refreshData();
         toast('Guia enviada para assinatura do Médico Chefe.');
       } catch (err) {
@@ -923,6 +1020,7 @@
         `;
         $('success').classList.remove('hidden');
         clearFile();
+        preGuiaSelecionada = null;
         await refreshData();
         toast('Beneficiário cadastrado e guia enviada para assinatura do Médico Chefe!');
       } catch (err) {

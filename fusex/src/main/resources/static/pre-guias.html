@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUSEX - Pré-guias | Emissor de Guias</title>
+  <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+  <style>
+    main { max-width: 1500px; }
+    .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #8794a3; font-weight: 700; padding: 14px 12px 4px; }
+    .nav a { font-weight: 600; }
+    .nav a .tag { float: right; }
+    .who .btn { margin-top: 10px; width: 100%; }
+    .titulo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 14px; }
+    .toolbar input, .toolbar select { max-width: 280px; }
+    .card .hint { margin: -8px 0 12px; }
+    tr.click td .btn { padding: 6px 10px; }
+    .vazio td { color: var(--mut); text-align: center; }
+    .ov .folha-wrap { background: var(--panel2); width: min(1100px, 96vw); max-height: 92vh; overflow: auto; border-radius: 12px; padding: 20px; }
+    .folha-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .folha { max-width: 900px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 38px 46px; color: var(--tx); }
+    .folha-cab { text-align: center; font-size: 12px; line-height: 1.55; font-weight: 700; margin-bottom: 22px; }
+    .folha h2 { text-align: center; margin: 0 0 4px; font-size: 18px; }
+    .folha .sub { text-align: center; font-size: 12px; }
+    .folha h3 { border-bottom: 1px solid var(--line); padding-bottom: 7px; margin: 24px 0 4px; font-size: 14px; }
+    .dados { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+    .dados > div { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid #e5eaf0; }
+    .dados span { font-size: 12px; color: var(--mut); }
+    .dados b { text-align: right; font-size: 13px; }
+    .folha table td, .folha table th { white-space: normal; }
+    .total { display: flex; justify-content: flex-end; gap: 30px; padding: 14px 0; border-bottom: 1px solid var(--line); font-weight: 700; }
+    .folha-acoes { max-width: 900px; margin: 12px auto 0; display: flex; flex-direction: column; gap: 10px; }
+    .folha-acoes .linha { display: flex; justify-content: flex-end; }
+    .ok { border: 1px solid var(--green); border-left: 5px solid var(--green); background: rgba(22, 163, 74, .08); color: #166534; padding: 12px 14px; border-radius: 8px; font-weight: 600; }
+    .kv { display: grid; grid-template-columns: 150px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .kv span { color: var(--mut); font-size: 12px; }
+    .modal .erro, .modal .warn, .modal .ok { margin: 12px 0 0; }
+    @media (max-width: 700px) { .dados { grid-template-columns: 1fr; } .folha { padding: 20px; } .ov .folha-wrap { padding: 10px; } }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <a href="index.html" class="brand"><i>✚</i><span>SISMED<small>Sistema Integrado de Saúde Militar</small></span></a>
+    <nav class="nav" aria-label="Navegação principal">
+      <div class="nav-label">Emissor de guias</div>
+      <a href="pre-guias.html" class="on">▤ &nbsp; Consultar pré-guias <span id="badgePendentes" class="tag t-wait">0</span></a>
+      <a href="assinatura-guias.html?role=emitter&amp;view=upload">⇧ &nbsp; Envio de guias</a>
+      <a href="assinatura-guias.html?role=emitter&amp;view=email">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info">0</span></a>
+    </nav>
+    <div class="who">
+      <b id="usuarioNome">Emissor de Guias</b>
+      Área de emissão e consulta
+      <button class="btn o" id="sairBtn">Sair</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="titulo">
+      <div>
+        <h1>Pré-guias aguardando emissão</h1>
+        <p class="sub">Consulte as pré-guias elaboradas pelo sistema, confira os dados cadastrais e os valores antes da emissão definitiva.</p>
+      </div>
+      <span class="tag t-info">Perfil: Emissor de Guias</span>
+    </div>
+
+    <div id="erroGlobal" class="erro" hidden></div>
+
+    <div class="stats">
+      <div class="stat"><b id="mPendentes">0</b><span>Pré-guias pendentes</span></div>
+      <div class="stat"><b id="mEmitidas">0</b><span>Guias emitidas</span></div>
+      <div class="stat"><b id="mSemGuia">0</b><span>Encaminhamentos sem guia</span></div>
+      <div class="stat"><b id="mHoje">0</b><span>Emissões hoje</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Guias pendentes de emissão</h2>
+      <p class="hint">Pré-guias elaboradas pelo sistema que ainda aguardam a emissão da GE.</p>
+      <div class="toolbar">
+        <input id="busca" placeholder="Buscar beneficiário, pré-guia ou OCS...">
+        <select id="filtroOcs"><option value="">Todas as OCS</option></select>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Pré-guia</th><th>Beneficiário</th><th>PREC</th><th>OCS</th><th>Data de registro</th><th>Status</th><th>Ação</th></tr>
+          </thead>
+          <tbody id="pendentesRows"><tr class="vazio"><td colspan="7">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Guias já emitidas</h2>
+      <p class="hint">Pré-guias com a emissão confirmada. As que estão aguardando envio podem ser enviadas para assinatura em Envio de guias.</p>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Pré-guia</th><th>Beneficiário</th><th>PREC</th><th>OCS</th><th>Data de emissão</th><th>Nº da guia</th><th>Assinatura</th><th>Ação</th></tr>
+          </thead>
+          <tbody id="emitidasRows"><tr class="vazio"><td colspan="8">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="ov" id="preGuiaOv">
+    <div class="folha-wrap">
+      <div class="folha-topo">
+        <div><h2 style="margin:0">Pré-Guia de Encaminhamento</h2><span class="hint" id="folhaId"></span></div>
+        <button class="btn o" id="fecharFolhaBtn">Fechar</button>
+      </div>
+      <div id="folhaConteudo"></div>
+      <div class="folha-acoes" id="folhaAcoes"></div>
+    </div>
+  </div>
+
+  <div class="ov" id="emitirOv">
+    <div class="modal">
+      <h2 id="emitirTitulo">Confirmar emissão da guia</h2>
+      <div id="emitirResumo"></div>
+      <div id="emitirMsg"></div>
+      <div class="acts">
+        <button class="btn o" id="cancelarEmissaoBtn">Cancelar</button>
+        <button class="btn g" id="confirmarEmissaoBtn">Confirmar emissão</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const auth = sessionStorage.getItem('fusex_auth');
+  if (!auth) {
+    window.location.href = 'login-eg.html';
+  }
+
+  const $ = id => document.getElementById(id);
+  const estado = { pendentes: [], emitidas: [], atual: null };
+
+  $('usuarioNome').textContent = sessionStorage.getItem('fusex_user') || 'Emissor de Guias';
+
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function dataBr(v) {
+    return v ? new Date(v).toLocaleDateString('pt-BR') : '—';
+  }
+
+  function dataHoraBr(v) {
+    return v ? new Date(v).toLocaleString('pt-BR') : '—';
+  }
+
+  function moeda(v) {
+    return v == null ? '—' : Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function codigoPreGuia(item) {
+    const ano = item.dataRegistro ? new Date(item.dataRegistro).getFullYear() : new Date().getFullYear();
+    return 'PG-' + ano + '-' + String(item.id).padStart(4, '0');
+  }
+
+  function sair() {
+    sessionStorage.removeItem('fusex_auth');
+    sessionStorage.removeItem('fusex_user');
+    sessionStorage.removeItem('fusex_roles');
+    window.location.href = 'login-eg.html';
+  }
+
+  async function api(caminho, opcoes = {}) {
+    const resposta = await fetch('/api' + caminho, {
+      ...opcoes,
+      headers: { 'Authorization': 'Basic ' + auth, ...(opcoes.headers || {}) }
+    });
+    if (resposta.status === 401 || resposta.status === 403) {
+      sair();
+      throw new Error('Sessão expirada ou sem permissão.');
+    }
+    if (!resposta.ok) {
+      let mensagem = 'Falha na comunicação com o servidor (' + resposta.status + ').';
+      try {
+        const corpo = await resposta.json();
+        mensagem = corpo.error || corpo.message || mensagem;
+      } catch (e) {}
+      throw new Error(mensagem);
+    }
+    return resposta;
+  }
+
+  function toast(mensagem, erro = false) {
+    const t = $('toast');
+    t.textContent = mensagem;
+    t.classList.toggle('err', erro);
+    t.classList.add('on');
+    setTimeout(() => t.classList.remove('on'), 3000);
+  }
+
+  async function carregarBadgeEmail() {
+    try {
+      const resposta = await fetch('/api/assinaturas/painel', { headers: { 'Authorization': 'Basic ' + auth } });
+      if (resposta.ok) {
+        const painel = await resposta.json();
+        $('badgeEmail').textContent = painel.prontasEnvio ?? 0;
+      }
+    } catch (e) {}
+  }
+
+  async function carregar() {
+    $('erroGlobal').hidden = true;
+    try {
+      const [pendentes, emitidas] = await Promise.all([
+        api('/pre-guias?status=PENDENTE').then(r => r.json()),
+        api('/pre-guias?status=EMITIDA').then(r => r.json())
+      ]);
+      estado.pendentes = pendentes;
+      estado.emitidas = emitidas;
+      montarFiltroOcs();
+      renderizar();
+    } catch (e) {
+      $('erroGlobal').textContent = e.message;
+      $('erroGlobal').hidden = false;
+    }
+  }
+
+  function montarFiltroOcs() {
+    const select = $('filtroOcs');
+    const atual = select.value;
+    const nomes = [...new Set([...estado.pendentes, ...estado.emitidas].map(p => p.ocsNome))].sort();
+    select.innerHTML = '<option value="">Todas as OCS</option>' + nomes.map(n => `<option>${esc(n)}</option>`).join('');
+    select.value = nomes.includes(atual) ? atual : '';
+  }
+
+  function filtrar(lista) {
+    const termo = $('busca').value.trim().toLowerCase();
+    const ocs = $('filtroOcs').value;
+    return lista.filter(p => (!ocs || p.ocsNome === ocs) &&
+      [p.beneficiarioNome, p.beneficiarioPrec, p.ocsNome, codigoPreGuia(p), p.numeroGuia || ''].join(' ').toLowerCase().includes(termo));
+  }
+
+  function renderizar() {
+    const pendentes = filtrar(estado.pendentes);
+    const emitidas = filtrar(estado.emitidas);
+
+    $('pendentesRows').innerHTML = pendentes.map(p => `
+      <tr class="click" data-token="${esc(p.token)}">
+        <td><b>${codigoPreGuia(p)}</b></td>
+        <td>${esc(p.beneficiarioNome)}</td>
+        <td>${esc(p.beneficiarioPrec)}</td>
+        <td>${esc(p.ocsNome)}</td>
+        <td>${dataBr(p.dataRegistro)}</td>
+        <td><span class="tag t-wait">Pendente</span></td>
+        <td><button class="btn o">Visualizar PDF</button></td>
+      </tr>`).join('') || '<tr class="vazio"><td colspan="7">Nenhuma guia pendente de emissão.</td></tr>';
+
+    $('emitidasRows').innerHTML = emitidas.map(p => `
+      <tr class="click" data-token="${esc(p.token)}">
+        <td><b>${codigoPreGuia(p)}</b></td>
+        <td>${esc(p.beneficiarioNome)}</td>
+        <td>${esc(p.beneficiarioPrec)}</td>
+        <td>${esc(p.ocsNome)}</td>
+        <td>${dataBr(p.dataEmissao)}</td>
+        <td><b>${esc(p.numeroGuia || '—')}</b></td>
+        <td>${tagAssinatura(p)}</td>
+        <td><button class="btn o">Visualizar PDF</button></td>
+      </tr>`).join('') || '<tr class="vazio"><td colspan="8">Nenhuma guia emitida.</td></tr>';
+
+    const hoje = new Date().toDateString();
+    $('badgePendentes').textContent = estado.pendentes.length;
+    $('mPendentes').textContent = estado.pendentes.length;
+    $('mEmitidas').textContent = estado.emitidas.length;
+    $('mSemGuia').textContent = estado.pendentes.filter(p => p.possuiEncaminhamento).length;
+    $('mHoje').textContent = estado.emitidas.filter(p => p.dataEmissao && new Date(p.dataEmissao).toDateString() === hoje).length;
+  }
+
+  function tagAssinatura(p) {
+    if (p.enviadaParaAssinatura) {
+      return `<span class="tag t-info">${esc(p.situacaoAssinatura)}</span>`;
+    }
+    return '<span class="tag t-wait">Aguardando envio</span>';
+  }
+
+  function linkEnvio(token) {
+    return 'assinatura-guias.html?role=emitter&view=upload&preGuia=' + encodeURIComponent(token);
+  }
+
+  function resumoPorToken(token) {
+    return [...estado.pendentes, ...estado.emitidas].find(p => p.token === token);
+  }
+
+  async function abrirPreGuia(token) {
+    const resumo = resumoPorToken(token);
+    if (!resumo) return;
+    estado.atual = resumo;
+    $('folhaId').textContent = 'Documento gerado pelo sistema · ' + codigoPreGuia(resumo);
+    $('folhaConteudo').innerHTML = '<div class="folha"><p class="hint">Carregando pré-guia...</p></div>';
+    $('folhaAcoes').innerHTML = '';
+    $('preGuiaOv').classList.add('on');
+    document.body.style.overflow = 'hidden';
+    try {
+      const dados = await api('/solicitacoes/' + encodeURIComponent(token) + '/pre-guia').then(r => r.json());
+      renderizarFolha(resumo, dados);
+    } catch (e) {
+      $('folhaConteudo').innerHTML = `<div class="folha"><div class="erro">${esc(e.message)}</div></div>`;
+    }
+  }
+
+  function linha(rotulo, valor) {
+    return `<div><span>${rotulo}</span><b>${esc(valor || '—')}</b></div>`;
+  }
+
+  function renderizarFolha(resumo, d) {
+    const b = d.beneficiario || {};
+    const o = d.ocs || {};
+    const emissor = d.medicoEmissor || {};
+    const info = d.informacoesGerais || {};
+    const procedimentos = d.procedimentos || [];
+    const endereco = [o.ocsEndereco, o.ocsEnderecoNumero, o.ocsEnderecoBairro, o.ocsEnderecoCidade, o.ocsEnderecoUf]
+      .filter(Boolean).join(', ');
+    const total = procedimentos.reduce((soma, p) => soma + (Number(p.valor) || 0) * (p.quantidade || 1), 0);
+
+    $('folhaConteudo').innerHTML = `
+      <div class="folha">
+        <div class="folha-cab">MINISTÉRIO DA DEFESA<br>EXÉRCITO BRASILEIRO<br>FUSEX</div>
+        <h2>Pré-Guia de Encaminhamento</h2>
+        <p class="sub">Visão consolidada para conferência cadastral e auditoria de valores antes da emissão definitiva da Guia de Encaminhamento (GE).</p>
+
+        <h3>Dados do Beneficiário</h3>
+        <div class="dados">
+          ${linha('Nome Completo', b.nome)}
+          ${linha('Idade', b.idade != null ? b.idade + ' anos' : '')}
+          ${linha('CPF', b.cpf)}
+          ${linha('PREC', b.prec)}
+          ${linha('E-mail', b.email)}
+          ${linha('Telefone de Contato', b.telefone)}
+        </div>
+
+        <h3>Organização Civil de Saúde (OCS Credenciada)</h3>
+        <div class="dados">
+          ${linha('Razão Social / Nome', o.ocsNome)}
+          ${linha('CNPJ / Inscrição Federal', o.ocsInscricaoFederal)}
+          ${linha('Endereço', endereco)}
+          ${linha('Contato Responsável', o.ocsContatoNome)}
+          ${linha('Telefone', o.ocsContatoTelefone)}
+        </div>
+
+        <h3>Médico Solicitante / Emissor</h3>
+        <div class="dados">
+          ${linha('Nome do Médico', emissor.nome)}
+          ${linha('Registro Profissional CRM', emissor.crm)}
+        </div>
+
+        <h3>Procedimentos</h3>
+        <table>
+          <thead><tr><th>Código DGP</th><th>Descrição do Procedimento TUSS</th><th>Qtd.</th><th style="text-align:right">Valor Unitário</th></tr></thead>
+          <tbody>
+            ${procedimentos.map(p => `<tr><td>${esc(p.procedimentoCodigoDgp)}</td><td>${esc(p.procedimentoDescricao)}</td><td>${esc(p.quantidade)}</td><td style="text-align:right">${moeda(p.valor)}</td></tr>`).join('')
+              || '<tr class="vazio"><td colspan="4">Nenhum procedimento informado.</td></tr>'}
+          </tbody>
+        </table>
+        <div class="total"><span>CUSTO TOTAL</span><span>${moeda(total)}</span></div>
+
+        <h3>Informações Gerais</h3>
+        <div class="dados">
+          ${linha('Data de Registro', dataHoraBr(info.data))}
+          ${linha('Unidade Gestora de Origem (UG)', info.unidadeGestoraOrigem)}
+        </div>
+      </div>`;
+
+    const acoes = [];
+    if (resumo.possuiEncaminhamento) {
+      acoes.push('<div class="linha"><button class="btn o" id="verEncaminhamentoBtn">Visualizar PDF do encaminhamento</button></div>');
+    } else {
+      acoes.push('<div class="warn">Nenhum encaminhamento médico foi anexado a esta pré-guia.</div>');
+    }
+    if (resumo.dataEmissao && resumo.enviadaParaAssinatura) {
+      acoes.push(`<div class="ok">Emissão confirmada em <b>${dataBr(resumo.dataEmissao)}</b>. Guia <b>${esc(resumo.numeroGuia)}</b> na esteira de assinatura: ${esc(resumo.situacaoAssinatura)}.</div>`);
+    } else if (resumo.dataEmissao) {
+      acoes.push(`<div class="ok">Emissão confirmada em <b>${dataBr(resumo.dataEmissao)}</b>. A guia já pode ser enviada para assinatura.</div>`);
+      acoes.push(`<a class="btn g" style="width:100%;text-align:center;text-decoration:none" href="${linkEnvio(resumo.token)}">Ir para Envio de guias</a>`);
+    } else {
+      acoes.push(`<button class="btn g" id="iniciarEmissaoBtn" style="width:100%">Confirmar emissão da guia</button>`);
+    }
+    $('folhaAcoes').innerHTML = acoes.join('');
+
+    const verBtn = $('verEncaminhamentoBtn');
+    if (verBtn) verBtn.onclick = () => verEncaminhamento(resumo.token);
+    const emitirBtn = $('iniciarEmissaoBtn');
+    if (emitirBtn) emitirBtn.onclick = () => iniciarEmissao(resumo);
+  }
+
+  function fecharPreGuia() {
+    $('preGuiaOv').classList.remove('on');
+    document.body.style.overflow = '';
+    estado.atual = null;
+  }
+
+  async function verEncaminhamento(token) {
+    const janela = window.open('', '_blank');
+    try {
+      const resposta = await api('/pre-guias/' + encodeURIComponent(token) + '/encaminhamento');
+      const url = URL.createObjectURL(await resposta.blob());
+      if (janela) {
+        janela.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+    } catch (e) {
+      if (janela) janela.close();
+      toast(e.message, true);
+    }
+  }
+
+  function mostrarMensagemEmissao(classe, html) {
+    $('emitirMsg').innerHTML = html ? `<div class="${classe}">${html}</div>` : '';
+  }
+
+  function iniciarEmissao(resumo) {
+    if (resumo.dataEmissao) {
+      toast('A emissão desta pré-guia já foi confirmada.', true);
+      return;
+    }
+    $('emitirResumo').innerHTML = `
+      <p>Confirma que a guia da pré-guia <b>${codigoPreGuia(resumo)}</b> foi emitida? Depois da confirmação, o PDF da guia deve ser enviado em <b>Envio de guias</b> para seguir para assinatura.</p>
+      <div class="kv"><span>Beneficiário</span><b>${esc(resumo.beneficiarioNome)}</b></div>
+      <div class="kv"><span>PREC</span><b>${esc(resumo.beneficiarioPrec)}</b></div>
+      <div class="kv"><span>OCS</span><b>${esc(resumo.ocsNome)}</b></div>`;
+    mostrarMensagemEmissao('', '');
+    $('confirmarEmissaoBtn').disabled = false;
+    $('emitirOv').classList.add('on');
+  }
+
+  function fecharEmissao() {
+    $('emitirOv').classList.remove('on');
+  }
+
+  async function confirmarEmissao() {
+    const resumo = estado.atual;
+    if (!resumo) return;
+    const botao = $('confirmarEmissaoBtn');
+    botao.disabled = true;
+    botao.textContent = 'Confirmando...';
+    try {
+      await api('/pre-guias/' + encodeURIComponent(resumo.token) + '/confirmar-emissao', { method: 'POST' });
+      fecharEmissao();
+      toast('Emissão confirmada. A guia já pode ser enviada em Envio de guias.');
+      await carregar();
+      carregarBadgeEmail();
+      if (estado.atual) abrirPreGuia(resumo.token);
+    } catch (e) {
+      mostrarMensagemEmissao('erro', esc(e.message));
+      botao.disabled = false;
+    } finally {
+      botao.textContent = 'Confirmar emissão';
+    }
+  }
+
+  function aoClicarLinha(evento) {
+    const tr = evento.target.closest('tr[data-token]');
+    if (tr) abrirPreGuia(tr.dataset.token);
+  }
+
+  $('pendentesRows').addEventListener('click', aoClicarLinha);
+  $('emitidasRows').addEventListener('click', aoClicarLinha);
+  $('busca').addEventListener('input', renderizar);
+  $('filtroOcs').addEventListener('change', renderizar);
+  $('sairBtn').addEventListener('click', sair);
+  $('fecharFolhaBtn').addEventListener('click', fecharPreGuia);
+  $('preGuiaOv').addEventListener('click', e => { if (e.target === $('preGuiaOv')) fecharPreGuia(); });
+  $('confirmarEmissaoBtn').addEventListener('click', confirmarEmissao);
+  $('cancelarEmissaoBtn').addEventListener('click', fecharEmissao);
+
+  if (auth) {
+    carregar();
+    carregarBadgeEmail();
+  }
+</script>
+</body>
+</html>
