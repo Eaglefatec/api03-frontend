@@ -110,6 +110,7 @@
         <div class="brand-subtitle">Regulação Médica &amp; Auditoria de Guias</div>
       </div>
     </div>
+    <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">Sair</button>
   </header>
 
   <main class="portal-body">
@@ -120,7 +121,7 @@
       </div>
 
       <div class="portal-options">
-        <a class="portal-btn primary" href="login.html">
+        <a class="portal-btn primary" href="medico.html">
           <div class="portal-btn-icon">🩺</div>
           <div class="portal-btn-info">
             <div class="portal-btn-title">Acesso Médico</div>
@@ -129,7 +130,7 @@
           <span style="font-size: 1.1em;">→</span>
         </a>
 
-        <a class="portal-btn" href="guia.html">
+        <a class="portal-btn" href="pre-guias.html">
           <div class="portal-btn-icon">📋</div>
           <div class="portal-btn-info">
             <div class="portal-btn-title">Consulta de Pré-Guia (EG)</div>
@@ -141,8 +142,8 @@
         <a class="portal-btn" href="assinatura-guias.html" style="border-left: 4px solid #16a34a;">
           <div class="portal-btn-icon" style="background: rgba(22, 163, 74, 0.15); color: #16a34a;">✍️</div>
           <div class="portal-btn-info">
-            <div class="portal-btn-title">Esteira de Assinatura e Envio (EG / Méd. Chefe / Seção)</div>
-            <div class="portal-btn-desc">Upload da guia PDF, assinaturas digitais e envio por e-mail</div>
+            <div class="portal-btn-title">Esteira de Assinatura (Médico Chefe → Chefe da Seção)</div>
+            <div class="portal-btn-desc">Assinatura na ordem: 1º Médico Chefe, 2º Chefe da Seção. Envio do PDF e e-mail (admin)</div>
           </div>
           <span style="font-size: 1.1em;">→</span>
         </a>
@@ -157,19 +158,10 @@
         </a>
 
         <a class="portal-btn" href="validade-guia.html">
-          <div class="portal-btn-icon">🏥</div>
-          <div class="portal-btn-info">
-            <div class="portal-btn-title">Consulta de Validade (OCS)</div>
-            <div class="portal-btn-desc">Verificação do prazo de validade da guia pelo número</div>
-          </div>
-          <span style="font-size: 1.1em;">→</span>
-        </a>
-
-        <a class="portal-btn" href="guias-ocs.html">
           <div class="portal-btn-icon">📑</div>
           <div class="portal-btn-info">
-            <div class="portal-btn-title">Guias, Lotes e Fechamento (OCS)</div>
-            <div class="portal-btn-desc">Anexar guias assinadas, gerar lotes de fatura e enviar o fechamento mensal</div>
+            <div class="portal-btn-title">Área da OCS</div>
+            <div class="portal-btn-desc">Consulta de validade, guias, lotes de fatura e fechamento mensal</div>
           </div>
           <span style="font-size: 1.1em;">→</span>
         </a>
@@ -205,5 +197,10 @@
     FUSEX &bull; Diretoria de Saúde &bull; Ministério da Defesa
   </footer>
 </div>
+<script src="js/fusex-auth.js"></script>
+<script>
+  // O portal geral é exclusivo do administrador; os demais perfis vão direto para a própria tela.
+  FusexAuth.require(['ROLE_ADMIN']);
+</script>
 </body>
 </html>

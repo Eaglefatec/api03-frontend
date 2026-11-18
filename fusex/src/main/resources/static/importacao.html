@@ -35,7 +35,6 @@
 </head>
 <body>
 
-  <!-- Header Institucional -->
   <header class="app-header">
     <a href="index.html" class="brand-badge">
       <div class="brand-logo">FUSEX</div>
@@ -51,43 +50,21 @@
       <a href="medico.html" class="btn btn-secondary" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">
         Painel Médico
       </a>
+      <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">Sair</button>
     </div>
   </header>
 
   <main class="app-container wide">
-    <!-- Card de Boas-vindas e Autenticação -->
     <div class="card">
       <h1 class="card-title">Importação de Dados e Tabelas</h1>
       <p class="card-subtitle">
         Atualize em lote o catálogo do Rol TUSS, as tabelas de preços negociadas com as OCS e o cadastro institucional de clínicas credenciadas.
       </p>
 
-      <!-- Autenticação Administrativa -->
-      <div style="padding: 16px 20px; background: var(--bg-muted); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          <span style="font-weight: 600; font-size: 0.92em; color: var(--color-primary);">Credenciais Administrativas (HTTP Basic Auth)</span>
-        </div>
-        <div class="row2">
-          <div>
-            <label for="user" style="margin-top: 0;">Usuário *</label>
-            <input type="text" id="user" placeholder="Usuário administrador (ex: admin)">
-          </div>
-          <div>
-            <label for="pass" style="margin-top: 0;">Senha *</label>
-            <input type="password" id="pass" placeholder="••••••••">
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Módulos de Importação -->
     <div class="import-section-grid">
 
-      <!-- Módulo 1: Procedimentos TUSS -->
       <div class="import-card">
         <div>
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -121,7 +98,6 @@
         </div>
       </div>
 
-      <!-- Módulo 2: Preços por OCS -->
       <div class="import-card">
         <div>
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -152,7 +128,6 @@
         </div>
       </div>
 
-      <!-- Módulo 3: Cadastro das OCS -->
       <div class="import-card">
         <div>
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -188,6 +163,7 @@
     </div>
   </main>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
     const inputs = {
       tuss: document.getElementById('arquivoTuss'),
@@ -201,11 +177,7 @@
       'ocs-cadastro': document.getElementById('resultadoOcsCadastro')
     };
 
-    // Auto-preencher credenciais se houver sessão ativa
-    const savedUser = sessionStorage.getItem('fusex_user');
-    if (savedUser) {
-      document.getElementById('user').value = savedUser;
-    }
+    FusexAuth.require(['ROLE_ADMIN']);
 
     async function importar(alvo, botao) {
       const arquivoInput = inputs[alvo];
@@ -214,14 +186,6 @@
 
       if (!arquivoInput.files || arquivoInput.files.length === 0) {
         resultado.innerHTML = '<div class="log-box erro">Por favor, selecione um arquivo de planilha (.xls ou .xlsx).</div>';
-        return;
-      }
-
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value;
-
-      if (!user || !pass) {
-        resultado.innerHTML = '<div class="log-box erro">Informe o usuário e senha com permissão de importação.</div>';
         return;
       }
 
@@ -235,7 +199,7 @@
       try {
         const res = await fetch(`/api/importacao/${alvo}`, {
           method: 'POST',
-          headers: { 'Authorization': 'Basic ' + btoa(user + ':' + pass) },
+          headers: { 'Authorization': FusexAuth.header() },
           body: formData
         });
         const data = await res.json();

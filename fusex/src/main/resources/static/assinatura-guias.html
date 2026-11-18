@@ -192,6 +192,7 @@
     <nav class="nav" aria-label="Navegação principal">
       <div id="navEmitterGroup">
         <div class="nav-label">Emissor de guias</div>
+        <button id="nav-pre-guias" onclick="location.href='pre-guias.html'">▤ &nbsp; Consultar pré-guias <span id="badgePreGuias" class="tag t-pending" style="float:right">0</span></button>
         <button id="nav-upload" class="on" onclick="go('upload')">⇧ &nbsp; Envio de guias</button>
         <button id="nav-email" onclick="go('email')">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info" style="float:right">0</span></button>
       </div>
@@ -205,9 +206,9 @@
       </div>
     </nav>
     <div class="who">
-      <b id="whoRole">Emissor de Guias</b>
-      <span id="whoUser">Usuário: eg</span><br>
-      <span class="small">Cada perfil possui seu próprio ambiente</span>
+      <b id="whoRole"></b>
+      <span id="whoUser"></span><br>
+      <a href="#" class="small" onclick="FusexAuth.logout(); return false;" style="color:inherit;text-decoration:underline;">Sair</a>
     </div>
   </aside>
 
@@ -217,24 +218,41 @@
         <h1 id="pageTitle">Envio de guias</h1>
         <p class="sub" id="pageSub">Anexe somente o PDF. O sistema identifica os dados necessários.</p>
       </div>
-      <div style="min-width: 220px;">
-        <label for="loginRole">Simular login</label>
-        <select id="loginRole" onchange="switchRole(this.value, null, true)">
-          <option value="emitter">Emissor de Guias</option>
-          <option value="med">Médico Chefe FUSEX</option>
-          <option value="sec">Chefe da Seção FUSEX</option>
-        </select>
-      </div>
     </div>
 
     <section id="upload" class="page">
       <div class="card">
+        <div class="head">
+          <h2>Pré-guias liberadas para envio</h2>
+          <span class="small muted">Pré-guias com a emissão confirmada na consulta de pré-guias</span>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Pré-guia</th>
+                <th>Beneficiário</th>
+                <th>PREC</th>
+                <th>OCS</th>
+                <th>Emissão confirmada em</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="liberadas">
+              <tr><td colspan="6">Carregando pré-guias...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="section-title">
           <div>
             <h2>Nova guia</h2>
-            <p class="small muted">Não é necessário preencher beneficiário, OCS ou número da guia.</p>
+            <p class="small muted">Selecione uma pré-guia liberada e anexe o PDF da guia emitida.</p>
           </div>
         </div>
+        <div id="preGuiaSelecionada" class="warn">Nenhuma pré-guia selecionada. Escolha uma pré-guia liberada na lista acima.</div>
         <label for="file" id="drop" class="drop" tabindex="0" style="display:block;cursor:pointer">
           <div style="font-size: 32px;margin-bottom:6px">⇧</div>
           <b style="font-size:15px">Arraste o PDF da guia para cá</b>
@@ -416,14 +434,21 @@
 
   <div id="toast" class="toast"></div>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
     const $ = id => document.getElementById(id);
 
-    const ROLE_CREDENTIALS = {
-      emitter: { user: 'eg', pass: 'senha123', label: 'Emissor de Guias' },
-      med:     { user: 'medicochefe', pass: 'senha123', label: 'Médico Chefe FUSEX' },
-      sec:     { user: 'chefesecao', pass: 'senha123', label: 'Chefe da Seção FUSEX' }
+    const GROUP_LABEL = {
+      emitter: 'Emissor de Guias',
+      med: 'Médico Chefe FUSEX',
+      sec: 'Chefe da Seção FUSEX'
     };
+    const GROUP_VIEWS = {
+      emitter: ['upload', 'email'],
+      med: ['sign-med'],
+      sec: ['sign-sec']
+    };
+    const GROUP_NAV = { emitter: 'navEmitterGroup', med: 'navMedGroup', sec: 'navSecGroup' };
 
     const ST = {
       AM: 'Aguardando Médico Chefe',
@@ -433,10 +458,12 @@
       RJ: 'Rejeitada'
     };
 
-    let role = 'emitter';
+    let role = null;
     let currentView = 'upload';
     let guides = [];
     let selectedFile = null;
+    let preGuiaSelecionada = null;
+    let preGuiasLiberadas = [];
     let selectedGuide = null;
     let profile = 'med';
     let emailGuideId = null;
@@ -445,9 +472,7 @@
     let canvas = null;
     let ctx = null;
     let toastTimer = null;
-    let sessionAuthToken = null;
-    let sessionUsername = null;
-    let sessionAllowedRoles = [];
+    let allowedGroups = [];
 
     function esc(t) {
       return String(t ?? '').replace(/[&<>"']/g, c => ({
@@ -483,13 +508,8 @@
       return dt.toLocaleDateString('pt-BR');
     }
 
-    function getAuthHeader(forRole) {
-      const targetRole = forRole || role;
-      if (sessionAuthToken && sessionAllowedRoles.includes(targetRole)) {
-        return 'Basic ' + sessionAuthToken;
-      }
-      const cred = ROLE_CREDENTIALS[targetRole] || ROLE_CREDENTIALS.emitter;
-      return 'Basic ' + btoa(cred.user + ':' + cred.pass);
+    function getAuthHeader() {
+      return FusexAuth.header();
     }
 
     function badge(g) {
@@ -499,38 +519,29 @@
       return `<span class="tag ${cls}">${esc(label)}</span>`;
     }
 
-    async function switchRole(r, targetView, manualSimulation) {
-      if (manualSimulation) {
-        sessionAuthToken = null;
-        sessionUsername = null;
-        sessionAllowedRoles = [];
-      }
-      role = r;
-      $('loginRole').value = r;
+    // Define quais áreas do menu aparecem conforme o perfil do usuário logado
+    function calcularGrupos() {
+      const g = [];
+      if (FusexAuth.hasAny(['ROLE_EG', 'ROLE_ADMIN'])) g.push('emitter');
+      if (FusexAuth.hasAny(['ROLE_MEDICO_CHEFE', 'ROLE_ADMIN'])) g.push('med');
+      if (FusexAuth.hasAny(['ROLE_CHEFE_SECAO', 'ROLE_ADMIN'])) g.push('sec');
+      return g;
+    }
+
+    async function aplicarAcesso(targetView) {
+      allowedGroups = calcularGrupos();
+      Object.keys(GROUP_NAV).forEach(k => $(GROUP_NAV[k]).classList.toggle('hidden', !allowedGroups.includes(k)));
       closeDetail();
 
-      const groups = {
-        emitter: ['navEmitterGroup'],
-        med: ['navMedGroup'],
-        sec: ['navSecGroup']
-      };
-      ['navEmitterGroup', 'navMedGroup', 'navSecGroup'].forEach(id => {
-        $(id).classList.toggle('hidden', !groups[r].includes(id));
-      });
+      role = allowedGroups[0] || null;
+      $('whoRole').textContent = allowedGroups.length === 1 ? GROUP_LABEL[role] : 'Administração FUSEX';
+      $('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
 
-      const cred = ROLE_CREDENTIALS[r] || ROLE_CREDENTIALS.emitter;
-      $('whoRole').textContent = cred.label;
-      const activeUser = (sessionAuthToken && sessionAllowedRoles.includes(r) && sessionUsername)
-        ? sessionUsername
-        : cred.user;
-      $('whoUser').textContent = 'Usuário: ' + activeUser;
-
-      const defaultView = r === 'emitter' ? 'upload' : (r === 'med' ? 'sign-med' : 'sign-sec');
-      await go(targetView || defaultView);
+      await go(targetView || (role ? GROUP_VIEWS[role][0] : 'upload'));
     }
 
     async function go(id) {
-      const allowed = role === 'emitter' ? ['upload', 'email'] : (role === 'med' ? ['sign-med'] : ['sign-sec']);
+      const allowed = allowedGroups.flatMap(g => GROUP_VIEWS[g]);
       if (!allowed.includes(id)) id = allowed[0];
       currentView = id;
 
@@ -564,6 +575,13 @@
         $('badgeMed').textContent = painel.pendentesMedico ?? 0;
         $('badgeSec').textContent = painel.pendentesSecao ?? 0;
         $('badgeEmail').textContent = painel.prontasEnvio ?? 0;
+        if (allowedGroups.includes('emitter')) {
+          fetch('/api/pre-guias?status=PENDENTE', { headers: { 'Authorization': getAuthHeader('emitter') } })
+            .then(r => r.ok ? r.json() : [])
+            .then(lista => { $('badgePreGuias').textContent = lista.length; })
+            .catch(() => {});
+          carregarPreGuiasLiberadas();
+        }
 
         renderTables();
       } catch (err) {
@@ -689,9 +707,64 @@
       }
     });
 
+    function codigoPreGuia(p) {
+      const ano = p.dataRegistro ? new Date(p.dataRegistro).getFullYear() : new Date().getFullYear();
+      return 'PG-' + ano + '-' + String(p.id).padStart(4, '0');
+    }
+
+    async function carregarPreGuiasLiberadas() {
+      try {
+        const res = await fetch('/api/pre-guias?status=LIBERADA', { headers: { 'Authorization': getAuthHeader('emitter') } });
+        preGuiasLiberadas = res.ok ? await safeJson(res) : [];
+      } catch (err) {
+        preGuiasLiberadas = [];
+      }
+      const doLink = new URLSearchParams(window.location.search).get('preGuia');
+      if (preGuiaSelecionada && !preGuiasLiberadas.some(p => p.token === preGuiaSelecionada.token)) {
+        preGuiaSelecionada = null;
+      }
+      if (!preGuiaSelecionada && doLink) {
+        preGuiaSelecionada = preGuiasLiberadas.find(p => p.token === doLink) || null;
+      }
+      renderPreGuiasLiberadas();
+    }
+
+    function renderPreGuiasLiberadas() {
+      const atual = preGuiaSelecionada ? preGuiaSelecionada.token : null;
+      $('liberadas').innerHTML = preGuiasLiberadas.map(p => `
+        <tr${p.token === atual ? ' style="background:var(--panel2)"' : ''}>
+          <td><b>${codigoPreGuia(p)}</b></td>
+          <td>${esc(p.beneficiarioNome)}</td>
+          <td>${esc(p.beneficiarioPrec)}</td>
+          <td>${esc(p.ocsNome)}</td>
+          <td>${fmtD(p.dataEmissao)}</td>
+          <td><button type="button" class="btn o" data-token="${esc(p.token)}">${p.token === atual ? 'Selecionada' : 'Selecionar'}</button></td>
+        </tr>`).join('') || '<tr><td colspan="6">Nenhuma pré-guia liberada. Confirme a emissão em Consultar pré-guias.</td></tr>';
+
+      const box = $('preGuiaSelecionada');
+      if (preGuiaSelecionada) {
+        box.className = 'sign';
+        box.innerHTML = `<div><b>Pré-guia ${codigoPreGuia(preGuiaSelecionada)}</b> · ${esc(preGuiaSelecionada.beneficiarioNome)} · ${esc(preGuiaSelecionada.ocsNome)}</div>`;
+      } else {
+        box.className = 'warn';
+        box.textContent = 'Nenhuma pré-guia selecionada. Escolha uma pré-guia liberada na lista acima.';
+      }
+      $('uploadBtn').disabled = !(selectedFile && preGuiaSelecionada);
+    }
+
+    function selecionarPreGuia(token) {
+      preGuiaSelecionada = preGuiasLiberadas.find(p => p.token === token) || null;
+      $('uploadError').hidden = true;
+      renderPreGuiasLiberadas();
+    }
+
     function setFile(f) {
       if (!f) return;
       $('uploadError').hidden = true;
+      if (!preGuiaSelecionada) {
+        $('file').value = '';
+        return uploadErr('Selecione primeiro a pré-guia liberada à qual esta guia pertence.');
+      }
       if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
         return uploadErr('Selecione um arquivo PDF.');
       }
@@ -701,9 +774,14 @@
       selectedFile = f;
       $('fileName').textContent = '📄 ' + f.name + ' · ' + Math.max(1, Math.round(f.size / 1024)) + ' KB';
       $('fileInfo').classList.remove('hidden');
-      $('uploadBtn').disabled = false;
+      $('uploadBtn').disabled = !preGuiaSelecionada;
       $('success').classList.add('hidden');
     }
+
+    document.addEventListener('click', e => {
+      const botao = e.target.closest('#liberadas button[data-token]');
+      if (botao) selecionarPreGuia(botao.dataset.token);
+    });
 
     function uploadErr(m) {
       $('uploadError').textContent = m;
@@ -719,7 +797,7 @@
     }
 
     async function uploadPdf() {
-      if (!selectedFile) return;
+      if (!selectedFile || !preGuiaSelecionada) return;
       const uploadedName = selectedFile.name;
       $('uploadError').hidden = true;
       $('processing').classList.remove('hidden');
@@ -730,7 +808,7 @@
       formData.append('arquivo', selectedFile);
 
       try {
-        const res = await fetch('/api/assinaturas/guias', {
+        const res = await fetch('/api/pre-guias/' + encodeURIComponent(preGuiaSelecionada.token) + '/guia-assinatura', {
           method: 'POST',
           headers: { 'Authorization': getAuthHeader('emitter') },
           body: formData
@@ -752,10 +830,11 @@
         $('successText').textContent = data.mensagem || ('Arquivo ' + uploadedName + ' recebido.');
         $('extracted').innerHTML = `
           <p><b>Nº da guia:</b> ${esc(data.numeroGuia)} &nbsp; <b>Beneficiário:</b> ${esc(data.beneficiarioNome)} &nbsp; <b>OCS:</b> ${esc(data.ocsNome)}</p>
-          <p class="muted">Dados identificados automaticamente a partir do PDF enviado.</p>
+          <p class="muted">Beneficiário e OCS vinculados a partir da pré-guia selecionada.</p>
         `;
         $('success').classList.remove('hidden');
         clearFile();
+        preGuiaSelecionada = null;
         await refreshData();
         toast('Guia enviada para assinatura do Médico Chefe.');
       } catch (err) {
@@ -923,6 +1002,7 @@
         `;
         $('success').classList.remove('hidden');
         clearFile();
+        preGuiaSelecionada = null;
         await refreshData();
         toast('Beneficiário cadastrado e guia enviada para assinatura do Médico Chefe!');
       } catch (err) {
@@ -1339,58 +1419,10 @@
       toastTimer = setTimeout(() => t.classList.remove('on'), 3000);
     }
 
-    // Carrega o perfil da sessão ou dos parâmetros da URL ao abrir a página
     (async function init() {
-      const params = new URLSearchParams(window.location.search);
-      const urlRole = params.get('role');
-      const urlView = params.get('view');
-
-      const savedAuth = sessionStorage.getItem('fusex_auth');
-      if (savedAuth) {
-        try {
-          const meRes = await fetch('/api/auth/me', {
-            headers: { 'Authorization': 'Basic ' + savedAuth }
-          });
-          if (meRes.ok) {
-            const me = await safeJson(meRes);
-            const roles = me.roles || [];
-            const allowed = [];
-            if (roles.includes('ROLE_EG') || roles.includes('ROLE_ADMIN')) allowed.push('emitter');
-            if (roles.includes('ROLE_MEDICO_CHEFE') || roles.includes('ROLE_ADMIN')) allowed.push('med');
-            if (roles.includes('ROLE_CHEFE_SECAO') || roles.includes('ROLE_ADMIN')) allowed.push('sec');
-
-            if (allowed.length > 0) {
-              sessionAuthToken = savedAuth;
-              sessionUsername = me.username || null;
-              sessionAllowedRoles = allowed;
-            }
-
-            if (urlRole && ['emitter', 'med', 'sec'].includes(urlRole)) {
-              await switchRole(urlRole, urlView, false);
-              return;
-            }
-            if (roles.includes('ROLE_CHEFE_SECAO') && !roles.includes('ROLE_ADMIN')) {
-              await switchRole('sec', urlView, false);
-              return;
-            }
-            if (roles.includes('ROLE_MEDICO_CHEFE') && !roles.includes('ROLE_ADMIN')) {
-              await switchRole('med', urlView, false);
-              return;
-            }
-            if (allowed.includes('emitter')) {
-              await switchRole('emitter', urlView, false);
-              return;
-            }
-          }
-        } catch (ignored) {}
-      }
-
-      if (urlRole && ['emitter', 'med', 'sec'].includes(urlRole)) {
-        await switchRole(urlRole, urlView, false);
-        return;
-      }
-
-      await switchRole('emitter', urlView, false);
+      if (!FusexAuth.require(['ROLE_EG', 'ROLE_MEDICO_CHEFE', 'ROLE_CHEFE_SECAO', 'ROLE_ADMIN'])) return;
+      const urlView = new URLSearchParams(window.location.search).get('view');
+      await aplicarAcesso(urlView);
     })();
   </script>
 </body>

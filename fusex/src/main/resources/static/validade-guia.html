@@ -4,83 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FUSEX - Consulta de Validade da Guia</title>
-  <link rel="stylesheet" href="css/fusex-theme.css">
+  <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+  <style>
+    .kv { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .kv:last-child { border-bottom: 0; }
+    .kv span:first-child { color: var(--mut); }
+    .kv .pendente { color: var(--mut); font-style: italic; }
+    .status { border-radius: var(--r); padding: 14px 16px; margin: 4px 0 14px; display: flex; flex-direction: column; gap: 4px; }
+    .status.ok { background: rgba(22, 163, 74, .12); color: #15803d; }
+    .status.bad { background: rgba(220, 38, 38, .12); color: #b91c1c; }
+  </style>
 </head>
 <body>
 
-  <header class="app-header">
-    <a href="index.html" class="brand-badge">
-      <div class="brand-logo">FUSEX</div>
-      <div>
-        <div class="brand-title">Fundo de Saúde do Exército</div>
-        <div class="brand-subtitle">Consulta de Validade da Guia (OCS)</div>
-      </div>
-    </a>
-  </header>
+  <aside>
+    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Área da OCS</small></span></a>
+    <nav class="nav">
+      <a href="validade-guia.html" class="on">Consulta de validade</a>
+      <a href="guias-ocs.html">Guias do mês</a>
+      <a href="lotes-ocs.html">Lotes de fatura</a>
+      <a href="fechamento-ocs.html">Fechamento mensal</a>
+    </nav>
+    <div class="who" id="who">
+      <b>Não autenticado</b>
+      Faça login para continuar
+    </div>
+  </aside>
 
-  <main class="app-container">
+  <main>
+    <h1>Consulta de Validade da Guia</h1>
+    <p class="sub">Informe o número da guia impresso no documento para verificar se ela ainda está dentro do prazo de validade.</p>
+
+    <div id="errorMsg" class="erro" hidden></div>
+
     <div class="card">
-      <h1 class="card-title">Consulta de Validade da Guia</h1>
-      <p class="card-subtitle">Informe o número da guia impresso no documento para verificar se ela ainda está dentro do prazo de validade.</p>
-
-      <div id="loginSection">
-        <h2 style="font-size: 0.95em; font-weight: 600; color: var(--color-primary); margin: 0 0 12px 0;">
-          Autenticação
-        </h2>
-        <div class="row2">
-          <div>
-            <label for="user">Usuário</label>
-            <input type="text" id="user" value="ocs">
-          </div>
-          <div>
-            <label for="pass">Senha</label>
-            <input type="password" id="pass" placeholder="••••••••">
-          </div>
+      <div class="row">
+        <div>
+          <label for="numeroGuia">Número da guia</label>
+          <input type="text" id="numeroGuia" placeholder="Ex.: 202610606" autofocus>
+        </div>
+        <div style="display: flex; align-items: flex-end;">
+          <button id="consultarBtn" type="button" class="btn" style="width: 100%;">Consultar validade</button>
         </div>
       </div>
+      <p id="loading" class="hint" hidden>Consultando...</p>
+    </div>
 
-      <label for="numeroGuia">Número da Guia</label>
-      <input type="text" id="numeroGuia" placeholder="Ex.: ABC-123456">
-
-      <button id="consultarBtn" type="button" class="btn btn-primary">
-        Consultar Validade
-      </button>
-
-      <div id="loading" class="alert alert-info" hidden>
-        <span>Consultando...</span>
-      </div>
-      <div id="errorMsg" class="alert alert-error" hidden></div>
-
-      <div id="resultado" hidden style="margin-top: 24px;">
-        <div id="statusBox" class="alert alert-column"></div>
-
-        <div class="kv-list">
-          <div class="kv-row">
-            <span class="kv-label">Número da Guia</span>
-            <span class="kv-val" id="resNumero">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Beneficiário</span>
-            <span class="kv-val" id="resPaciente">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">OCS Vinculada</span>
-            <span class="kv-val" id="resOcs">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Data de Importação da Guia</span>
-            <span class="kv-val" id="resDataImportacao">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Válida até</span>
-            <span class="kv-val" id="resDataValidade">-</span>
-          </div>
-        </div>
-      </div>
+    <div class="card" id="resultado" hidden>
+      <div id="statusBox" class="status"></div>
+      <div class="kv"><span>Número da guia</span><span id="resNumero">-</span></div>
+      <div class="kv"><span>Beneficiário</span><span id="resPaciente">-</span></div>
+      <div class="kv"><span>OCS vinculada</span><span id="resOcs">-</span></div>
+      <div class="kv"><span>Data de importação da guia</span><span id="resDataImportacao">-</span></div>
+      <div class="kv"><span>Válida até</span><span id="resDataValidade">-</span></div>
     </div>
   </main>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
+    const ACESSO_OK = FusexAuth.require(['ROLE_OCS', 'ROLE_ADMIN']);
+
     const numeroGuiaInput = document.getElementById('numeroGuia');
     const loading = document.getElementById('loading');
     const errorMsg = document.getElementById('errorMsg');
@@ -115,19 +98,11 @@
         return;
       }
 
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value;
-      if (!user || !pass) {
-        errorMsg.textContent = 'Informe usuário e senha para consultar.';
-        errorMsg.hidden = false;
-        return;
-      }
-
       loading.hidden = false;
 
       try {
         const res = await fetch(`/api/guias/${encodeURIComponent(numeroGuia)}/validade`, {
-          headers: { 'Authorization': 'Basic ' + btoa(user + ':' + pass) }
+          headers: { 'Authorization': FusexAuth.header() }
         });
         const data = await res.json();
         loading.hidden = true;
@@ -138,10 +113,16 @@
           return;
         }
 
-        statusBox.className = 'alert alert-column ' + (data.valida ? 'alert-success' : 'alert-error');
-        statusBox.innerHTML = data.valida
-          ? '<strong>✓ Guia válida</strong>'
-          : `<strong>✗ Guia inválida</strong><span>${MOTIVOS[data.motivoInvalidez] || 'Motivo não informado.'}</span>`;
+        statusBox.className = 'status ' + (data.valida ? 'ok' : 'bad');
+        statusBox.innerHTML = '';
+        const titulo = document.createElement('strong');
+        titulo.textContent = data.valida ? '✓ Guia válida' : '✗ Guia inválida';
+        statusBox.appendChild(titulo);
+        if (!data.valida) {
+          const motivo = document.createElement('span');
+          motivo.textContent = MOTIVOS[data.motivoInvalidez] || 'Motivo não informado.';
+          statusBox.appendChild(motivo);
+        }
 
         preencher('resNumero', data.numeroGuia);
         preencher('resPaciente', data.nomePaciente, 'Não informado');
@@ -162,12 +143,9 @@
     }
 
     document.getElementById('consultarBtn').addEventListener('click', consultar);
+    numeroGuiaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') consultar(); });
 
-    ['user', 'pass', 'numeroGuia'].forEach(id => {
-      document.getElementById(id).addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') consultar();
-      });
-    });
+    FusexAuth.renderUserBox(document.getElementById('who'), 'OCS');
   </script>
 </body>
 </html>

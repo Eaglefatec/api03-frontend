@@ -23,17 +23,6 @@
     <h1>Faturamento</h1>
     <p class="sub">Fechamentos mensais enviados pelas OCSs. Para cada lote, confira os anexos, gere a fatura no SisFat e informe o número.</p>
 
-    <div class="card">
-      <h2>Autenticação</h2>
-      <div class="row">
-        <div><label for="user">Usuário</label><input id="user" value="faturamento"></div>
-        <div><label for="pass">Senha</label><input id="pass" type="password" placeholder="••••••••"></div>
-        <div style="display: flex; align-items: flex-end;">
-          <button id="carregarBtn" class="btn" style="width: 100%;">Entrar e Carregar</button>
-        </div>
-      </div>
-    </div>
-
     <div id="erroGlobal" class="erro" hidden></div>
 
     <div class="stats">
@@ -55,7 +44,7 @@
             </tr>
           </thead>
           <tbody id="tbFila">
-            <tr><td colspan="6">Entre com usuário e senha para carregar os fechamentos.</td></tr>
+            <tr><td colspan="6">Carregando fechamentos...</td></tr>
           </tbody>
         </table>
       </div>
@@ -110,7 +99,9 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
+    const ACESSO_OK = FusexAuth.require(['ROLE_FATURAMENTO','ROLE_ADMIN']);
     const $ = id => document.getElementById(id);
     const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const competencia = (ano, mes) => `${MESES[mes]}/${ano}`;
@@ -129,10 +120,7 @@
     }
 
     function authHeader() {
-      const user = $('user').value.trim();
-      const pass = $('pass').value;
-      if (!user || !pass) return null;
-      return 'Basic ' + btoa(user + ':' + pass);
+      return FusexAuth.header();
     }
 
     function mostrarErro(msg) {
@@ -143,14 +131,12 @@
     async function carregarFila() {
       $('erroGlobal').hidden = true;
       const auth = authHeader();
-      if (!auth) { mostrarErro('Informe usuário e senha.'); return; }
+      if (!auth) { mostrarErro('Sessão expirada. Faça login novamente.'); return; }
 
       try {
         const res = await fetch('/api/faturamento/fechamentos', { headers: { 'Authorization': auth } });
         const data = await res.json();
         if (!res.ok) { mostrarErro(data.error || 'Não foi possível carregar os fechamentos.'); return; }
-
-        $('who').innerHTML = `<b>${esc($('user').value.trim())}</b>Setor de Faturamento`;
         $('sPend').textContent = data.length;
         $('tbFila').innerHTML = data.length
           ? data.map(f => `<tr class="click" data-id="${f.id}">
@@ -319,12 +305,14 @@
       }
     }
 
-    $('carregarBtn').addEventListener('click', carregarFila);
     $('cancelarBtn').addEventListener('click', fecharConferencia);
     $('confirmarBtn').addEventListener('click', confirmar);
     $('baixarPrevBtn').addEventListener('click', baixarArquivo);
     $('fecharPrevBtn').addEventListener('click', () => $('mPrev').classList.remove('on'));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('mPrev').classList.remove('on'); fecharConferencia(); } });
+
+    FusexAuth.renderUserBox($('who'), 'Setor de Faturamento');
+    if (ACESSO_OK) carregarFila();
   </script>
 </body>
 </html>

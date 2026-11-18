@@ -9,8 +9,9 @@
 <body>
 
   <aside>
-    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Guias, Lotes e Fechamento (OCS)</small></span></a>
+    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Área da OCS</small></span></a>
     <nav class="nav">
+      <a href="validade-guia.html">Consulta de validade</a>
       <a href="guias-ocs.html">Guias do mês</a>
       <a href="lotes-ocs.html" class="on">Lotes de fatura</a>
       <a href="fechamento-ocs.html">Fechamento mensal</a>
@@ -24,17 +25,6 @@
   <main>
     <h1>Lotes de Fatura</h1>
     <p class="sub">Selecione as guias, anexe a fatura e o espelho e clique em "Gerar lote de fatura". O lote fica guardado no sistema e só é enviado à Fusex no fechamento mensal.</p>
-
-    <div class="card">
-      <h2>Autenticação</h2>
-      <div class="row">
-        <div><label for="user">Usuário</label><input id="user" value="ocs"></div>
-        <div><label for="pass">Senha</label><input id="pass" type="password" placeholder="••••••••"></div>
-        <div style="display: flex; align-items: flex-end;">
-          <button id="carregarBtn" class="btn" style="width: 100%;">Entrar e Carregar</button>
-        </div>
-      </div>
-    </div>
 
     <div id="erroGlobal" class="erro" hidden></div>
 
@@ -57,7 +47,7 @@
             </tr>
           </thead>
           <tbody id="tbSemLote">
-            <tr><td colspan="4">Entre com usuário e senha para carregar as guias.</td></tr>
+            <tr><td colspan="4">Carregando guias...</td></tr>
           </tbody>
         </table>
       </div>
@@ -104,7 +94,9 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
+    const ACESSO_OK = FusexAuth.require(['ROLE_OCS','ROLE_ADMIN']);
     const $ = id => document.getElementById(id);
     const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const formatarCompetencia = (ano, mes) => `${MESES[mes]}/${ano}`;
@@ -119,10 +111,7 @@
     }
 
     function authHeader() {
-      const user = $('user').value.trim();
-      const pass = $('pass').value;
-      if (!user || !pass) return null;
-      return 'Basic ' + btoa(user + ':' + pass);
+      return FusexAuth.header();
     }
 
     function mostrarErroGlobal(msg) {
@@ -184,12 +173,11 @@
       $('erroGlobal').hidden = true;
       const auth = authHeader();
       if (!auth) {
-        mostrarErroGlobal('Informe usuário e senha.');
+        mostrarErroGlobal('Sessão expirada. Faça login novamente.');
         return;
       }
 
       try {
-        $('who').innerHTML = `<b>${$('user').value.trim()}</b>Autenticado`;
         await carregarSemLote(auth);
         await carregarLotes(auth);
       } catch (err) {
@@ -201,7 +189,7 @@
       $('erroGlobal').hidden = true;
       const auth = authHeader();
       if (!auth) {
-        mostrarErroGlobal('Informe usuário e senha.');
+        mostrarErroGlobal('Sessão expirada. Faça login novamente.');
         return;
       }
 
@@ -246,8 +234,10 @@
       }
     }
 
-    $('carregarBtn').addEventListener('click', carregarTudo);
     $('gerarLoteBtn').addEventListener('click', gerarLote);
+
+    FusexAuth.renderUserBox($('who'), 'OCS');
+    if (ACESSO_OK) carregarTudo();
   </script>
 </body>
 </html>

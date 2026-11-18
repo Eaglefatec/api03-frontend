@@ -77,7 +77,6 @@
         .btn.o { background: none; border: 1px solid var(--line); color: var(--tx); }
         .hint { font-size: 12px; color: var(--mut); margin-top: 8px; }
 
-        /* Drawer Lateral */
         .drawer {
             box-shadow: -8px 0 24px rgba(23, 33, 43, .12);
             position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%);
@@ -93,7 +92,6 @@
         .cmp .b { border-color: var(--red); }
         .diff { padding: 10px 12px; border-radius: 8px; background: rgba(220, 38, 38, .1); color: #b91c1c; margin-bottom: 14px; font-weight: 600; }
 
-        /* Modal de Detalhamento do Espelho */
         .ov {
             position: fixed; inset: 0; background: rgba(15, 23, 32, .45);
             display: none; align-items: center; justify-content: center; z-index: 30; padding: 16px;
@@ -114,6 +112,8 @@
     <div class="brand"><i>✚</i><span>SISMED</span></div>
     <nav class="nav">
         <a href="#" class="on">Dashboard Lisura</a>
+        <a href="index.html">Portal</a>
+        <a href="#" onclick="FusexAuth.logout(); return false;">Sair</a>
     </nav>
 </aside>
 
@@ -123,7 +123,6 @@
         <h1>Lisura</h1>
         <p class="sub">Fechamentos mensais já faturados, prontos para o cruzamento de dados.</p>
 
-        <!-- Cartões de Métricas -->
         <div class="metrics">
             <div class="metric-card">
                 <b id="lblTotalFechamentos">0</b>
@@ -243,7 +242,6 @@
         <button class="btn o" onclick="abrirModalEspelho()">Ver Detalhamento do Espelho</button>
     </div>
 
-    <!-- Formulário de Decisão -->
     <div style="border-top: 1px solid var(--line); padding-top: 16px;">
         <h3>Formulário de Decisão / Glosa</h3>
         <div style="margin-bottom: 12px;">
@@ -264,7 +262,6 @@
     </div>
 </div>
 
-<!-- Modal de Detalhamento do Espelho -->
 <div class="ov" id="modalEspelho">
     <div class="modal" style="max-width: 1100px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -294,7 +291,6 @@
             </table>
         </div>
 
-        <!-- Cards de Resumo Financeiro -->
         <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 14px;">
             <div style="background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
                 <b id="cardProc" style="font-size: 18px; display:block;">R$ 0,00</b>
@@ -321,15 +317,14 @@
     </div>
 </div>
 
+<script src="js/fusex-auth.js"></script>
 <script>
-    // Gera o token Basic Auth em Base64 (substitua 'admin' e 'admin123' se preferir outro usuário do seu SecurityConfig)
-const credenciais = btoa('admin:admin123');
+    FusexAuth.require(['ROLE_ADMIN']);
 
-// Função auxiliar para padronizar as requisições autenticadas
 async function fetchAutenticado(url, options = {}) {
     options.headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${credenciais}`,
+        'Authorization': FusexAuth.header(),
         ...(options.headers || {})
     };
     return fetch(url, options);
@@ -349,10 +344,8 @@ async function fetchAutenticado(url, options = {}) {
 
     async function carregarFechamentos() {
         try {
-            const res = await fetch('/api/lisura/fechamentos', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
+            const res = await fetchAutenticado('/api/lisura/fechamentos', {
+                method: 'GET'
             });
 
             if (!res.ok) {
@@ -387,9 +380,7 @@ async function fetchAutenticado(url, options = {}) {
                 let qtdDivs = 0;
 
                 try {
-                    const cruzRes = await fetch(`/api/lisura/cruzamento/${f.id}`, {
-                        credentials: 'include'
-                    });
+                    const cruzRes = await fetchAutenticado(`/api/lisura/cruzamento/${f.id}`);
 
                     if (cruzRes.ok) {
                         const guiasCruzadas = await cruzRes.json();
@@ -455,7 +446,7 @@ async function fetchAutenticado(url, options = {}) {
         let qtdDivs = 0;
 
         try {
-            const res = await fetch(`/api/lisura/cruzamento/${id}`, { credentials: 'include' });
+            const res = await fetchAutenticado(`/api/lisura/cruzamento/${id}`);
             const divergencias = await res.json();
             if (divergencias && Array.isArray(divergencias)) {
                 totalGuias = divergencias.length;
@@ -497,13 +488,13 @@ async function fetchAutenticado(url, options = {}) {
         const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
         document.getElementById('subAuditoria').textContent = `Fechamento #${id} · ${nomeOcs} · Competência: ${f.competenciaMes}/${f.competenciaAno}`;
 
-        document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `window.open('/api/lisura/relatorio/${id}', '_blank')`);
+        document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `baixarRelatorioPdf(${id})`);
 
         const tbody = document.getElementById('tbCruzamento');
         tbody.innerHTML = '<tr><td colspan="7">A processar motor de cruzamento e itens do espelho...</td></tr>';
 
         try {
-            const res = await fetch(`/api/lisura/cruzamento/${id}`, { credentials: 'include' });
+            const res = await fetchAutenticado(`/api/lisura/cruzamento/${id}`);
             const divergencias = await res.json();
 
             if (!divergencias || !divergencias.length) {
@@ -517,7 +508,7 @@ async function fetchAutenticado(url, options = {}) {
                 let valorFaturadoReal = Number(d.valorFaturado || 0);
 
                 try {
-                    const resItens = await fetch(`/api/lisura/guia-itens/${idGuia}`, { credentials: 'include' });
+                    const resItens = await fetchAutenticado(`/api/lisura/guia-itens/${idGuia}`);
                     if (resItens.ok) {
                         const itens = await resItens.json();
                         if (itens && itens.length > 0) {
@@ -624,7 +615,7 @@ async function fetchAutenticado(url, options = {}) {
         document.getElementById('modalEspelho').classList.add('on');
 
         try {
-            const res = await fetch(`/api/lisura/guia-itens/${idGuia}`, { credentials: 'include' });
+            const res = await fetchAutenticado(`/api/lisura/guia-itens/${idGuia}`);
 
             if (!res.ok) {
                 throw new Error('Erro na resposta do servidor');
@@ -701,6 +692,29 @@ async function fetchAutenticado(url, options = {}) {
         }
     }
 
+    async function baixarRelatorioPdf(fechamentoId) {
+        try {
+            const res = await fetchAutenticado(`/api/lisura/relatorio/${fechamentoId}`);
+            if (!res.ok) {
+                throw new Error('Não foi possível gerar o relatório PDF.');
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const win = window.open(url, '_blank');
+            if (!win) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `relatorio_divergencias_${fechamentoId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } catch (err) {
+            alert(err.message || 'Erro ao baixar relatório PDF.');
+        }
+    }
+
     async function salvarGlosaEGerarPdf() {
         const valorRevisado = parseFloat(document.getElementById('inputValorRevisado').value);
         const justificativa = document.getElementById('inputJustificativa').value.trim();
@@ -712,10 +726,8 @@ async function fetchAutenticado(url, options = {}) {
         }
 
         try {
-            const response = await fetch('/api/lisura/glosas', {
+            const response = await fetchAutenticado('/api/lisura/glosas', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify({
                     guiaId: guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id,
                     codigoTuss: guiaSelecionadaAtual.codigoTuss,
@@ -727,7 +739,7 @@ async function fetchAutenticado(url, options = {}) {
             if (response.ok) {
                 alert('Glosa registada com sucesso! A descarregar relatório em PDF...');
                 fecharDrawer();
-                window.open(`/api/lisura/relatorio/${fechamentoAtualId}`, '_blank');
+                await baixarRelatorioPdf(fechamentoAtualId);
             } else {
                 alert('Erro ao registar a glosa no servidor.');
             }
