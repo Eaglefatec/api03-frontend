@@ -238,8 +238,9 @@
         <div class="b"><small>Valor Faturado (Espelho)</small><b id="cmpFaturado"></b></div>
     </div>
 
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn o" onclick="abrirModalEspelho()">Ver Detalhamento do Espelho</button>
+        <button class="btn o" onclick="abrirGuiaComRelatorio()">Guia com relatório no verso</button>
     </div>
 
     <div style="border-top: 1px solid var(--line); padding-top: 16px;">
@@ -257,7 +258,7 @@
             <textarea id="inputConclusao" placeholder="Conclusão da auditoria para esta guia."></textarea>
         </div>
         <div class="acts">
-            <button class="btn" onclick="salvarGlosaEGerarPdf()">Salvar Glosa e Gerar PDF</button>
+            <button class="btn" onclick="salvarGlosaEGerarPdf()">Salvar glosa e gerar guia com relatório</button>
         </div>
     </div>
 </div>
@@ -715,6 +716,34 @@ async function fetchAutenticado(url, options = {}) {
         }
     }
 
+    async function abrirGuiaComRelatorio(guiaId) {
+        const id = guiaId || (guiaSelecionadaAtual && (guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id));
+        if (!id) return;
+        const win = window.open('', '_blank');
+        try {
+            const res = await fetchAutenticado(`/api/lisura/guias/${id}/pdf-relatorio`);
+            if (!res.ok) {
+                const erro = await res.json().catch(() => ({}));
+                throw new Error(erro.error || 'Não foi possível gerar a guia com o relatório.');
+            }
+            const url = URL.createObjectURL(await res.blob());
+            if (win) {
+                win.location.href = url;
+            } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `guia_${id}_relatorio_lisura.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 120000);
+        } catch (err) {
+            if (win) win.close();
+            alert(err.message || 'Erro ao gerar a guia com o relatório.');
+        }
+    }
+
     async function salvarGlosaEGerarPdf() {
         const valorRevisado = parseFloat(document.getElementById('inputValorRevisado').value);
         const justificativa = document.getElementById('inputJustificativa').value.trim();
@@ -732,14 +761,15 @@ async function fetchAutenticado(url, options = {}) {
                     guiaId: guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id,
                     codigoTuss: guiaSelecionadaAtual.codigoTuss,
                     justificativaMilitar: justificativa,
-                    valorGlosa: valorRevisado
+                    valorGlosa: valorRevisado,
+                    conclusao: conclusao
                 })
             });
 
             if (response.ok) {
-                alert('Glosa registada com sucesso! A descarregar relatório em PDF...');
+                const guiaId = guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id;
                 fecharDrawer();
-                await baixarRelatorioPdf(fechamentoAtualId);
+                await abrirGuiaComRelatorio(guiaId);
             } else {
                 alert('Erro ao registar a glosa no servidor.');
             }
