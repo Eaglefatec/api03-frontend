@@ -146,7 +146,6 @@
         <button id="printQrBtn" type="button" class="btn btn-secondary no-print" style="width: 100%; margin-top: 12px; padding: 8px 14px; font-size: 0.85em;">🖨️ Imprimir QR Code</button>
       </div>
 
-      <!-- Gerenciamento Interativo e Reenvio de E-mail -->
       <div id="areaReenvioEmail" style="margin-top: 16px; padding: 14px; background: #ffffff; border: 1px solid #dcdcdc; border-radius: 6px; text-align: left;">
         <div style="font-weight: 600; font-size: 0.92em; color: #2c3e50; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
           <span>📧 Gerenciamento de Envio por E-mail</span>
@@ -168,26 +167,18 @@
   </div>
 </div>
 
+<script src="js/fusex-auth.js"></script>
 <script>
-  // 1. Verificação de Sessão
+  FusexAuth.require(['ROLE_MEDICO', 'ROLE_ADMIN']);
   const auth = sessionStorage.getItem('fusex_auth');
   const medicoStr = sessionStorage.getItem('fusex_medico');
 
-  if (!auth) {
-    window.location.href = 'login.html';
-  }
-
-  const medico = medicoStr ? JSON.parse(medicoStr) : { id: 1, nome: 'Dr. João Silva', crm: '123456' };
+  const medico = medicoStr ? JSON.parse(medicoStr) : { id: 1, nome: 'Médico', crm: '123456' };
 
   document.getElementById('medicoNome').textContent = medico.nome || 'Médico Conectado';
   document.getElementById('medicoCrm').textContent = medico.crm ? 'CRM: ' + medico.crm : '';
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('fusex_auth');
-    sessionStorage.removeItem('fusex_user');
-    sessionStorage.removeItem('fusex_medico');
-    window.location.href = 'login.html';
-  });
+  document.getElementById('logoutBtn').addEventListener('click', () => FusexAuth.logout());
 
   const form = document.getElementById('solicitacaoForm');
   const resultBox = document.getElementById('result');
@@ -207,7 +198,6 @@
       .replace(/'/g, '&#039;');
   }
 
-  // Máscara interativa de CPF
   const cpfInput = document.getElementById('cpf');
   cpfInput.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 11);
@@ -217,7 +207,6 @@
     e.target.value = v;
   });
 
-  // 2. Busca e Autocomplete de Paciente
   const nomePacienteInput = document.getElementById('nomePaciente');
   const omInput = document.getElementById('om');
   const precInput = document.getElementById('prec');
@@ -364,7 +353,6 @@
     }
   });
 
-  // 3. Autocomplete e Pulldown de Procedimentos TUSS Filtrado por Especialidades
   const procedimentoBusca = document.getElementById('procedimentoBusca');
   const btnPulldownProcedimentos = document.getElementById('btnPulldownProcedimentos');
   const procedimentoSugestoes = document.getElementById('procedimentoSugestoes');
@@ -377,7 +365,7 @@
     const texto = procedimentoBusca.value.trim();
     const especialidades = Array.from(document.querySelectorAll('.especialidade:checked')).map(el => el.value);
 
-    // Se estiver digitando e não tiver texto e nem especialidade, fecha
+    // Só busca sugestões quando houver texto digitado ou alguma especialidade marcada
     if (!abrirPulldown && texto.length < 2 && especialidades.length === 0) {
       procedimentoSugestoes.hidden = true;
       procedimentoSugestoes.innerHTML = '';
@@ -437,12 +425,10 @@
 
   procedimentoBusca.addEventListener('input', dispararBuscaProcedimentos);
 
-  // Ao focar no campo, abre a lista com os procedimentos da(s) especialidade(s) selecionada(s)
   procedimentoBusca.addEventListener('focus', () => {
     carregarProcedimentos(true);
   });
 
-  // Botão de seta Pulldown (toggle)
   btnPulldownProcedimentos.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!procedimentoSugestoes.hidden) {
@@ -453,7 +439,6 @@
     }
   });
 
-  // Highlight pill checkboxes on change e atualiza o pulldown automaticamente
   document.querySelectorAll('.pill-checkbox input').forEach(input => {
     input.addEventListener('change', () => {
       input.closest('.pill-checkbox').classList.toggle('active', input.checked);
@@ -465,7 +450,7 @@
 
   function adicionarProcedimento(p) {
     if (procedimentosAdicionados.some(item => item.procedimentoCodigoDgp === p.procCodigoDgp)) {
-      return; // Já adicionado
+      return;
     }
     procedimentosAdicionados.push({
       procedimentoCodigoDgp: p.procCodigoDgp,
@@ -500,7 +485,6 @@
     });
   }
 
-  // Fechar dropdowns ao clicar fora
   document.addEventListener('click', (e) => {
     if (!nomePacienteInput.contains(e.target) && !pacienteSugestoes.contains(e.target)) {
       pacienteSugestoes.hidden = true;
@@ -510,7 +494,6 @@
     }
   });
 
-  // 4. Submissão do Formulário
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorBox.hidden = true;
@@ -572,10 +555,8 @@
       const beneficiarioLink = window.location.origin + '/api/beneficiario.html?token=' + data.tokenPublico;
       linkBeneficiarioAtual = beneficiarioLink;
 
-      // Exibir QR Code na tela
       qrCodeImg.src = '/api/solicitacoes/publico/' + data.tokenPublico + '/qrcode';
 
-      // Atualizar painel e status do e-mail
       atualizarPainelEmail(data, payload.email);
 
       resultBox.hidden = false;
@@ -666,7 +647,6 @@
     }
   }
 
-  // Handler do Botão Reenviar E-mail
   document.getElementById('btnReenviarEmail').addEventListener('click', async () => {
     if (!ultimaSolicitacaoId) return;
 

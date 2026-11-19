@@ -46,8 +46,8 @@
     <nav class="nav" aria-label="Navegação principal">
       <div class="nav-label">Emissor de guias</div>
       <a href="pre-guias.html" class="on">▤ &nbsp; Consultar pré-guias <span id="badgePendentes" class="tag t-wait">0</span></a>
-      <a href="assinatura-guias.html?role=emitter&amp;view=upload">⇧ &nbsp; Envio de guias</a>
-      <a href="assinatura-guias.html?role=emitter&amp;view=email">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info">0</span></a>
+      <a href="assinatura-guias.html?view=upload">⇧ &nbsp; Envio de guias</a>
+      <a href="assinatura-guias.html?view=email">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info">0</span></a>
     </nav>
     <div class="who">
       <b id="usuarioNome">Emissor de Guias</b>
@@ -130,11 +130,10 @@
 
   <div class="toast" id="toast"></div>
 
+<script src="js/fusex-auth.js"></script>
 <script>
+  const ACESSO_OK = FusexAuth.require(['ROLE_EG', 'ROLE_ADMIN']);
   const auth = sessionStorage.getItem('fusex_auth');
-  if (!auth) {
-    window.location.href = 'login-eg.html';
-  }
 
   const $ = id => document.getElementById(id);
   const estado = { pendentes: [], emitidas: [], atual: null };
@@ -163,10 +162,7 @@
   }
 
   function sair() {
-    sessionStorage.removeItem('fusex_auth');
-    sessionStorage.removeItem('fusex_user');
-    sessionStorage.removeItem('fusex_roles');
-    window.location.href = 'login-eg.html';
+    FusexAuth.logout();
   }
 
   async function api(caminho, opcoes = {}) {
@@ -282,7 +278,7 @@
   }
 
   function linkEnvio(token) {
-    return 'assinatura-guias.html?role=emitter&view=upload&preGuia=' + encodeURIComponent(token);
+    return 'assinatura-guias.html?view=upload&preGuia=' + encodeURIComponent(token);
   }
 
   function resumoPorToken(token) {
@@ -471,7 +467,7 @@
   $('confirmarEmissaoBtn').addEventListener('click', confirmarEmissao);
   $('cancelarEmissaoBtn').addEventListener('click', fecharEmissao);
 
-  if (auth) {
+  if (ACESSO_OK) {
     carregar();
     carregarBadgeEmail();
   }

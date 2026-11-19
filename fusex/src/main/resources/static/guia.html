@@ -17,7 +17,6 @@
 </head>
 <body>
 
-  <!-- Header Institucional -->
   <header class="app-header no-print">
     <a href="index.html" class="brand-badge">
       <div class="brand-logo">FUSEX</div>
@@ -26,10 +25,13 @@
         <div class="brand-subtitle">Consulta e Auditoria de Pré-Guia</div>
       </div>
     </a>
-    <div style="display: flex; gap: 8px;">
-      <a href="medico.html" class="btn btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span id="usuarioLogado" style="font-size: 0.84em; color: var(--text-muted);"></span>
+      <a href="guia.html" class="btn btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">Nova consulta</a>
+      <a id="linkPainelMedico" href="medico.html" class="btn btn-secondary" hidden style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">
         Painel Médico
       </a>
+      <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">Sair</button>
     </div>
   </header>
 
@@ -52,36 +54,24 @@
         </button>
       </div>
 
-      <!-- Seção de Autenticação -->
       <div id="loginSection" style="margin-top: 24px; padding: 20px; background: var(--bg-muted); border-radius: var(--radius-md); border: 1px solid var(--border-color);" class="no-print">
         <h2 style="font-size: 0.95em; font-weight: 600; color: var(--color-primary); margin: 0 0 12px 0;">
-          Autenticação Requerida (Acesso Restrito)
+          Consulta de Pré-Guia
         </h2>
-        <div class="row2">
-          <div>
-            <label for="user" style="margin-top: 0;">Usuário *</label>
-            <input type="text" id="user" placeholder="Usuário credenciado (ex: medico, admin)">
-          </div>
-          <div>
-            <label for="pass" style="margin-top: 0;">Senha *</label>
-            <input type="password" id="pass" placeholder="••••••••">
-          </div>
-        </div>
+        <label for="tokenInput" style="margin-top: 0;">Código ou link da solicitação *</label>
+        <input type="text" id="tokenInput" placeholder="Cole aqui o link ou o código da solicitação">
         <button id="consultarBtn" type="button" class="btn btn-primary" style="margin-top: 14px;">
           Consultar Dados da Pré-Guia
         </button>
       </div>
 
-      <!-- Mensagens de Carregamento e Erro -->
       <div id="loading" class="alert alert-info no-print" hidden style="justify-content: center;">
         <span>Consultando dados da pré-guia no servidor...</span>
       </div>
       <div id="errorMsg" class="alert alert-error no-print" hidden></div>
 
-      <!-- Resultado Detalhado da Pré-Guia -->
       <div id="resultado" hidden style="margin-top: 24px;">
 
-        <!-- 1. Beneficiário -->
         <h2 class="section-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -116,7 +106,6 @@
           </div>
         </div>
 
-        <!-- 2. OCS Credenciada -->
         <h2 class="section-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -149,7 +138,6 @@
           </div>
         </div>
 
-        <!-- 3. Médico Emissor -->
         <h2 class="section-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -167,7 +155,6 @@
           </div>
         </div>
 
-        <!-- 4. Procedimentos -->
         <h2 class="section-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -182,7 +169,6 @@
           <span class="audit-total-value" id="totalAuditValor">R$ 0,00</span>
         </div>
 
-        <!-- 5. Informações Gerais -->
         <h2 class="section-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -201,7 +187,7 @@
           </div>
         </div>
 
-        <!-- 6. Importação da Guia Emitida -->
+        <div id="importacaoGuiaSection" class="no-print">
         <h2 class="section-title no-print">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -227,29 +213,37 @@
             Salvar Número Corrigido
           </button>
         </div>
+        </div>
 
       </div>
     </div>
   </main>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
 
+    // Permite que o beneficiário consulte a pré-guia pelo link com token mesmo sem estar logado
+    const acessoPublicoPorToken = !FusexAuth.isLoggedIn() && !!token;
+    if (FusexAuth.isLoggedIn() || !token) {
+      FusexAuth.require(['ROLE_EG', 'ROLE_MEDICO', 'ROLE_ADMIN']);
+    }
+    document.getElementById('usuarioLogado').textContent = FusexAuth.user() || '';
+    if (FusexAuth.hasAny(['ROLE_MEDICO', 'ROLE_ADMIN'])) document.getElementById('linkPainelMedico').hidden = false;
+    if (!FusexAuth.hasAny(['ROLE_EG', 'ROLE_ADMIN'])) {
+      const importSec = document.getElementById('importacaoGuiaSection');
+      if (importSec) importSec.hidden = true;
+    }
+
     const loginSection = document.getElementById('loginSection');
+    const tokenInput = document.getElementById('tokenInput');
     const loading = document.getElementById('loading');
     const errorMsg = document.getElementById('errorMsg');
     const resultado = document.getElementById('resultado');
     const btnImprimir = document.getElementById('btnImprimir');
     const totalAuditBox = document.getElementById('totalAuditBox');
     const totalAuditValor = document.getElementById('totalAuditValor');
-
-    // Auto-preencher credenciais se houver sessão ativa
-    const savedAuth = sessionStorage.getItem('fusex_auth');
-    const savedUser = sessionStorage.getItem('fusex_user');
-    if (savedUser) {
-      document.getElementById('user').value = savedUser;
-    }
 
     function formatarCpf(v) {
       v = (v || '').replace(/\D/g, '').slice(0, 11);
@@ -277,31 +271,30 @@
       btnImprimir.style.display = 'none';
 
       if (!token) {
-        errorMsg.textContent = 'Link inválido: token não informado na URL.';
-        errorMsg.hidden = false;
+        const digitado = tokenInput.value.trim();
+        const m = digitado.match(/[?&]token=([^&#\s]+)/);
+        const codigo = m ? decodeURIComponent(m[1]) : digitado;
+        if (!codigo) {
+          errorMsg.textContent = 'Informe o código ou o link da solicitação.';
+          errorMsg.hidden = false;
+          return;
+        }
+        window.location.search = '?token=' + encodeURIComponent(codigo);
         return;
       }
 
-      let authHeader = '';
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value;
-
-      if (user && pass) {
-        authHeader = 'Basic ' + btoa(user + ':' + pass);
-      } else if (savedAuth) {
-        authHeader = 'Basic ' + savedAuth;
-      } else {
-        errorMsg.textContent = 'Por favor, informe seu usuário e senha para consultar a pré-guia.';
-        errorMsg.hidden = false;
-        return;
-      }
+      const authHeader = FusexAuth.header();
+      const endpointPreGuia = FusexAuth.isLoggedIn()
+        ? `/api/solicitacoes/${encodeURIComponent(token)}/pre-guia`
+        : `/api/solicitacoes/publico/${encodeURIComponent(token)}/pre-guia`;
+      const fetchOptions = FusexAuth.isLoggedIn()
+        ? { headers: { 'Authorization': authHeader } }
+        : {};
 
       loading.hidden = false;
 
       try {
-        const res = await fetch(`/api/solicitacoes/${token}/pre-guia`, {
-          headers: { 'Authorization': authHeader }
-        });
+        const res = await fetch(endpointPreGuia, fetchOptions);
         const data = await res.json();
         loading.hidden = true;
 
@@ -312,7 +305,6 @@
           return;
         }
 
-        // Preenche Beneficiário
         const ben = data.beneficiario || {};
         preencher('benNome', ben.nome);
         preencher('benIdade', ben.idade ? `${ben.idade} anos` : null);
@@ -322,7 +314,6 @@
         preencher('benEmail', ben.email);
         preencher('benTelefone', ben.telefone);
 
-        // Preenche OCS
         const ocs = data.ocs || {};
         preencher('ocsNome', ocs.ocsNome);
         preencher('ocsCnpj', ocs.ocsInscricaoFederal, 'Não cadastrado');
@@ -332,12 +323,10 @@
         preencher('ocsContato', ocs.ocsContatoNome, 'Não cadastrado');
         preencher('ocsTelefone', ocs.ocsContatoTelefone, 'Não cadastrado');
 
-        // Preenche Médico Emissor
         const emissor = data.medicoEmissor || {};
         preencher('emissorNome', emissor.nome);
         preencher('emissorCrm', emissor.crm);
 
-        // Preenche Procedimentos & Auditoria Financeira
         const procDiv = document.getElementById('procedimentosLista');
         procDiv.innerHTML = '';
 
@@ -391,7 +380,6 @@
           totalAuditBox.style.display = 'none';
         }
 
-        // Informações Gerais
         const dataFormatada = (data.informacoesGerais && data.informacoesGerais.data)
           ? new Date(data.informacoesGerais.data).toLocaleString('pt-BR')
           : null;
@@ -417,11 +405,7 @@
     const corrigirNumeroBtn = document.getElementById('corrigirNumeroBtn');
 
     function authHeaderAtual() {
-      const user = document.getElementById('user').value.trim();
-      const pass = document.getElementById('pass').value;
-      if (user && pass) return 'Basic ' + btoa(user + ':' + pass);
-      if (savedAuth) return 'Basic ' + savedAuth;
-      return null;
+      return FusexAuth.header();
     }
 
     async function importarGuiaPdf() {
@@ -439,7 +423,7 @@
       const auth = authHeaderAtual();
       if (!auth) {
         importGuiaResultado.className = 'log-box erro';
-        importGuiaResultado.textContent = 'Faça login para importar a guia.';
+        importGuiaResultado.textContent = 'Sessão expirada. Faça login novamente.';
         importGuiaResultado.hidden = false;
         return;
       }
@@ -514,19 +498,11 @@
 
     document.getElementById('consultarBtn').addEventListener('click', consultar);
 
-    ['user', 'pass'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            consultar();
-          }
-        });
-      }
+    tokenInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') consultar();
     });
 
-    // Se já estiver logado e houver token, carregar automaticamente
-    if (token && (savedAuth || (document.getElementById('user').value && document.getElementById('pass').value))) {
+    if (token) {
       consultar();
     }
   </script>

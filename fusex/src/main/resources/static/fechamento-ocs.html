@@ -9,8 +9,9 @@
 <body>
 
   <aside>
-    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Guias, Lotes e Fechamento (OCS)</small></span></a>
+    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Área da OCS</small></span></a>
     <nav class="nav">
+      <a href="validade-guia.html">Consulta de validade</a>
       <a href="guias-ocs.html">Guias do mês</a>
       <a href="lotes-ocs.html">Lotes de fatura</a>
       <a href="fechamento-ocs.html" class="on">Fechamento mensal</a>
@@ -25,17 +26,6 @@
     <h1>Fechamento Mensal</h1>
     <p class="sub">Envie para a Fusex, de uma só vez, todos os lotes gerados em uma competência.</p>
     <div class="warn">⚠ Atenção: os envios mensais devem ocorrer até o 15º dia útil do mês.</div>
-
-    <div class="card">
-      <h2>Autenticação</h2>
-      <div class="row">
-        <div><label for="user">Usuário</label><input id="user" value="ocs"></div>
-        <div><label for="pass">Senha</label><input id="pass" type="password" placeholder="••••••••"></div>
-        <div style="display: flex; align-items: flex-end;">
-          <button id="carregarBtn" class="btn" style="width: 100%;">Entrar e Carregar</button>
-        </div>
-      </div>
-    </div>
 
     <div id="erroGlobal" class="erro" hidden></div>
 
@@ -56,7 +46,7 @@
             </tr>
           </thead>
           <tbody id="tbResumo">
-            <tr><td colspan="4">Entre com usuário e senha para carregar os lotes.</td></tr>
+            <tr><td colspan="4">Carregando lotes...</td></tr>
           </tbody>
         </table>
       </div>
@@ -101,7 +91,9 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/fusex-auth.js"></script>
   <script>
+    const ACESSO_OK = FusexAuth.require(['ROLE_OCS','ROLE_ADMIN']);
     const $ = id => document.getElementById(id);
     const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const formatarCompetencia = (ano, mes) => `${MESES[mes]}/${ano}`;
@@ -120,10 +112,7 @@
     }
 
     function authHeader() {
-      const user = $('user').value.trim();
-      const pass = $('pass').value;
-      if (!user || !pass) return null;
-      return 'Basic ' + btoa(user + ':' + pass);
+      return FusexAuth.header();
     }
 
     function mostrarErroGlobal(msg) {
@@ -177,12 +166,11 @@
       $('erroGlobal').hidden = true;
       const auth = authHeader();
       if (!auth) {
-        mostrarErroGlobal('Informe usuário e senha.');
+        mostrarErroGlobal('Sessão expirada. Faça login novamente.');
         return;
       }
 
       try {
-        $('who').innerHTML = `<b>${$('user').value.trim()}</b>Autenticado`;
         await carregarResumo(auth);
         await carregarEnviados(auth);
       } catch (err) {
@@ -232,7 +220,6 @@
       }
     }
 
-    $('carregarBtn').addEventListener('click', carregarTudo);
     $('enviarFechamentoBtn').addEventListener('click', pedirEnvio);
     $('cancelarEnvioBtn').addEventListener('click', fecharConf);
     $('confirmarEnvioBtn').addEventListener('click', confirmarEnvio);
@@ -241,6 +228,9 @@
       if (auth) carregarResumo(auth).catch(() => {});
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharConf(); });
+
+    FusexAuth.renderUserBox($('who'), 'OCS');
+    if (ACESSO_OK) carregarTudo();
   </script>
 </body>
 </html>
