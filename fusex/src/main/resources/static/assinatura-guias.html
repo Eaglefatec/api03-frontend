@@ -116,51 +116,21 @@
       justify-content: flex-end;
       margin-top: 6px;
     }
-    .pdf {
-      background: #fffdf8;
-      color: #20242a;
-      border: 1px solid #cbd5e1;
+    .pdf-original {
+      border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 24px;
-      min-height: 440px;
-      font: 13px/1.6 Georgia, serif;
-      box-shadow: 0 2px 8px #0f172a12;
-    }
-    .pdf-head {
-      text-align: center;
-      font-weight: bold;
-      font-size: 11px;
-      margin-bottom: 22px;
-    }
-    .pdf-band {
-      display: flex;
-      justify-content: space-between;
-      border-block: 1px solid #64748b;
-      padding: 8px 0;
-      font-weight: bold;
-    }
-    .pdf table {
-      margin-top: 20px;
-    }
-    .pdf th {
-      background: #e2e8f0;
-      color: #334155;
-    }
-    .pdf td, .pdf th {
-      border: 1px solid #94a3b8;
-      padding: 7px;
-    }
-    .signature-preview {
-      height: 65px;
-      border-bottom: 1px solid #64748b;
-      margin: 8px 0 4px;
+      background: #f1f5f9;
+      min-height: 720px;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
-    .signature-preview img {
-      max-height: 60px;
-      max-width: 100%;
+    .pdf-original iframe {
+      width: 100%;
+      height: 720px;
+      border: 0;
+      background: #fff;
     }
     .modal {
       max-width: 1000px;
@@ -1037,16 +1007,16 @@
         <div class="section-title">
           <div>
             <h2>Guia ${esc(selectedGuide.numeroGuia)} · ${who === 'med' ? 'Assinatura do Médico Chefe' : 'Assinatura do Chefe da Seção'}</h2>
-            <p class="small muted">O PDF é exibido somente após selecionar a guia.</p>
+            <p class="small muted">PDF original da guia anexado pelo Emissor de Guias.</p>
           </div>
           <div style="display:flex;gap:8px">
-            <button type="button" class="btn o" onclick="baixarPdfGuia(${selectedGuide.id})">Ver PDF original</button>
+            <button type="button" class="btn o" onclick="baixarPdfGuia(${selectedGuide.id}, '${who}')">Abrir em nova aba</button>
             <button type="button" class="btn o" onclick="closeDetail()">Fechar detalhes</button>
           </div>
         </div>
         <div class="row">
           <div style="flex:1.4">
-            <div id="pdfPreview" class="pdf"></div>
+            <div id="pdfPreview" class="pdf-original"><p class="small muted">Carregando o PDF original da guia...</p></div>
           </div>
           <div style="flex:1">
             <div class="card" style="background:var(--bg);box-shadow:none">
@@ -1077,53 +1047,40 @@
         <p><b>Validade:</b> 60 dias a partir da assinatura do Chefe da Seção</p>
       `;
 
-      const procs = (selectedGuide.procedimentos && selectedGuide.procedimentos.length)
-        ? selectedGuide.procedimentos
-        : [
-            { descricao: 'TC - Abdome superior', codigo: '41001109', quantidade: 1 },
-            { descricao: 'TC - Pelve ou bacia', codigo: '41001117', quantidade: 1 }
-          ];
-
-      const renderSigSlot = (sigBase64, sigDate) => {
-        if (sigBase64 && /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=\s]+$/i.test(sigBase64)) {
-          return `<img src="${esc(sigBase64)}" alt="Assinatura">`;
-        }
-        if (sigDate) {
-          return `<span>Assinado (${fmt(sigDate)})</span>`;
-        }
-        return '';
-      };
-
-      $('pdfPreview').innerHTML = `
-        <div class="pdf-head">MINISTÉRIO DA DEFESA<br>EXÉRCITO BRASILEIRO<br>DEPARTAMENTO-GERAL DO PESSOAL</div>
-        <div class="pdf-band"><span>GUIA DE ENCAMINHAMENTO Nº ${esc(selectedGuide.numeroGuia)}</span><span>FUSEX</span></div>
-        <p><b>Beneficiário:</b> ${esc(selectedGuide.beneficiarioNome)} · Prec CP ${esc(selectedGuide.beneficiarioPrecCp)}</p>
-        <p><b>Prestador (OCS):</b> ${esc(selectedGuide.ocsNome)}</p>
-        <table>
-          <thead><tr><th>Procedimento</th><th>Código</th><th>Qtd.</th></tr></thead>
-          <tbody>
-            ${procs.map(p => `<tr><td>${esc(p.descricao)}</td><td>${esc(p.codigo)}</td><td>${p.quantidade}</td></tr>`).join('')}
-          </tbody>
-        </table>
-        <p style="margin-top:20px"><b>Validade:</b> 60 dias a partir da assinatura do Chefe do FuSEx.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:34px">
-          <div>
-            <div class="signature-preview">${renderSigSlot(selectedGuide.assinaturaMedicoBase64, selectedGuide.dataAssinaturaMedico)}</div>
-            <small>Assinatura Auditoria Prévia Med/Dent</small>
-          </div>
-          <div>
-            <div class="signature-preview">${renderSigSlot(selectedGuide.assinaturaSecaoBase64, selectedGuide.dataAssinaturaSecao)}</div>
-            <small>Chefe do FuSEx</small>
-          </div>
-        </div>
-        <p class="hint">Pré-visualização do documento anexado: ${esc(selectedGuide.nomeArquivoOriginal)}</p>
-      `;
+      carregarPdfOriginal(selectedGuide.id, who);
 
       initSignature();
       $('confirmCheck').checked = false;
       $('signBtn').disabled = true;
       $('confirmCheck').onchange = validateSign;
       detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    let pdfPreviewUrl = null;
+
+    function liberarPdfPreview() {
+      if (pdfPreviewUrl) {
+        URL.revokeObjectURL(pdfPreviewUrl);
+        pdfPreviewUrl = null;
+      }
+    }
+
+    async function carregarPdfOriginal(id, who) {
+      try {
+        const res = await fetch(`/api/assinaturas/guias/${id}/pdf`, {
+          headers: { 'Authorization': getAuthHeader(who) }
+        });
+        if (!res.ok) throw new Error();
+        const blob = await res.blob();
+        const box = $('pdfPreview');
+        if (!box || !selectedGuide || selectedGuide.id !== id) return;
+        liberarPdfPreview();
+        pdfPreviewUrl = URL.createObjectURL(blob);
+        box.innerHTML = `<iframe src="${pdfPreviewUrl}#view=FitH" title="PDF original da guia ${esc(selectedGuide.numeroGuia)}"></iframe>`;
+      } catch (_) {
+        const box = $('pdfPreview');
+        if (box) box.innerHTML = '<div class="warn">Não foi possível carregar o PDF original da guia. Use "Abrir em nova aba".</div>';
+      }
     }
 
     async function baixarPdfGuia(id, roleOverride) {
@@ -1182,6 +1139,7 @@
     }
 
     function closeDetail() {
+      liberarPdfPreview();
       ['signDetailMed', 'signDetailSec'].forEach(id => {
         const el = $(id);
         if (el) {

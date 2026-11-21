@@ -29,13 +29,14 @@
         }
         .brand {
             font-size: 19px; font-weight: 700; padding: 0 8px 14px;
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--tx);
         }
         .brand i {
             width: 30px; height: 30px; border-radius: 8px;
             background: linear-gradient(135deg, var(--blue), var(--green));
             display: grid; place-items: center; font-style: normal; color: #fff;
         }
+        .brand small { display: block; font-size: 11px; color: var(--mut); font-weight: normal; }
         .nav { display: flex; flex-direction: column; gap: 2px; }
         .nav a {
             padding: 9px 12px; border-radius: 8px; color: var(--mut);
@@ -77,6 +78,12 @@
         .btn.o { background: none; border: 1px solid var(--line); color: var(--tx); }
         .hint { font-size: 12px; color: var(--mut); margin-top: 8px; }
 
+        .who {
+            margin-top: auto; padding: 12px; border-radius: 8px;
+            background: var(--panel2); font-size: 12px; color: var(--mut); word-break: break-all;
+        }
+        .who b { display: block; color: var(--tx); font-size: 13px; margin-bottom: 2px; }
+
         .drawer {
             box-shadow: -8px 0 24px rgba(23, 33, 43, .12);
             position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 100%);
@@ -109,16 +116,17 @@
 </head>
 <body>
 <aside>
-    <div class="brand"><i>✚</i><span>SISMED</span></div>
+    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Setor de Lisura</small></span></a>
     <nav class="nav">
         <a href="#" class="on">Dashboard Lisura</a>
-        <a href="index.html">Portal</a>
-        <a href="#" onclick="FusexAuth.logout(); return false;">Sair</a>
     </nav>
+    <div class="who" id="who">
+        <b>Não autenticado</b>
+        Faça login para continuar
+    </div>
 </aside>
 
 <main>
-    <!-- Visão 1: Fechamentos Mensais na Lisura -->
     <div id="sec-dash">
         <h1>Lisura</h1>
         <p class="sub">Fechamentos mensais já faturados, prontos para o cruzamento de dados.</p>
@@ -162,7 +170,6 @@
         </div>
     </div>
 
-    <!-- Visão 2: Lotes do Fechamento -->
     <div id="sec-lotes" style="display:none;">
         <button class="btn o" onclick="voltarDashboard()" style="margin-bottom:14px">← Voltar aos fechamentos</button>
         <h1 id="tituloLotes">Fechamento</h1>
@@ -190,7 +197,6 @@
         </div>
     </div>
 
-    <!-- Visão 3: Tabela de Cruzamento de Guias -->
     <div id="sec-auditoria" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <button class="btn o" onclick="voltarDashboard()">← Voltar aos fechamentos</button>
@@ -224,7 +230,6 @@
     </div>
 </main>
 
-<!-- Drawer Lateral de Divergência -->
 <div class="drawer" id="drawerDivergencia">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 id="drawerTitulo" style="margin:0">Detalhe da Divergência</h2>
@@ -238,8 +243,9 @@
         <div class="b"><small>Valor Faturado (Espelho)</small><b id="cmpFaturado"></b></div>
     </div>
 
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn o" onclick="abrirModalEspelho()">Ver Detalhamento do Espelho</button>
+        <button class="btn o" onclick="abrirGuiaComRelatorio()">Guia com relatório no verso</button>
     </div>
 
     <div style="border-top: 1px solid var(--line); padding-top: 16px;">
@@ -257,7 +263,7 @@
             <textarea id="inputConclusao" placeholder="Conclusão da auditoria para esta guia."></textarea>
         </div>
         <div class="acts">
-            <button class="btn" onclick="salvarGlosaEGerarPdf()">Salvar Glosa e Gerar PDF</button>
+            <button class="btn" onclick="salvarGlosaEGerarPdf()">Salvar glosa e gerar guia com relatório</button>
         </div>
     </div>
 </div>
@@ -319,16 +325,18 @@
 
 <script src="js/fusex-auth.js"></script>
 <script>
-    FusexAuth.require(['ROLE_ADMIN']);
+    const ACESSO_OK = FusexAuth.require(['ROLE_LISURA', 'ROLE_ADMIN']);
+    const $ = id => document.getElementById(id);
 
-async function fetchAutenticado(url, options = {}) {
-    options.headers = {
-        'Content-Type': 'application/json',
-        'Authorization': FusexAuth.header(),
-        ...(options.headers || {})
-    };
-    return fetch(url, options);
-}
+    async function fetchAutenticado(url, options = {}) {
+        options.headers = {
+            'Content-Type': 'application/json',
+            'Authorization': FusexAuth.header(),
+            ...(options.headers || {})
+        };
+        return fetch(url, { credentials: 'include', ...options });
+    }
+
     let fechamentoAtualId = null;
     let dadosFechamentoCache = {};
     let guiaSelecionadaAtual = null;
@@ -344,10 +352,7 @@ async function fetchAutenticado(url, options = {}) {
 
     async function carregarFechamentos() {
         try {
-            const res = await fetchAutenticado('/api/lisura/fechamentos', {
-                method: 'GET'
-            });
-
+            const res = await fetchAutenticado('/api/lisura/fechamentos', { method: 'GET' });
             if (!res.ok) {
                 if (res.status === 401) {
                     throw new Error('Sessão expirada ou usuário não autenticado (401). Faça login novamente.');
@@ -369,19 +374,13 @@ async function fetchAutenticado(url, options = {}) {
             document.getElementById('lblTotalFechamentos').textContent = data.length;
             document.getElementById('lblTotalDivergencias').textContent = data.length;
 
-            if (typeof dadosFechamentoCache === 'undefined') {
-                window.dadosFechamentoCache = {};
-            }
-
             for (const f of data) {
                 dadosFechamentoCache[f.id] = f;
-
                 let totalGuias = f.quantidadeGuias || 0;
                 let qtdDivs = 0;
 
                 try {
                     const cruzRes = await fetchAutenticado(`/api/lisura/cruzamento/${f.id}`);
-
                     if (cruzRes.ok) {
                         const guiasCruzadas = await cruzRes.json();
                         if (guiasCruzadas && Array.isArray(guiasCruzadas)) {
@@ -420,7 +419,6 @@ async function fetchAutenticado(url, options = {}) {
                 `;
                 tbody.appendChild(tr);
             }
-
         } catch (error) {
             console.error('Erro ao carregar fechamentos:', error);
             const tbody = document.getElementById('tbFechamentos');
@@ -431,7 +429,6 @@ async function fetchAutenticado(url, options = {}) {
     async function abrirLotes(id) {
         fechamentoAtualId = id;
         const f = dadosFechamentoCache[id] || {};
-
         const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
         const competenciaStr = `${f.competenciaMes || ''}/${f.competenciaAno || ''}`;
         const dataEnvioFormatada = f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '-';
@@ -487,7 +484,6 @@ async function fetchAutenticado(url, options = {}) {
         const f = dadosFechamentoCache[id] || {};
         const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
         document.getElementById('subAuditoria').textContent = `Fechamento #${id} · ${nomeOcs} · Competência: ${f.competenciaMes}/${f.competenciaAno}`;
-
         document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `baixarRelatorioPdf(${id})`);
 
         const tbody = document.getElementById('tbCruzamento');
@@ -524,11 +520,7 @@ async function fetchAutenticado(url, options = {}) {
                 const valContratado = Number(d.valorContratado || 0);
                 const diferenca = valContratado - valorFaturadoReal;
 
-                return {
-                    ...d,
-                    valorFaturado: valorFaturadoReal,
-                    diferenca: diferenca
-                };
+                return { ...d, valorFaturado: valorFaturadoReal, diferenca };
             }));
 
             const qtdDivs = divergenciasComSomaReal.filter(d => d.diferenca !== 0).length;
@@ -538,7 +530,6 @@ async function fetchAutenticado(url, options = {}) {
                 const temDivergencia = d.diferenca !== 0;
                 const statusTexto = temDivergencia ? 'Divergente' : 'Conferida';
                 const iconeStatus = temDivergencia ? '⚠' : '✓';
-
                 const nomeBeneficiario = d.beneficiarioNome || 'Não informado';
                 const precCp = d.beneficiarioPrecCp || '';
 
@@ -616,17 +607,13 @@ async function fetchAutenticado(url, options = {}) {
 
         try {
             const res = await fetchAutenticado(`/api/lisura/guia-itens/${idGuia}`);
-
-            if (!res.ok) {
-                throw new Error('Erro na resposta do servidor');
-            }
+            if (!res.ok) throw new Error('Erro na resposta do servidor');
 
             const itens = await res.json();
             const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
 
             if (!itens || itens.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho. (A exibir valor consolidado da guia)</td></tr>';
-
                 const valFaturadoConsolidado = Number(guiaSelecionadaAtual.valorFaturado || 0);
                 const diferenca = valContratado - valFaturadoConsolidado;
 
@@ -648,11 +635,8 @@ async function fetchAutenticado(url, options = {}) {
 
             tbody.innerHTML = itens.map(item => {
                 const subtotal = (item.quantidade || 0) * (item.valorUnitario || 0);
-                if (item.tipo === 'Insumo') {
-                    totalInsumos += subtotal;
-                } else {
-                    totalProcedimentos += subtotal;
-                }
+                if (item.tipo === 'Insumo') totalInsumos += subtotal;
+                else totalProcedimentos += subtotal;
 
                 return `
                 <tr>
@@ -685,7 +669,6 @@ async function fetchAutenticado(url, options = {}) {
             document.getElementById('cardContratado').textContent = `R$ ${valContratado.toFixed(2)}`;
             document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+R$ ' : (diferenca < 0 ? '-R$ ' : 'R$ ')}${Math.abs(diferenca).toFixed(2)}`;
             document.getElementById('cardDiferenca').style.color = corCardDiff;
-
         } catch (e) {
             console.error('Erro ao carregar itens do espelho:', e);
             tbody.innerHTML = '<tr><td colspan="9" style="color:var(--red);">Erro ao carregar itens da guia do banco de dados.</td></tr>';
@@ -695,9 +678,7 @@ async function fetchAutenticado(url, options = {}) {
     async function baixarRelatorioPdf(fechamentoId) {
         try {
             const res = await fetchAutenticado(`/api/lisura/relatorio/${fechamentoId}`);
-            if (!res.ok) {
-                throw new Error('Não foi possível gerar o relatório PDF.');
-            }
+            if (!res.ok) throw new Error('Não foi possível gerar o relatório PDF.');
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
             const win = window.open(url, '_blank');
@@ -712,6 +693,34 @@ async function fetchAutenticado(url, options = {}) {
             setTimeout(() => URL.revokeObjectURL(url), 60000);
         } catch (err) {
             alert(err.message || 'Erro ao baixar relatório PDF.');
+        }
+    }
+
+    async function abrirGuiaComRelatorio(guiaId) {
+        const id = guiaId || (guiaSelecionadaAtual && (guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id));
+        if (!id) return;
+        const win = window.open('', '_blank');
+        try {
+            const res = await fetchAutenticado(`/api/lisura/guias/${id}/pdf-relatorio`);
+            if (!res.ok) {
+                const erro = await res.json().catch(() => ({}));
+                throw new Error(erro.error || 'Não foi possível gerar a guia com o relatório.');
+            }
+            const url = URL.createObjectURL(await res.blob());
+            if (win) {
+                win.location.href = url;
+            } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `guia_${id}_relatorio_lisura.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 120000);
+        } catch (err) {
+            if (win) win.close();
+            alert(err.message || 'Erro ao gerar a guia com o relatório.');
         }
     }
 
@@ -732,14 +741,15 @@ async function fetchAutenticado(url, options = {}) {
                     guiaId: guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id,
                     codigoTuss: guiaSelecionadaAtual.codigoTuss,
                     justificativaMilitar: justificativa,
-                    valorGlosa: valorRevisado
+                    valorGlosa: valorRevisado,
+                    conclusao: conclusao
                 })
             });
 
             if (response.ok) {
-                alert('Glosa registada com sucesso! A descarregar relatório em PDF...');
+                const guiaId = guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id;
                 fecharDrawer();
-                await baixarRelatorioPdf(fechamentoAtualId);
+                await abrirGuiaComRelatorio(guiaId);
             } else {
                 alert('Erro ao registar a glosa no servidor.');
             }
@@ -749,7 +759,8 @@ async function fetchAutenticado(url, options = {}) {
         }
     }
 
-    carregarFechamentos();
+    FusexAuth.renderUserBox($('who'), 'Setor de Lisura');
+    if (ACESSO_OK) carregarFechamentos();
 </script>
 </body>
 </html>
