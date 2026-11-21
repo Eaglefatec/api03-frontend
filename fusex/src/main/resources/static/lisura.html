@@ -320,7 +320,7 @@
 
 <script src="js/fusex-auth.js"></script>
 <script>
-    FusexAuth.require(['ROLE_ADMIN']);
+    const ACESSO_OK = FusexAuth.require(['ROLE_LISURA', 'ROLE_ADMIN']);
 
 async function fetchAutenticado(url, options = {}) {
     options.headers = {
@@ -328,7 +328,7 @@ async function fetchAutenticado(url, options = {}) {
         'Authorization': FusexAuth.header(),
         ...(options.headers || {})
     };
-    return fetch(url, options);
+    return fetch(url, { credentials: 'include', ...options });
 }
     let fechamentoAtualId = null;
     let dadosFechamentoCache = {};
@@ -779,7 +779,9 @@ async function fetchAutenticado(url, options = {}) {
         }
     }
 
-    carregarFechamentos();
+    if (ACESSO_OK) {
+        carregarFechamentos();
+    }
 </script>
 </body>
 </html>

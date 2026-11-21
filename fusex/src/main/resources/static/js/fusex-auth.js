@@ -1,5 +1,5 @@
 /*
- * Sessão única do FUSEX: o usuário entra em login.html e a sessão é compartilhada pelas telas do seu perfil.
+- Sessão única do FUSEX: o usuário entra em login.html e a sessão é compartilhada pelas telas do seu perfil.
  */
 (function () {
   'use strict';
@@ -12,6 +12,7 @@
   // Tela inicial de cada perfil (a primeira regra compatível define o destino)
   var DESTINOS = [
     ['ROLE_ADMIN', 'index.html'],
+    ['ROLE_LISURA', 'lisura.html'],
     ['ROLE_MEDICO_CHEFE', 'assinatura-guias.html'],
     ['ROLE_CHEFE_SECAO', 'assinatura-guias.html'],
     ['ROLE_OCS', 'validade-guia.html'],
