@@ -6,11 +6,315 @@
   <title>FUSEX - Painel Médico</title>
   <link rel="stylesheet" href="css/fusex-theme.css">
   <style>
-    @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: #1d4ed8;
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Cabeçalho no padrão do sistema */
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+      flex-shrink: 0;
+    }
+
+    .brand-eyebrow {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 2px 9px;
+      border-radius: 99px;
+      margin-bottom: 4px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 12.5px;
+      color: var(--mut);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+
+    .user-profile .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, .12);
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+    }
+
+    .user-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tx);
+    }
+
+    .user-role {
+      font-size: 12px;
+      color: var(--mut);
+    }
+
+    /* Container e Card principal */
+    .app-container {
+      max-width: 920px;
+      margin: 28px auto 48px;
+      padding: 0 20px;
+    }
+
+    .app-container > .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .app-container > .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+
+    .card-subtitle {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin-bottom: 20px;
+    }
+
+    /* Seções e Inputs */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tx);
+      padding-bottom: 8px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    label {
+      color: var(--mut);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.4;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+      outline: none;
+    }
+
+    /* Pills de especialidades */
+    .pill-checkbox {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      color: var(--tx);
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s ease;
+    }
+
+    .pill-checkbox:hover {
+      border-color: var(--blue);
+      background: rgba(37, 99, 235, .06);
+    }
+
+    .pill-checkbox.active {
+      background: rgba(37, 99, 235, .12);
+      border-color: var(--blue);
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* Dropdown autocomplete e lista de procedimentos */
+    .autocomplete-dropdown {
+      max-height: 280px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .autocomplete-dropdown li:hover {
+      background: rgba(37, 99, 235, .07);
+    }
+
+    .procedimento-item {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    /* Botões */
+    .btn-primary {
+      background: var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .22);
+      transition: background .15s ease, transform .12s ease;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-outline-danger {
+      border-radius: 8px !important;
+      font-weight: 600;
+    }
+
     .pulldown-toggle-btn {
       position: absolute;
       right: 6px;
@@ -19,22 +323,24 @@
       background: transparent;
       border: none;
       font-size: 0.85em;
-      color: var(--color-primary);
+      color: var(--blue);
       cursor: pointer;
       padding: 6px 10px;
-      border-radius: 4px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.15s ease;
     }
+
     .pulldown-toggle-btn:hover {
-      background: var(--bg-muted);
+      background: var(--panel2);
     }
-    .autocomplete-dropdown {
-      max-height: 280px;
-      overflow-y: auto;
-      scrollbar-width: thin;
+
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }
     }
   </style>
 </head>
@@ -42,10 +348,10 @@
 
 <header class="app-header">
   <div class="brand-badge">
-    <div class="brand-logo">FUSEX</div>
+    <div class="brand-logo">✚</div>
     <div>
-      <div class="brand-title">Fundo de Saúde do Exército</div>
-      <div class="brand-subtitle">Módulo de Atendimento Clínico</div>
+      <div class="brand-title" style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em;">SISMED</div>
+      <div class="brand-subtitle">Sistema Integrado de Saúde Militar</div>
     </div>
   </div>
   <div class="user-profile">
@@ -54,12 +360,13 @@
       <div class="user-name" id="medicoNome">Carregando...</div>
       <div class="user-role" id="medicoCrm"></div>
     </div>
-    <button type="button" class="btn-outline-danger" id="logoutBtn" style="cursor: pointer; border-radius: 4px;">Sair</button>
+    <button type="button" class="btn-outline-danger" id="logoutBtn" style="cursor: pointer; border-radius: 8px;">Sair</button>
   </div>
 </header>
 
 <div class="app-container">
   <div class="card">
+    <div class="card-eyebrow">Atendimento Clínico</div>
     <h1 class="card-title">Nova Solicitação Médica</h1>
     <p class="card-subtitle">Insira as informações clínicas e selecione a OCS indicada</p>
 
@@ -95,7 +402,7 @@
       </div>
 
       <div id="cadastroPacienteArea" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;" hidden>
-        <button type="button" id="btnCadastrarPaciente" class="btn btn-secondary" style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.85em; border-color: var(--color-primary); color: var(--color-primary);">
+        <button type="button" id="btnCadastrarPaciente" class="btn btn-secondary" style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.85em; border-color: var(--blue); color: var(--blue);">
           ➕ Cadastrar Paciente no Banco de Dados
         </button>
         <span id="cadastroPacienteStatus" style="font-size: 0.85em; font-weight: 600; color: var(--color-success-text);" hidden></span>
@@ -138,23 +445,23 @@
       <div id="emailStatusMsg" style="font-size: 0.9em; margin-top: 4px; font-weight: 500;"></div>
       <div id="encaminhamentoMsg" style="font-size: 0.9em; margin-top: 4px; font-weight: 500;"></div>
 
-      <div id="printArea" style="text-align: center; margin: 16px auto; background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #ddd; max-width: 320px;">
+      <div id="printArea" style="text-align: center; margin: 16px auto; background: #fff; padding: 16px; border-radius: 10px; border: 1px solid var(--line); max-width: 320px;">
         <div style="font-weight: bold; color: #0b3d1b; margin-bottom: 8px; font-size: 0.95em;">ACESSO DO BENEFICIÁRIO</div>
-        <img id="qrCodeImg" src="" alt="QR Code de Acesso" title="Clique no QR Code para copiar o link" style="width: 200px; height: 200px; margin: 0 auto; display: block; border: 1px solid #eee; border-radius: 4px; cursor: pointer; transition: transform 0.15s ease-in-out;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+        <img id="qrCodeImg" src="" alt="QR Code de Acesso" title="Clique no QR Code para copiar o link" style="width: 200px; height: 200px; margin: 0 auto; display: block; border: 1px solid #eee; border-radius: 6px; cursor: pointer; transition: transform 0.15s ease-in-out;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
         <div style="font-size: 0.8em; color: #555; margin-top: 8px;">Aponte a câmera do celular ou <strong>clique no QR Code para copiar o link</strong></div>
-        <div id="qrCopyToast" style="display: none; margin-top: 8px; font-size: 0.85em; font-weight: bold; color: #155724; background: #d4edda; padding: 6px 10px; border-radius: 4px; border: 1px solid #c3e6cb;">✅ Link de acesso copiado!</div>
+        <div id="qrCopyToast" style="display: none; margin-top: 8px; font-size: 0.85em; font-weight: bold; color: #155724; background: #d4edda; padding: 6px 10px; border-radius: 6px; border: 1px solid #c3e6cb;">✅ Link de acesso copiado!</div>
         <button id="printQrBtn" type="button" class="btn btn-secondary no-print" style="width: 100%; margin-top: 12px; padding: 8px 14px; font-size: 0.85em;">🖨️ Imprimir QR Code</button>
       </div>
 
-      <div id="areaReenvioEmail" style="margin-top: 16px; padding: 14px; background: #ffffff; border: 1px solid #dcdcdc; border-radius: 6px; text-align: left;">
-        <div style="font-weight: 600; font-size: 0.92em; color: #2c3e50; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+      <div id="areaReenvioEmail" style="margin-top: 16px; padding: 14px; background: #ffffff; border: 1px solid var(--line); border-radius: 10px; text-align: left;">
+        <div style="font-weight: 600; font-size: 0.92em; color: var(--tx); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
           <span>📧 Gerenciamento de Envio por E-mail</span>
           <span id="badgeStatusEmail" style="font-size: 0.78em; padding: 2px 8px; border-radius: 12px; font-weight: bold; background: #e2e3e5; color: #383d41;">SIMULADO</span>
         </div>
-        <div id="detalheErroEmail" style="font-size: 0.84em; color: #666; margin-bottom: 10px; line-height: 1.4;"></div>
-        
+        <div id="detalheErroEmail" style="font-size: 0.84em; color: var(--mut); margin-bottom: 10px; line-height: 1.4;"></div>
+
         <div style="display: flex; gap: 8px; align-items: center;">
-          <input type="email" id="inputNovoEmail" placeholder="Corrigir ou confirmar e-mail do paciente..." style="flex: 1; margin: 0; padding: 8px 12px; font-size: 0.88em; border: 1px solid #ccc; border-radius: 4px;">
+          <input type="email" id="inputNovoEmail" placeholder="Corrigir ou confirmar e-mail do paciente..." style="flex: 1; margin: 0; padding: 8px 12px; font-size: 0.88em; border: 1px solid var(--line); border-radius: 8px;">
           <button type="button" id="btnReenviarEmail" class="btn btn-primary" style="margin: 0; padding: 8px 14px; font-size: 0.85em; width: auto; white-space: nowrap;">
             🔄 Reenviar E-mail
           </button>
@@ -191,11 +498,11 @@
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
   }
 
   const cpfInput = document.getElementById('cpf');
@@ -258,15 +565,24 @@
     }
 
     pacienteDebounce = setTimeout(async () => {
+      if (document.activeElement !== nomePacienteInput) {
+        pacienteSugestoes.hidden = true;
+        return;
+      }
+
       try {
         const res = await fetch('/api/pacientes?busca=' + encodeURIComponent(termo), {
           headers: { 'Authorization': 'Basic ' + auth }
         });
-        if (!res.ok) {
+        if (!res.ok || document.activeElement !== nomePacienteInput) {
           pacienteSugestoes.hidden = true;
           return;
         }
         const lista = await res.json();
+        if (document.activeElement !== nomePacienteInput) {
+          pacienteSugestoes.hidden = true;
+          return;
+        }
         pacienteSugestoes.innerHTML = '';
 
         if (!lista || lista.length === 0) {
@@ -348,9 +664,19 @@
   });
 
   nomePacienteInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' || e.key === 'Tab') {
+      clearTimeout(pacienteDebounce);
       pacienteSugestoes.hidden = true;
     }
+  });
+
+  nomePacienteInput.addEventListener('blur', () => {
+    clearTimeout(pacienteDebounce);
+    setTimeout(() => {
+      if (!pacienteSugestoes.contains(document.activeElement)) {
+        pacienteSugestoes.hidden = true;
+      }
+    }, 150);
   });
 
   const procedimentoBusca = document.getElementById('procedimentoBusca');
@@ -545,8 +871,8 @@
 
       if (!res.ok) {
         const msg = data.campos
-          ? Object.entries(data.campos).map(([k, v]) => `${k}: ${v}`).join(' | ')
-          : (data.error || 'Erro ao criar solicitação médica');
+                ? Object.entries(data.campos).map(([k, v]) => `${k}: ${v}`).join(' | ')
+                : (data.error || 'Erro ao criar solicitação médica');
         throw new Error(msg);
       }
 
