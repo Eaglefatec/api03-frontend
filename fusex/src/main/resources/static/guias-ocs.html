@@ -3,220 +3,460 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FUSEX - Guias da OCS</title>
+  <title>SISMED / FUSEX - Guias da OCS</title>
   <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand i {
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      color: #fff;
+      border-radius: 12px;
+      font-style: normal;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+    }
+
+    .brand span {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--tx);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-subtle);
+      font-weight: 700;
+      padding: 14px 12px 4px;
+    }
+
+    .nav a {
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .nav a.on {
+      background: rgba(37, 99, 235, .1);
+      color: var(--blue-dark);
+      border-left: 3px solid var(--blue);
+    }
+
+    .who {
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .who b {
+      display: block;
+    }
+
+    main {
+      max-width: 1440px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .section-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 6px;
+    }
+
+    .sub {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .stats .stat {
+      position: relative;
+      margin: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .stats .stat::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .stats .stat b {
+      color: #000000;
+      font-weight: 800;
+    }
+
+    .stats .stat span {
+      color: #000000;
+    }
+
+    .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+
+    .card .tw {
+      margin-top: 8px;
+    }
+
+    .card table th,
+    .card table td {
+      padding: 11px 14px;
+      vertical-align: middle;
+    }
+
+    .card .hint {
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
+
+    .tag.t-wait {
+      background: rgba(217, 119, 6, .14);
+      color: #b45309;
+    }
+
+    .tag.t-ok {
+      background: rgba(22, 163, 74, .12);
+      color: #15803d;
+    }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+    }
+
+    @media(max-width: 820px) {
+      aside { width: auto; }
+      .nav { width: 100%; }
+      .nav-label { padding-top: 7px; }
+      main { padding: 18px; }
+    }
+  </style>
 </head>
 <body>
 
-  <aside>
-    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Área da OCS</small></span></a>
-    <nav class="nav">
-      <a href="validade-guia.html">Consulta de validade</a>
-      <a href="guias-ocs.html" class="on">Guias do mês</a>
-      <a href="lotes-ocs.html">Lotes de fatura</a>
-      <a href="fechamento-ocs.html">Fechamento mensal</a>
-    </nav>
-    <div class="who" id="who">
-      <b>Não autenticado</b>
-      Faça login para continuar
-    </div>
-  </aside>
+<aside>
+  <a href="index.html" class="brand"><i>✚</i><span>SISMED<small>Sistema Integrado de Saúde Militar</small></span></a>
+  <nav class="nav">
+    <div class="nav-label">Área da OCS</div>
+    <a href="validade-guia.html">Consulta de validade</a>
+    <a href="guias-ocs.html" class="on">Guias do mês</a>
+    <a href="lotes-ocs.html">Lotes de fatura</a>
+    <a href="fechamento-ocs.html">Fechamento mensal</a>
+  </nav>
+  <div class="who">
+    <b id="whoRole">OCS</b>
+    <span id="whoUser"></span><br>
+    <a href="#" class="small" onclick="FusexAuth.logout(); return false;" style="color:inherit;text-decoration:underline;">Sair</a>
+  </div>
+</aside>
 
-  <main>
-    <h1>Guias da OCS</h1>
-    <p class="sub">Anexe cada guia assinada durante o mês de competência.</p>
-
-    <div id="erroGlobal" class="erro" hidden></div>
-
-    <div class="stats">
-      <div class="stat"><b id="sGuias">0</b><span>Guias anexadas no mês</span></div>
-      <div class="stat"><b id="sSemLote">0</b><span>Guias ainda sem lote</span></div>
-    </div>
-
-    <div class="card">
-      <div class="head">
-        <h2>Guias anexadas</h2>
-        <button class="btn" id="abrirModalBtn">+ Anexar guia</button>
-      </div>
-      <div class="tw">
-        <table>
-          <thead>
-            <tr>
-              <th>Nº da guia</th>
-              <th>Beneficiário (Prec CP)</th>
-              <th>Data do atendimento</th>
-              <th>Arquivo</th>
-              <th>Situação</th>
-            </tr>
-          </thead>
-          <tbody id="tbGuias">
-            <tr><td colspan="5">Carregando guias...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <div class="ov" id="mAnexo" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <div class="modal">
-      <h2 id="mTitle">Anexar guia</h2>
-      <div class="row">
-        <div><label for="gNum">Nº da guia</label><input id="gNum" placeholder="Ex.: 202610606"></div>
-        <div><label for="gBen">Beneficiário (Prec CP)</label><input id="gBen" placeholder="Ex.: 34596112300"></div>
-      </div>
-      <div class="row" style="margin-top: 12px">
-        <div><label for="gData">Data do atendimento</label><input type="date" id="gData"></div>
-      </div>
-      <div style="margin-top: 12px">
-        <label for="gFile">Guia assinada (PDF)</label>
-        <input type="file" id="gFile" accept="application/pdf">
-      </div>
-      <div class="sign">
-        <input type="checkbox" id="gSign">
-        <label for="gSign" style="color: var(--tx); font-size: 14px; margin: 0;">
-          <b>Esta guia está assinada corretamente pelo beneficiário?</b><br>
-          <span style="color: var(--mut); font-size: 12px;">Marque para confirmar. Sem a confirmação o envio fica bloqueado.</span>
-        </label>
-      </div>
-      <div id="modalErro" class="erro" hidden></div>
-      <div class="acts">
-        <button class="btn o" id="cancelarAnexoBtn">Cancelar</button>
-        <button class="btn g" id="gSend" disabled>Enviar guia</button>
-      </div>
+<main>
+  <div class="section-title">
+    <div>
+      <h1>Guias da OCS</h1>
+      <p class="sub">Anexe cada guia assinada durante o mês de competência.</p>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div id="erroGlobal" class="erro" hidden></div>
 
-  <script src="js/fusex-auth.js"></script>
-  <script>
-    const ACESSO_OK = FusexAuth.require(['ROLE_OCS','ROLE_ADMIN']);
-    const $ = id => document.getElementById(id);
-    const STATUS_LABEL = { SEM_LOTE: 'Sem lote', EM_LOTE: 'Em lote' };
-    let tt;
+  <div class="stats">
+    <div class="stat"><b id="sGuias">0</b><span>Guias anexadas no mês</span></div>
+    <div class="stat"><b id="sSemLote">0</b><span>Guias ainda sem lote</span></div>
+  </div>
 
-    function toast(m, err) {
-      const t = $('toast');
-      t.textContent = m;
-      t.className = 'toast on' + (err ? ' err' : '');
-      clearTimeout(tt);
-      tt = setTimeout(() => t.classList.remove('on'), 3600);
+  <div class="card">
+    <div class="head">
+      <h2>Guias anexadas</h2>
+      <button class="btn" id="abrirModalBtn">+ Anexar guia</button>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+        <tr>
+          <th>Nº da guia</th>
+          <th>Beneficiário (Prec CP)</th>
+          <th>Data do atendimento</th>
+          <th>Arquivo</th>
+          <th>Situação</th>
+        </tr>
+        </thead>
+        <tbody id="tbGuias">
+        <tr><td colspan="5">Carregando guias...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="ov" id="mAnexo" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal">
+    <h2 id="mTitle">Anexar guia</h2>
+    <div class="row">
+      <div><label for="gNum">Nº da guia</label><input id="gNum" placeholder="Ex.: 202610606"></div>
+      <div><label for="gBen">Beneficiário (Prec CP)</label><input id="gBen" placeholder="Ex.: 34596112300"></div>
+    </div>
+    <div class="row" style="margin-top: 12px">
+      <div><label for="gData">Data do atendimento</label><input type="date" id="gData"></div>
+    </div>
+    <div style="margin-top: 12px">
+      <label for="gFile">Guia assinada (PDF)</label>
+      <input type="file" id="gFile" accept="application/pdf">
+    </div>
+    <div class="sign">
+      <input type="checkbox" id="gSign">
+      <label for="gSign" style="color: var(--tx); font-size: 14px; margin: 0;">
+        <b>Esta guia está assinada corretamente pelo beneficiário?</b><br>
+        <span style="color: var(--mut); font-size: 12px;">Marque para confirmar. Sem a confirmação o envio fica bloqueado.</span>
+      </label>
+    </div>
+    <div id="modalErro" class="erro" hidden></div>
+    <div class="acts">
+      <button class="btn o" id="cancelarAnexoBtn">Cancelar</button>
+      <button class="btn g" id="gSend" disabled>Enviar guia</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/fusex-auth.js"></script>
+<script>
+  const ACESSO_OK = FusexAuth.require(['ROLE_OCS','ROLE_ADMIN']);
+  const $ = id => document.getElementById(id);
+  const STATUS_LABEL = { SEM_LOTE: 'Sem lote', EM_LOTE: 'Em lote' };
+  let tt;
+
+  function toast(m, err) {
+    const t = $('toast');
+    t.textContent = m;
+    t.className = 'toast on' + (err ? ' err' : '');
+    clearTimeout(tt);
+    tt = setTimeout(() => t.classList.remove('on'), 3600);
+  }
+
+  function authHeader() {
+    return FusexAuth.header();
+  }
+
+  function mostrarErroGlobal(msg) {
+    const el = $('erroGlobal');
+    el.textContent = msg;
+    el.hidden = false;
+  }
+
+  async function carregarGuias() {
+    $('erroGlobal').hidden = true;
+    const auth = authHeader();
+    if (!auth) {
+      mostrarErroGlobal('Sessão expirada. Faça login novamente.');
+      return;
     }
 
-    function authHeader() {
-      return FusexAuth.header();
-    }
+    try {
+      const res = await fetch('/api/guias', { headers: { 'Authorization': auth } });
+      const data = await res.json();
 
-    function mostrarErroGlobal(msg) {
-      const el = $('erroGlobal');
-      el.textContent = msg;
-      el.hidden = false;
-    }
-
-    async function carregarGuias() {
-      $('erroGlobal').hidden = true;
-      const auth = authHeader();
-      if (!auth) {
-        mostrarErroGlobal('Sessão expirada. Faça login novamente.');
+      if (!res.ok) {
+        mostrarErroGlobal(data.error || 'Não foi possível carregar as guias.');
         return;
       }
 
-      try {
-        const res = await fetch('/api/guias', { headers: { 'Authorization': auth } });
-        const data = await res.json();
-
-        if (!res.ok) {
-          mostrarErroGlobal(data.error || 'Não foi possível carregar as guias.');
-          return;
-        }
-
-        $('tbGuias').innerHTML = data.length
-          ? data.map(g => `<tr>
+      $('tbGuias').innerHTML = data.length
+              ? data.map(g => `<tr>
               <td>${g.numeroGuia}</td>
               <td>${g.beneficiarioPrecCp}</td>
               <td>${new Date(g.dataAtendimento + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
               <td>${g.nomeArquivo}</td>
               <td><span class="tag ${g.status === 'SEM_LOTE' ? 't-wait' : 't-ok'}">${STATUS_LABEL[g.status] || g.status}</span></td>
             </tr>`).join('')
-          : '<tr><td colspan="5">Nenhuma guia anexada ainda.</td></tr>';
+              : '<tr><td colspan="5">Nenhuma guia anexada ainda.</td></tr>';
 
-        $('sGuias').textContent = data.length;
-        $('sSemLote').textContent = data.filter(g => g.status === 'SEM_LOTE').length;
-      } catch (err) {
-        mostrarErroGlobal('Erro ao carregar as guias. Tente novamente.');
-      }
+      $('sGuias').textContent = data.length;
+      $('sSemLote').textContent = data.filter(g => g.status === 'SEM_LOTE').length;
+    } catch (err) {
+      mostrarErroGlobal('Erro ao carregar as guias. Tente novamente.');
+    }
+  }
+
+  function abrirModal() {
+    ['gNum', 'gBen', 'gData', 'gFile'].forEach(id => $(id).value = '');
+    $('gSign').checked = false;
+    $('gSend').disabled = true;
+    $('modalErro').hidden = true;
+    $('mAnexo').classList.add('on');
+    $('gNum').focus();
+  }
+
+  function fecharModal() {
+    $('mAnexo').classList.remove('on');
+  }
+
+  async function enviarGuia() {
+    const auth = authHeader();
+    if (!auth) {
+      $('modalErro').textContent = 'Sessão expirada. Faça login novamente.';
+      $('modalErro').hidden = false;
+      return;
     }
 
-    function abrirModal() {
-      ['gNum', 'gBen', 'gData', 'gFile'].forEach(id => $(id).value = '');
-      $('gSign').checked = false;
-      $('gSend').disabled = true;
-      $('modalErro').hidden = true;
-      $('mAnexo').classList.add('on');
-      $('gNum').focus();
-    }
+    const numeroGuia = $('gNum').value.trim();
+    const beneficiarioPrecCp = $('gBen').value.trim();
+    const dataAtendimento = $('gData').value;
+    const arquivo = $('gFile').files[0];
 
-    function fecharModal() {
-      $('mAnexo').classList.remove('on');
+    if (!numeroGuia || !beneficiarioPrecCp || !dataAtendimento || !arquivo) {
+      $('modalErro').textContent = 'Preencha todos os campos e anexe o PDF da guia.';
+      $('modalErro').hidden = false;
+      return;
     }
+    if (!$('gSign').checked) return;
 
-    async function enviarGuia() {
-      const auth = authHeader();
-      if (!auth) {
-        $('modalErro').textContent = 'Sessão expirada. Faça login novamente.';
+    const formData = new FormData();
+    formData.append('numeroGuia', numeroGuia);
+    formData.append('beneficiarioPrecCp', beneficiarioPrecCp);
+    formData.append('dataAtendimento', dataAtendimento);
+    formData.append('arquivo', arquivo);
+
+    try {
+      const res = await fetch('/api/guias', {
+        method: 'POST',
+        headers: { 'Authorization': auth },
+        body: formData
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        $('modalErro').textContent = data.error || 'Não foi possível anexar a guia.';
         $('modalErro').hidden = false;
         return;
       }
 
-      const numeroGuia = $('gNum').value.trim();
-      const beneficiarioPrecCp = $('gBen').value.trim();
-      const dataAtendimento = $('gData').value;
-      const arquivo = $('gFile').files[0];
-
-      if (!numeroGuia || !beneficiarioPrecCp || !dataAtendimento || !arquivo) {
-        $('modalErro').textContent = 'Preencha todos os campos e anexe o PDF da guia.';
-        $('modalErro').hidden = false;
-        return;
-      }
-      if (!$('gSign').checked) return;
-
-      const formData = new FormData();
-      formData.append('numeroGuia', numeroGuia);
-      formData.append('beneficiarioPrecCp', beneficiarioPrecCp);
-      formData.append('dataAtendimento', dataAtendimento);
-      formData.append('arquivo', arquivo);
-
-      try {
-        const res = await fetch('/api/guias', {
-          method: 'POST',
-          headers: { 'Authorization': auth },
-          body: formData
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          $('modalErro').textContent = data.error || 'Não foi possível anexar a guia.';
-          $('modalErro').hidden = false;
-          return;
-        }
-
-        fecharModal();
-        await carregarGuias();
-        toast('Guia ' + data.numeroGuia + ' anexada com sucesso.');
-      } catch (err) {
-        $('modalErro').textContent = 'Erro ao anexar a guia. Tente novamente.';
-        $('modalErro').hidden = false;
-      }
+      fecharModal();
+      await carregarGuias();
+      toast('Guia ' + data.numeroGuia + ' anexada com sucesso.');
+    } catch (err) {
+      $('modalErro').textContent = 'Erro ao anexar a guia. Tente novamente.';
+      $('modalErro').hidden = false;
     }
+  }
 
-    $('abrirModalBtn').addEventListener('click', abrirModal);
-    $('cancelarAnexoBtn').addEventListener('click', fecharModal);
-    $('gSign').addEventListener('change', () => { $('gSend').disabled = !$('gSign').checked; });
-    $('gSend').addEventListener('click', enviarGuia);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+  $('abrirModalBtn').addEventListener('click', abrirModal);
+  $('cancelarAnexoBtn').addEventListener('click', fecharModal);
+  $('gSign').addEventListener('change', () => { $('gSend').disabled = !$('gSign').checked; });
+  $('gSend').addEventListener('click', enviarGuia);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
 
-    FusexAuth.renderUserBox($('who'), 'OCS');
-    if (ACESSO_OK) carregarGuias();
-  </script>
+  $('whoRole').textContent = 'OCS';
+  $('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
+  if (ACESSO_OK) carregarGuias();
+</script>
 </body>
 </html>

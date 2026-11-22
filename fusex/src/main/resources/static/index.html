@@ -3,121 +3,373 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FUSEX - Sistema de Regulação e Saúde Suplementar</title>
+  <title>SISMED / FUSEX - Portal de Atendimento</title>
   <link rel="stylesheet" href="css/fusex-theme.css">
   <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
     .portal-wrap {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
+
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--tx);
+    }
+
+    .brand i {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      font-style: normal;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+      flex-shrink: 0;
+    }
+
+    .brand small {
+      display: block;
+      font-size: 11.5px;
+      color: var(--mut);
+      font-weight: 500;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .who-pill {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--mut);
+      line-height: 1.35;
+      text-align: right;
+    }
+
+    .who-pill b {
+      display: block;
+      color: var(--tx);
+      font-size: 12.5px;
+    }
+
+    .btn-logout {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--tx);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    .btn-logout:hover {
+      background: var(--panel2);
+      border-color: #c5d0de;
+    }
+
     .portal-body {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 32px 16px;
+      padding: 36px 16px;
     }
+
     .portal-card {
-      max-width: 480px;
+      position: relative;
+      max-width: 560px;
       width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px 30px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
     }
+
+    .portal-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .portal-head {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .portal-head h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 6px;
+    }
+
+    .portal-head p {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin: 0;
+    }
+
     .portal-options {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-top: 24px;
+      gap: 11px;
     }
+
     .portal-btn {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 14px 18px;
-      background: #fff;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
+      padding: 13px 16px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
       text-decoration: none;
-      color: var(--text-main);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--shadow-sm);
+      color: var(--tx);
+      transition: all 0.18s ease;
     }
+
     .portal-btn:hover {
-      border-color: var(--color-primary);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      background: var(--bg-subtle);
+      background: var(--panel);
+      border-color: var(--blue);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .1);
     }
-    .portal-btn.primary {
-      background: var(--color-primary);
-      color: #fff;
-      border-color: transparent;
-    }
-    .portal-btn.primary:hover {
-      background: var(--color-primary-hover);
-    }
+
     .portal-btn-icon {
-      font-size: 1.4em;
-      width: 36px;
-      height: 36px;
+      font-size: 1.3em;
+      width: 38px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      background: rgba(37, 99, 235, .1);
+      color: var(--blue-dark);
+      flex-shrink: 0;
     }
-    .portal-btn:not(.primary) .portal-btn-icon {
-      background: var(--color-primary-light);
-      color: var(--color-primary);
+
+    .portal-btn.accent-green .portal-btn-icon {
+      background: rgba(22, 163, 74, .12);
+      color: var(--green-dark);
     }
+
+    .portal-btn.accent-green:hover {
+      border-color: var(--green);
+      box-shadow: 0 8px 20px rgba(22, 163, 74, .1);
+    }
+
+    .portal-btn.primary {
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, .22);
+    }
+
+    .portal-btn.primary:hover {
+      background: linear-gradient(135deg, var(--blue-dark), #1e40af);
+      border-color: transparent;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .28);
+    }
+
+    .portal-btn.primary .portal-btn-icon {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+
+    .portal-btn.dark {
+      background: #0f172a;
+      color: #fff;
+      border-color: #0f172a;
+    }
+
+    .portal-btn.dark:hover {
+      background: #1e293b;
+      border-color: #1e293b;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, .22);
+    }
+
+    .portal-btn.dark .portal-btn-icon {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
     .portal-btn-info {
       flex: 1;
       text-align: left;
     }
+
     .portal-btn-title {
-      font-weight: 600;
-      font-size: 0.95em;
+      font-weight: 700;
+      font-size: 14px;
     }
+
     .portal-btn-desc {
-      font-size: 0.78em;
-      opacity: 0.85;
+      font-size: 12px;
+      color: var(--mut);
       margin-top: 2px;
+      line-height: 1.35;
     }
+
+    .portal-btn.primary .portal-btn-desc,
+    .portal-btn.dark .portal-btn-desc {
+      color: rgba(255, 255, 255, .82);
+    }
+
+    .portal-arrow {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--mut);
+    }
+
+    .portal-btn:hover .portal-arrow {
+      color: var(--blue);
+    }
+
+    .portal-btn.primary .portal-arrow,
+    .portal-btn.dark .portal-arrow {
+      color: rgba(255, 255, 255, .9);
+    }
+
     .info-box {
-      margin-top: 24px;
-      padding: 14px 16px;
-      background: var(--bg-muted);
-      border-radius: var(--radius-sm);
-      font-size: 0.82em;
-      color: var(--text-muted);
+      margin-top: 20px;
+      padding: 13px 15px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--blue);
+      border-radius: 10px;
+      font-size: 12.5px;
+      color: var(--mut);
       line-height: 1.5;
     }
+
+    .info-box strong {
+      color: var(--tx);
+    }
+
     .footer {
       text-align: center;
       padding: 16px;
-      font-size: 0.78em;
-      color: var(--text-subtle);
-      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--mut);
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 600px) {
+      .app-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      .portal-card {
+        padding: 22px 18px;
+      }
     }
   </style>
 </head>
 <body>
 <div class="portal-wrap">
   <header class="app-header">
-    <div class="brand-badge">
-      <span class="brand-logo">FUSEX</span>
-      <div>
-        <div class="brand-title">Fundo de Saúde do Exército</div>
-        <div class="brand-subtitle">Regulação Médica &amp; Auditoria de Guias</div>
+    <a href="index.html" class="brand">
+      <i>✚</i>
+      <span>SISMED<small>Sistema Integrado de Saúde Militar · FUSEX</small></span>
+    </a>
+    <div class="header-right">
+      <div class="who-pill">
+        <b>Administração FUSEX</b>
+        <span id="whoUser"></span>
       </div>
+      <button type="button" class="btn-logout" onclick="FusexAuth.logout()">Sair</button>
     </div>
-    <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">Sair</button>
   </header>
 
   <main class="portal-body">
-    <div class="card portal-card">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h1 class="card-title">Portal de Atendimento</h1>
-        <p class="card-subtitle">Selecione o módulo de acesso de acordo com o seu perfil</p>
+    <div class="portal-card">
+      <div class="portal-head">
+        <h1>Portal de Atendimento</h1>
+        <p>Selecione o módulo de acesso de acordo com o seu perfil</p>
       </div>
 
       <div class="portal-options">
@@ -127,7 +379,7 @@
             <div class="portal-btn-title">Acesso Médico</div>
             <div class="portal-btn-desc">Emissão de pedidos, triagem inicial e encaminhamentos</div>
           </div>
-          <span style="font-size: 1.1em;">→</span>
+          <span class="portal-arrow">→</span>
         </a>
 
         <a class="portal-btn" href="pre-guias.html">
@@ -136,16 +388,16 @@
             <div class="portal-btn-title">Consulta de Pré-Guia (EG)</div>
             <div class="portal-btn-desc">Conferência, auditoria de valores e homologação de guia</div>
           </div>
-          <span style="font-size: 1.1em;">→</span>
+          <span class="portal-arrow">→</span>
         </a>
 
-        <a class="portal-btn" href="assinatura-guias.html" style="border-left: 4px solid #16a34a;">
-          <div class="portal-btn-icon" style="background: rgba(22, 163, 74, 0.15); color: #16a34a;">✍️</div>
+        <a class="portal-btn accent-green" href="assinatura-guias.html">
+          <div class="portal-btn-icon">✍️</div>
           <div class="portal-btn-info">
             <div class="portal-btn-title">Esteira de Assinatura (Médico Chefe → Chefe da Seção)</div>
             <div class="portal-btn-desc">Assinatura na ordem: 1º Médico Chefe, 2º Chefe da Seção. Envio do PDF e e-mail (admin)</div>
           </div>
-          <span style="font-size: 1.1em;">→</span>
+          <span class="portal-arrow">→</span>
         </a>
 
         <a class="portal-btn" href="importacao.html">
@@ -154,7 +406,7 @@
             <div class="portal-btn-title">Importação &amp; Tabelas</div>
             <div class="portal-btn-desc">Carga de procedimentos TUSS e tabelas de preços OCS</div>
           </div>
-          <span style="font-size: 1.1em;">→</span>
+          <span class="portal-arrow">→</span>
         </a>
 
         <a class="portal-btn" href="validade-guia.html">
@@ -163,7 +415,7 @@
             <div class="portal-btn-title">Área da OCS</div>
             <div class="portal-btn-desc">Consulta de validade, guias, lotes de fatura e fechamento mensal</div>
           </div>
-          <span style="font-size: 1.1em;">→</span>
+          <span class="portal-arrow">→</span>
         </a>
 
         <a class="portal-btn" href="faturamento.html">
@@ -172,19 +424,18 @@
             <div class="portal-btn-title">Faturamento</div>
             <div class="portal-btn-desc">Conferir fechamentos das OCSs, informar o Nº SisFat e liberar para a Lisura</div>
           </div>
-          <span style="font-size: 1.1em;">→</span>
+          <span class="portal-arrow">→</span>
+        </a>
+
+        <a class="portal-btn dark" href="lisura.html">
+          <div class="portal-btn-icon">📊</div>
+          <div class="portal-btn-info">
+            <div class="portal-btn-title">Lisura e Auditoria (ACM)</div>
+            <div class="portal-btn-desc">Cruzamento de dados, auditoria de guias e emissão de relatórios PDF</div>
+          </div>
+          <span class="portal-arrow">→</span>
         </a>
       </div>
-
-      <a class="portal-btn primary" href="lisura.html" style="background: #0f172a; border-color: #0f172a;">
-        <div class="portal-btn-icon" style="background: rgba(255,255,255,0.15); color: #fff;">📊</div>
-        <div class="portal-btn-info">
-          <div class="portal-btn-title">Lisura e Auditoria (ACM)</div>
-          <div class="portal-btn-desc">Cruzamento de dados, auditoria de guias e emissão de relatórios PDF</div>
-        </div>
-        <span style="font-size: 1.1em;">→</span>
-      </a>
-
 
       <div class="info-box">
         <strong>ℹ️ Informação ao Beneficiário:</strong><br>
@@ -194,11 +445,12 @@
   </main>
 
   <footer class="footer">
-    FUSEX &bull; Diretoria de Saúde &bull; Ministério da Defesa
+    SISMED / FUSEX &bull; Diretoria de Saúde &bull; Ministério da Defesa
   </footer>
 </div>
 <script src="js/fusex-auth.js"></script>
 <script>
+  document.getElementById('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
   // O portal geral é exclusivo do administrador; os demais perfis vão direto para a própria tela.
   FusexAuth.require(['ROLE_ADMIN']);
 </script>

@@ -1,23 +1,135 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FUSEX - Acesso ao Sistema</title>
-<link rel="stylesheet" href="css/fusex-theme.css">
-<style>
-  .login-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
-  .login-card { max-width: 400px; width: 100%; }
-  .login-header { text-align: center; margin-bottom: 24px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUSEX - Acesso ao Sistema</title>
+  <link rel="stylesheet" href="css/fusex-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+    }
+
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .login-card {
+      position: relative;
+      max-width: 420px;
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 12px 28px rgba(23, 33, 43, .1);
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .login-logo {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, .22);
+    }
+
+    .login-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+
+    .login-card label {
+      color: var(--mut);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+    }
+
+    .login-card input:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+
+    .login-card .btn-primary {
+      background: var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .2);
+    }
+
+    .login-card .btn-primary:hover {
+      background: #1d4ed8;
+    }
+  </style>
 </head>
 <body>
 <div class="login-wrapper">
   <div class="card login-card">
     <div class="login-header">
-      <div style="margin-bottom: 12px;">
-        <span class="brand-logo" style="font-size: 0.9em; padding: 7px 16px;">FUSEX</span>
-      </div>
+      <div class="login-logo">✚</div>
+      <div class="login-eyebrow">FUSEX · SISMED</div>
       <h1 class="card-title" style="font-size: 1.3em;">Acesso ao Sistema</h1>
       <p class="card-subtitle" style="margin-bottom: 0;">Entre com seu e-mail e senha. Você será levado direto à tela do seu perfil.</p>
     </div>
