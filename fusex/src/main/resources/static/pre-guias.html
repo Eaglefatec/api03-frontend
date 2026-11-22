@@ -6,129 +6,342 @@
   <title>FUSEX - Pré-guias | Emissor de Guias</title>
   <link rel="stylesheet" href="css/ocs-mockup-theme.css">
   <style>
-    main { max-width: 1500px; }
-    .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #8794a3; font-weight: 700; padding: 14px 12px 4px; }
-    .nav a { font-weight: 600; }
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sidebar e marca no padrão SISMED */
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand i {
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      color: #fff;
+      border-radius: 12px;
+      font-style: normal;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+    }
+
+    .brand span {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--tx);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-subtle);
+      font-weight: 700;
+      padding: 14px 12px 4px;
+    }
+
+    .nav a {
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .nav a.on {
+      background: rgba(37, 99, 235, .1);
+      color: var(--blue-dark);
+      border-left: 3px solid var(--blue);
+    }
+
     .nav a .tag { float: right; }
-    .who .btn { margin-top: 10px; width: 100%; }
-    .titulo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .who {
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .who b {
+      display: block;
+    }
+
+    /* Área principal */
+    main { max-width: 1500px; }
+    .titulo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .titulo h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+    .sub {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin: 0;
+    }
+
+    /* Cards de seções */
+    .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+    }
+    .card .hint {
+      margin: -8px 0 12px;
+      color: var(--mut);
+      font-size: 13px;
+    }
+
     .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 14px; }
-    .toolbar input, .toolbar select { max-width: 280px; }
-    .card .hint { margin: -8px 0 12px; }
-    tr.click td .btn { padding: 6px 10px; }
+    .toolbar input, .toolbar select {
+      max-width: 280px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .toolbar input:focus, .toolbar select:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+      outline: none;
+    }
+
+    tr.click:hover td {
+      background: rgba(37, 99, 235, .04);
+    }
+    tr.click td .btn { padding: 6px 10px; border-radius: 8px; font-weight: 600; }
     .vazio td { color: var(--mut); text-align: center; }
-    .ov .folha-wrap { background: var(--panel2); width: min(1100px, 96vw); max-height: 92vh; overflow: auto; border-radius: 12px; padding: 20px; }
+
+    /* Modal de visualização da Pré-Guia */
+    .ov .folha-wrap {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      width: min(1100px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-md);
+    }
     .folha-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .folha { max-width: 900px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 38px 46px; color: var(--tx); }
-    .folha-cab { text-align: center; font-size: 12px; line-height: 1.55; font-weight: 700; margin-bottom: 22px; }
-    .folha h2 { text-align: center; margin: 0 0 4px; font-size: 18px; }
-    .folha .sub { text-align: center; font-size: 12px; }
-    .folha h3 { border-bottom: 1px solid var(--line); padding-bottom: 7px; margin: 24px 0 4px; font-size: 14px; }
+    .folha {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 38px 46px;
+      color: var(--tx);
+      overflow: hidden;
+    }
+    .folha::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+    .folha-cab { text-align: center; font-size: 12px; line-height: 1.55; font-weight: 700; margin-bottom: 22px; color: var(--mut); }
+    .folha h2 { text-align: center; margin: 0 0 4px; font-size: 19px; font-weight: 700; }
+    .folha .sub { text-align: center; font-size: 12.5px; color: var(--mut); }
+    .folha h3 { border-bottom: 1px solid var(--line); padding-bottom: 7px; margin: 24px 0 4px; font-size: 14px; font-weight: 700; color: var(--blue-dark); }
     .dados { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
     .dados > div { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid #e5eaf0; }
     .dados span { font-size: 12px; color: var(--mut); }
-    .dados b { text-align: right; font-size: 13px; }
+    .dados b { text-align: right; font-size: 13px; color: var(--tx); }
     .folha table td, .folha table th { white-space: normal; }
-    .total { display: flex; justify-content: flex-end; gap: 30px; padding: 14px 0; border-bottom: 1px solid var(--line); font-weight: 700; }
+    .total {
+      display: flex;
+      justify-content: flex-end;
+      gap: 30px;
+      padding: 12px 16px;
+      margin-top: 8px;
+      background: rgba(22, 163, 74, .08);
+      border: 1px solid rgba(22, 163, 74, .28);
+      border-radius: 8px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
     .folha-acoes { max-width: 900px; margin: 12px auto 0; display: flex; flex-direction: column; gap: 10px; }
     .folha-acoes .linha { display: flex; justify-content: flex-end; }
-    .ok { border: 1px solid var(--green); border-left: 5px solid var(--green); background: rgba(22, 163, 74, .08); color: #166534; padding: 12px 14px; border-radius: 8px; font-weight: 600; }
+    .ok {
+      border: 1px solid rgba(22, 163, 74, .35);
+      border-left: 5px solid var(--green);
+      background: rgba(22, 163, 74, .08);
+      color: var(--green-dark);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
     .kv { display: grid; grid-template-columns: 150px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
     .kv span { color: var(--mut); font-size: 12px; }
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+    }
     .modal .erro, .modal .warn, .modal .ok { margin: 12px 0 0; }
     @media (max-width: 700px) { .dados { grid-template-columns: 1fr; } .folha { padding: 20px; } .ov .folha-wrap { padding: 10px; } }
   </style>
 </head>
 <body>
 
-  <aside>
-    <a href="index.html" class="brand"><i>✚</i><span>SISMED<small>Sistema Integrado de Saúde Militar</small></span></a>
-    <nav class="nav" aria-label="Navegação principal">
-      <div class="nav-label">Emissor de guias</div>
-      <a href="pre-guias.html" class="on">▤ &nbsp; Consultar pré-guias <span id="badgePendentes" class="tag t-wait">0</span></a>
-      <a href="assinatura-guias.html?view=upload">⇧ &nbsp; Envio de guias</a>
-      <a href="assinatura-guias.html?view=email">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info">0</span></a>
-    </nav>
-    <div class="who">
-      <b id="usuarioNome">Emissor de Guias</b>
-      Área de emissão e consulta
-      <button class="btn o" id="sairBtn">Sair</button>
-    </div>
-  </aside>
+<aside>
+  <a href="index.html" class="brand"><i>✚</i><span>SISMED<small>Sistema Integrado de Saúde Militar</small></span></a>
+  <nav class="nav" aria-label="Navegação principal">
+    <div class="nav-label">Emissor de guias</div>
+    <a href="pre-guias.html" class="on">▤ &nbsp; Consultar pré-guias <span id="badgePendentes" class="tag t-wait">0</span></a>
+    <a href="assinatura-guias.html?view=upload">⇧ &nbsp; Envio de guias</a>
+    <a href="assinatura-guias.html?view=email">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info">0</span></a>
+  </nav>
+  <div class="who">
+    <b>Emissor de Guias</b>
+    <span id="usuarioNome"></span><br>
+    <a href="#" class="small" id="sairBtn" style="color:inherit;text-decoration:underline;">Sair</a>
+  </div>
+</aside>
 
-  <main>
-    <div class="titulo">
-      <div>
-        <h1>Pré-guias aguardando emissão</h1>
-        <p class="sub">Consulte as pré-guias elaboradas pelo sistema, confira os dados cadastrais e os valores antes da emissão definitiva.</p>
-      </div>
-      <span class="tag t-info">Perfil: Emissor de Guias</span>
-    </div>
-
-    <div id="erroGlobal" class="erro" hidden></div>
-
-    <div class="stats">
-      <div class="stat"><b id="mPendentes">0</b><span>Pré-guias pendentes</span></div>
-      <div class="stat"><b id="mEmitidas">0</b><span>Guias emitidas</span></div>
-      <div class="stat"><b id="mSemGuia">0</b><span>Encaminhamentos sem guia</span></div>
-      <div class="stat"><b id="mHoje">0</b><span>Emissões hoje</span></div>
-    </div>
-
-    <div class="card">
-      <h2>Guias pendentes de emissão</h2>
-      <p class="hint">Pré-guias elaboradas pelo sistema que ainda aguardam a emissão da GE.</p>
-      <div class="toolbar">
-        <input id="busca" placeholder="Buscar beneficiário, pré-guia ou OCS...">
-        <select id="filtroOcs"><option value="">Todas as OCS</option></select>
-      </div>
-      <div class="tw">
-        <table>
-          <thead>
-            <tr><th>Pré-guia</th><th>Beneficiário</th><th>PREC</th><th>OCS</th><th>Data de registro</th><th>Status</th><th>Ação</th></tr>
-          </thead>
-          <tbody id="pendentesRows"><tr class="vazio"><td colspan="7">Carregando...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Guias já emitidas</h2>
-      <p class="hint">Pré-guias com a emissão confirmada. As que estão aguardando envio podem ser enviadas para assinatura em Envio de guias.</p>
-      <div class="tw">
-        <table>
-          <thead>
-            <tr><th>Pré-guia</th><th>Beneficiário</th><th>PREC</th><th>OCS</th><th>Data de emissão</th><th>Nº da guia</th><th>Assinatura</th><th>Ação</th></tr>
-          </thead>
-          <tbody id="emitidasRows"><tr class="vazio"><td colspan="8">Carregando...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <div class="ov" id="preGuiaOv">
-    <div class="folha-wrap">
-      <div class="folha-topo">
-        <div><h2 style="margin:0">Pré-Guia de Encaminhamento</h2><span class="hint" id="folhaId"></span></div>
-        <button class="btn o" id="fecharFolhaBtn">Fechar</button>
-      </div>
-      <div id="folhaConteudo"></div>
-      <div class="folha-acoes" id="folhaAcoes"></div>
+<main>
+  <div class="titulo">
+    <div>
+      <h1>Consulta de pré-guias</h1>
+      <p class="sub">Consulte as pré-guias elaboradas pelo sistema, confira os dados cadastrais e os valores antes da emissão definitiva.</p>
     </div>
   </div>
 
-  <div class="ov" id="emitirOv">
-    <div class="modal">
-      <h2 id="emitirTitulo">Confirmar emissão da guia</h2>
-      <div id="emitirResumo"></div>
-      <div id="emitirMsg"></div>
-      <div class="acts">
-        <button class="btn o" id="cancelarEmissaoBtn">Cancelar</button>
-        <button class="btn g" id="confirmarEmissaoBtn">Confirmar emissão</button>
-      </div>
+  <div id="erroGlobal" class="erro" hidden></div>
+
+  <div class="card">
+    <h2>Guias pendentes de emissão</h2>
+    <p class="hint">Pré-guias elaboradas pelo sistema que ainda aguardam a emissão da GE.</p>
+    <div class="toolbar">
+      <input id="busca" placeholder="Buscar beneficiário, pré-guia ou OCS...">
+      <select id="filtroOcs"><option value="">Todas as OCS</option></select>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+        <tr><th>Pré-guia</th><th>Beneficiário</th><th>PREC</th><th>OCS</th><th>Data de registro</th><th>Status</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="pendentesRows"><tr class="vazio"><td colspan="7">Carregando...</td></tr></tbody>
+      </table>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="card">
+    <h2>Guias já emitidas</h2>
+    <p class="hint">Pré-guias com a emissão confirmada. As que estão aguardando envio podem ser enviadas para assinatura em Envio de guias.</p>
+    <div class="tw">
+      <table>
+        <thead>
+        <tr><th>Pré-guia</th><th>Beneficiário</th><th>PREC</th><th>OCS</th><th>Data de emissão</th><th>Nº da guia</th><th>Assinatura</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="emitidasRows"><tr class="vazio"><td colspan="8">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="ov" id="preGuiaOv">
+  <div class="folha-wrap">
+    <div class="folha-topo">
+      <div><h2 style="margin:0">Pré-Guia de Encaminhamento</h2><span class="hint" id="folhaId"></span></div>
+      <button class="btn o" id="fecharFolhaBtn">Fechar</button>
+    </div>
+    <div id="folhaConteudo"></div>
+    <div class="folha-acoes" id="folhaAcoes"></div>
+  </div>
+</div>
+
+<div class="ov" id="emitirOv">
+  <div class="modal">
+    <h2 id="emitirTitulo">Confirmar emissão da guia</h2>
+    <div id="emitirResumo"></div>
+    <div id="emitirMsg"></div>
+    <div class="acts">
+      <button class="btn o" id="cancelarEmissaoBtn">Cancelar</button>
+      <button class="btn g" id="confirmarEmissaoBtn">Confirmar emissão</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script src="js/fusex-auth.js"></script>
 <script>
@@ -138,7 +351,7 @@
   const $ = id => document.getElementById(id);
   const estado = { pendentes: [], emitidas: [], atual: null };
 
-  $('usuarioNome').textContent = sessionStorage.getItem('fusex_user') || 'Emissor de Guias';
+  $('usuarioNome').textContent = 'Usuário: ' + (FusexAuth.user() || sessionStorage.getItem('fusex_user') || '');
 
   function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -161,7 +374,8 @@
     return 'PG-' + ano + '-' + String(item.id).padStart(4, '0');
   }
 
-  function sair() {
+  function sair(e) {
+    if (e && e.preventDefault) e.preventDefault();
     FusexAuth.logout();
   }
 
@@ -232,7 +446,7 @@
     const termo = $('busca').value.trim().toLowerCase();
     const ocs = $('filtroOcs').value;
     return lista.filter(p => (!ocs || p.ocsNome === ocs) &&
-      [p.beneficiarioNome, p.beneficiarioPrec, p.ocsNome, codigoPreGuia(p), p.numeroGuia || ''].join(' ').toLowerCase().includes(termo));
+            [p.beneficiarioNome, p.beneficiarioPrec, p.ocsNome, codigoPreGuia(p), p.numeroGuia || ''].join(' ').toLowerCase().includes(termo));
   }
 
   function renderizar() {
@@ -262,12 +476,7 @@
         <td><button class="btn o">Visualizar PDF</button></td>
       </tr>`).join('') || '<tr class="vazio"><td colspan="8">Nenhuma guia emitida.</td></tr>';
 
-    const hoje = new Date().toDateString();
     $('badgePendentes').textContent = estado.pendentes.length;
-    $('mPendentes').textContent = estado.pendentes.length;
-    $('mEmitidas').textContent = estado.emitidas.length;
-    $('mSemGuia').textContent = estado.pendentes.filter(p => p.possuiEncaminhamento).length;
-    $('mHoje').textContent = estado.emitidas.filter(p => p.dataEmissao && new Date(p.dataEmissao).toDateString() === hoje).length;
   }
 
   function tagAssinatura(p) {
@@ -313,7 +522,7 @@
     const info = d.informacoesGerais || {};
     const procedimentos = d.procedimentos || [];
     const endereco = [o.ocsEndereco, o.ocsEnderecoNumero, o.ocsEnderecoBairro, o.ocsEnderecoCidade, o.ocsEnderecoUf]
-      .filter(Boolean).join(', ');
+            .filter(Boolean).join(', ');
     const total = procedimentos.reduce((soma, p) => soma + (Number(p.valor) || 0) * (p.quantidade || 1), 0);
 
     $('folhaConteudo').innerHTML = `
@@ -352,7 +561,7 @@
           <thead><tr><th>Código DGP</th><th>Descrição do Procedimento TUSS</th><th>Qtd.</th><th style="text-align:right">Valor Unitário</th></tr></thead>
           <tbody>
             ${procedimentos.map(p => `<tr><td>${esc(p.procedimentoCodigoDgp)}</td><td>${esc(p.procedimentoDescricao)}</td><td>${esc(p.quantidade)}</td><td style="text-align:right">${moeda(p.valor)}</td></tr>`).join('')
-              || '<tr class="vazio"><td colspan="4">Nenhum procedimento informado.</td></tr>'}
+    || '<tr class="vazio"><td colspan="4">Nenhum procedimento informado.</td></tr>'}
           </tbody>
         </table>
         <div class="total"><span>CUSTO TOTAL</span><span>${moeda(total)}</span></div>

@@ -3,232 +3,543 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FUSEX - Importação de Dados e Tabelas</title>
+  <title>SISMED / FUSEX - Importação de Dados e Tabelas</title>
   <link rel="stylesheet" href="css/fusex-theme.css">
   <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--tx);
+    }
+
+    .brand i {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      font-style: normal;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+      flex-shrink: 0;
+    }
+
+    .brand small {
+      display: block;
+      font-size: 11.5px;
+      color: var(--mut);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .who-pill {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--mut);
+      line-height: 1.35;
+      text-align: right;
+    }
+
+    .who-pill b {
+      display: block;
+      color: var(--tx);
+      font-size: 12.5px;
+    }
+
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--tx);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+    .btn-nav:hover {
+      background: var(--panel2);
+      border-color: var(--blue);
+      color: var(--blue-dark);
+    }
+
+    .main-wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 44px;
+    }
+
+    .hero-card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 26px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .hero-card h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 6px;
+    }
+
+    .hero-card p {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin: 0;
+      line-height: 1.45;
+    }
+
     .import-section-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 20px;
-      margin-top: 24px;
+      margin-top: 22px;
     }
+
     .import-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 24px;
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: var(--shadow-sm);
+      gap: 18px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
     }
+
+    .import-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .card-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: rgba(37, 99, 235, .1);
+      color: var(--blue-dark);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .import-card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--mut);
+      margin: 0 0 14px;
+      line-height: 1.45;
+    }
+
     .file-input-wrapper {
-      margin-top: 12px;
-      margin-bottom: 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
     }
+
+    .file-input-wrapper label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--tx);
+      margin: 0 0 8px;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      width: 100%;
+      font-size: 13px;
+      color: var(--tx);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
     .file-hint {
-      font-size: 0.76em;
-      color: var(--text-muted);
-      margin-top: 4px;
+      font-size: 12px;
+      color: var(--mut);
+      margin-top: 6px;
+    }
+
+    .btn-import {
+      width: 100%;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, .22);
+      transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .btn-import:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--blue-dark), #1e40af);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .28);
+      transform: translateY(-1px);
+    }
+
+    .btn-import:disabled {
+      opacity: .65;
+      cursor: not-allowed;
+    }
+
+    .log-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      line-height: 1.45;
+      border: 1px solid var(--line);
+    }
+
+    .log-box.erro {
+      background: rgba(220, 38, 38, .08);
+      border-color: rgba(220, 38, 38, .3);
+      border-left: 4px solid var(--red);
+      color: #991b1b;
+    }
+
+    .log-box.sucesso {
+      background: rgba(22, 163, 74, .08);
+      border-color: rgba(22, 163, 74, .3);
+      border-left: 4px solid var(--green);
+      color: var(--green-dark);
+    }
+
+    .log-box .aviso {
+      margin-top: 6px;
+      padding: 6px 8px;
+      background: rgba(217, 119, 6, .1);
+      border-left: 3px solid var(--amber);
+      border-radius: 6px;
+      color: #92400e;
+    }
+
+    @media (max-width: 640px) {
+      .app-header {
+        padding: 12px 16px;
+      }
+      .main-wrap {
+        padding: 20px 14px 36px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <header class="app-header">
-    <a href="index.html" class="brand-badge">
-      <div class="brand-logo">FUSEX</div>
+<header class="app-header">
+  <a href="index.html" class="brand">
+    <i>✚</i>
+    <span>SISMED<small>Sistema Integrado de Saúde Militar · FUSEX</small></span>
+  </a>
+  <div class="header-actions">
+    <div class="who-pill">
+      <b>Administração FUSEX</b>
+      <span id="whoUser"></span>
+    </div>
+    <a href="index.html" class="btn-nav">Início</a>
+    <a href="medico.html" class="btn-nav">Painel Médico</a>
+    <button type="button" class="btn-nav" onclick="FusexAuth.logout()">Sair</button>
+  </div>
+</header>
+
+<main class="main-wrap">
+  <div class="hero-card">
+    <h1>Importação de Dados e Tabelas</h1>
+    <p>
+      Atualize em lote o catálogo do Rol TUSS, as tabelas de preços negociadas com as OCS e o cadastro institucional de clínicas credenciadas.
+    </p>
+  </div>
+
+  <div class="import-section-grid">
+
+    <div class="import-card">
       <div>
-        <div class="brand-title">Fundo de Saúde do Exército</div>
-        <div class="brand-subtitle">Gestão Administrativa & Auditoria</div>
-      </div>
-    </a>
-    <div style="display: flex; gap: 8px;">
-      <a href="index.html" class="btn btn-secondary" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">
-        Início
-      </a>
-      <a href="medico.html" class="btn btn-secondary" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">
-        Painel Médico
-      </a>
-      <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 14px; font-size: 0.84em; width: auto;">Sair</button>
-    </div>
-  </header>
-
-  <main class="app-container wide">
-    <div class="card">
-      <h1 class="card-title">Importação de Dados e Tabelas</h1>
-      <p class="card-subtitle">
-        Atualize em lote o catálogo do Rol TUSS, as tabelas de preços negociadas com as OCS e o cadastro institucional de clínicas credenciadas.
-      </p>
-
-    </div>
-
-    <div class="import-section-grid">
-
-      <div class="import-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="card-head">
+          <div class="card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
               <line x1="16" y1="13" x2="8" y2="13"></line>
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            <h2 style="font-size: 1.05em; font-weight: 700; color: var(--color-primary); margin: 0;">
-              Procedimentos TUSS
-            </h2>
           </div>
-          <p style="font-size: 0.84em; color: var(--text-muted); margin: 0 0 14px 0;">
-            Importa a planilha oficial com códigos DGP e termos unificados do Rol TUSS.
-          </p>
-
-          <div class="file-input-wrapper">
-            <label for="arquivoTuss" style="margin-top: 0;">Planilha do Rol TUSS (.xls, .xlsx)</label>
-            <input type="file" id="arquivoTuss" accept=".xls,.xlsx">
-            <div class="file-hint">Formatos aceitos: Microsoft Excel (.xls, .xlsx)</div>
-          </div>
+          <h2>Procedimentos TUSS</h2>
         </div>
+        <p class="card-desc">
+          Importa a planilha oficial com códigos DGP e termos unificados do Rol TUSS.
+        </p>
 
-        <div>
-          <button type="button" class="btn btn-primary" data-alvo="tuss">
-            Importar Catálogo TUSS
-          </button>
-          <div id="resultadoTuss"></div>
+        <div class="file-input-wrapper">
+          <label for="arquivoTuss">Planilha do Rol TUSS (.xls, .xlsx)</label>
+          <input type="file" id="arquivoTuss" accept=".xls,.xlsx">
+          <div class="file-hint">Formatos aceitos: Microsoft Excel (.xls, .xlsx)</div>
         </div>
       </div>
 
-      <div class="import-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div>
+        <button type="button" class="btn-import" data-alvo="tuss">
+          Importar Catálogo TUSS
+        </button>
+        <div id="resultadoTuss"></div>
+      </div>
+    </div>
+
+    <div class="import-card">
+      <div>
+        <div class="card-head">
+          <div class="card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="1" x2="12" y2="23"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
-            <h2 style="font-size: 1.05em; font-weight: 700; color: var(--color-primary); margin: 0;">
-              Tabela de Preços por OCS
-            </h2>
           </div>
-          <p style="font-size: 0.84em; color: var(--text-muted); margin: 0 0 14px 0;">
-            Atualiza os valores acordados para auditoria de procedimentos por clínica credenciada.
-          </p>
-
-          <div class="file-input-wrapper">
-            <label for="arquivoOcsPrecos" style="margin-top: 0;">Planilha de Preços (.xls, .xlsx)</label>
-            <input type="file" id="arquivoOcsPrecos" accept=".xls,.xlsx">
-            <div class="file-hint">Formatos aceitos: Microsoft Excel (.xls, .xlsx)</div>
-          </div>
+          <h2>Tabela de Preços por OCS</h2>
         </div>
+        <p class="card-desc">
+          Atualiza os valores acordados para auditoria de procedimentos por clínica credenciada.
+        </p>
 
-        <div>
-          <button type="button" class="btn btn-primary" data-alvo="ocs-precos">
-            Importar Tabela de Preços
-          </button>
-          <div id="resultadoOcsPrecos"></div>
+        <div class="file-input-wrapper">
+          <label for="arquivoOcsPrecos">Planilha de Preços (.xls, .xlsx)</label>
+          <input type="file" id="arquivoOcsPrecos" accept=".xls,.xlsx">
+          <div class="file-hint">Formatos aceitos: Microsoft Excel (.xls, .xlsx)</div>
         </div>
       </div>
 
-      <div class="import-card">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div>
+        <button type="button" class="btn-import" data-alvo="ocs-precos">
+          Importar Tabela de Preços
+        </button>
+        <div id="resultadoOcsPrecos"></div>
+      </div>
+    </div>
+
+    <div class="import-card">
+      <div>
+        <div class="card-head">
+          <div class="card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="9" y1="9" x2="15" y2="9"></line>
               <line x1="9" y1="13" x2="15" y2="13"></line>
               <line x1="9" y1="17" x2="13" y2="17"></line>
             </svg>
-            <h2 style="font-size: 1.05em; font-weight: 700; color: var(--color-primary); margin: 0;">
-              Cadastro Geral das OCS
-            </h2>
           </div>
-          <p style="font-size: 0.84em; color: var(--text-muted); margin: 0 0 14px 0;">
-            Atualiza dados cadastrais, CNPJ, endereços e contatos telefônicos das clínicas credenciadas.
-          </p>
-
-          <div class="file-input-wrapper">
-            <label for="arquivoOcsCadastro" style="margin-top: 0;">Planilha com Dados Cadastrais (.xls, .xlsx)</label>
-            <input type="file" id="arquivoOcsCadastro" accept=".xls,.xlsx">
-            <div class="file-hint">Formatos aceitos: Microsoft Excel (.xls, .xlsx)</div>
-          </div>
+          <h2>Cadastro Geral das OCS</h2>
         </div>
+        <p class="card-desc">
+          Atualiza dados cadastrais, CNPJ, endereços e contatos telefônicos das clínicas credenciadas.
+        </p>
 
-        <div>
-          <button type="button" class="btn btn-primary" data-alvo="ocs-cadastro">
-            Importar Cadastro de Clínicas
-          </button>
-          <div id="resultadoOcsCadastro"></div>
+        <div class="file-input-wrapper">
+          <label for="arquivoOcsCadastro">Planilha com Dados Cadastrais (.xls, .xlsx)</label>
+          <input type="file" id="arquivoOcsCadastro" accept=".xls,.xlsx">
+          <div class="file-hint">Formatos aceitos: Microsoft Excel (.xls, .xlsx)</div>
         </div>
       </div>
 
+      <div>
+        <button type="button" class="btn-import" data-alvo="ocs-cadastro">
+          Importar Cadastro de Clínicas
+        </button>
+        <div id="resultadoOcsCadastro"></div>
+      </div>
     </div>
-  </main>
 
-  <script src="js/fusex-auth.js"></script>
-  <script>
-    const inputs = {
-      tuss: document.getElementById('arquivoTuss'),
-      'ocs-precos': document.getElementById('arquivoOcsPrecos'),
-      'ocs-cadastro': document.getElementById('arquivoOcsCadastro')
-    };
+  </div>
+</main>
 
-    const resultados = {
-      tuss: document.getElementById('resultadoTuss'),
-      'ocs-precos': document.getElementById('resultadoOcsPrecos'),
-      'ocs-cadastro': document.getElementById('resultadoOcsCadastro')
-    };
+<script src="js/fusex-auth.js"></script>
+<script>
+  const inputs = {
+    tuss: document.getElementById('arquivoTuss'),
+    'ocs-precos': document.getElementById('arquivoOcsPrecos'),
+    'ocs-cadastro': document.getElementById('arquivoOcsCadastro')
+  };
 
-    FusexAuth.require(['ROLE_ADMIN']);
+  const resultados = {
+    tuss: document.getElementById('resultadoTuss'),
+    'ocs-precos': document.getElementById('resultadoOcsPrecos'),
+    'ocs-cadastro': document.getElementById('resultadoOcsCadastro')
+  };
 
-    async function importar(alvo, botao) {
-      const arquivoInput = inputs[alvo];
-      const resultado = resultados[alvo];
-      resultado.innerHTML = '';
+  document.getElementById('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
+  FusexAuth.require(['ROLE_ADMIN']);
 
-      if (!arquivoInput.files || arquivoInput.files.length === 0) {
-        resultado.innerHTML = '<div class="log-box erro">Por favor, selecione um arquivo de planilha (.xls ou .xlsx).</div>';
+  async function importar(alvo, botao) {
+    const arquivoInput = inputs[alvo];
+    const resultado = resultados[alvo];
+    resultado.innerHTML = '';
+
+    if (!arquivoInput.files || arquivoInput.files.length === 0) {
+      resultado.innerHTML = '<div class="log-box erro">Por favor, selecione um arquivo de planilha (.xls ou .xlsx).</div>';
+      return;
+    }
+
+    const originalBtnText = botao.innerHTML;
+    botao.disabled = true;
+    botao.innerHTML = 'Processando importação...';
+
+    const formData = new FormData();
+    formData.append('arquivo', arquivoInput.files[0]);
+
+    try {
+      const res = await fetch(`/api/importacao/${alvo}`, {
+        method: 'POST',
+        headers: { 'Authorization': FusexAuth.header() },
+        body: formData
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        resultado.innerHTML = `<div class="log-box erro">${data.error || 'Erro ao processar importação.'}</div>`;
         return;
       }
 
-      const originalBtnText = botao.innerHTML;
-      botao.disabled = true;
-      botao.innerHTML = 'Processando importação...';
-
-      const formData = new FormData();
-      formData.append('arquivo', arquivoInput.files[0]);
-
-      try {
-        const res = await fetch(`/api/importacao/${alvo}`, {
-          method: 'POST',
-          headers: { 'Authorization': FusexAuth.header() },
-          body: formData
+      let html = `<div class="log-box sucesso"><strong>${data.mensagem}</strong>`;
+      if (data.avisos && data.avisos.length > 0) {
+        html += '<div style="margin-top: 8px; font-weight: 600;">Avisos encontrados:</div>';
+        data.avisos.forEach(aviso => {
+          html += `<div class="aviso">${aviso}</div>`;
         });
-        const data = await res.json();
-
-        if (!res.ok) {
-          resultado.innerHTML = `<div class="log-box erro">${data.error || 'Erro ao processar importação.'}</div>`;
-          return;
-        }
-
-        let html = `<div class="log-box sucesso"><strong>${data.mensagem}</strong>`;
-        if (data.avisos && data.avisos.length > 0) {
-          html += '<div style="margin-top: 8px; font-weight: 600;">Avisos encontrados:</div>';
-          data.avisos.forEach(aviso => {
-            html += `<div class="aviso">${aviso}</div>`;
-          });
-        }
-        html += '</div>';
-        resultado.innerHTML = html;
-      } catch (err) {
-        resultado.innerHTML = '<div class="log-box erro">Falha de comunicação com o servidor ao importar. Tente novamente.</div>';
-      } finally {
-        botao.disabled = false;
-        botao.innerHTML = originalBtnText;
       }
+      html += '</div>';
+      resultado.innerHTML = html;
+    } catch (err) {
+      resultado.innerHTML = '<div class="log-box erro">Falha de comunicação com o servidor ao importar. Tente novamente.</div>';
+    } finally {
+      botao.disabled = false;
+      botao.innerHTML = originalBtnText;
     }
+  }
 
-    document.querySelectorAll('button[data-alvo]').forEach(btn => {
-      btn.addEventListener('click', () => importar(btn.dataset.alvo, btn));
-    });
-  </script>
+  document.querySelectorAll('button[data-alvo]').forEach(btn => {
+    btn.addEventListener('click', () => importar(btn.dataset.alvo, btn));
+  });
+</script>
 </body>
 </html>

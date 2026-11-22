@@ -6,6 +6,315 @@
   <title>FUSEX - Consulta de Pré-Guia Médica</title>
   <link rel="stylesheet" href="css/fusex-theme.css">
   <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Cabeçalho no padrão do sistema */
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--tx);
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 12.5px;
+      color: var(--mut);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .header-user {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--mut);
+      padding: 4px 10px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+    }
+
+    .header-user:empty {
+      display: none;
+    }
+
+    /* Container e Card principal */
+    .app-container {
+      max-width: 920px;
+      margin: 28px auto 48px;
+      padding: 0 20px;
+    }
+
+    .app-container > .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .app-container > .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .card-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+
+    .card-subtitle {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin-bottom: 20px;
+    }
+
+    /* Seções e Inputs */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tx);
+      padding-bottom: 8px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    label {
+      display: block;
+      color: var(--mut);
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.4;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    input[type="text"]:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+      outline: none;
+    }
+
+    .consulta-box {
+      margin-top: 20px;
+      padding: 18px;
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    .consulta-heading {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--blue);
+      margin: 0 0 12px 0;
+    }
+
+    /* Blocos de dados */
+    .kv-list {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 16px;
+    }
+
+    .audit-total-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(22, 163, 74, .08);
+      border: 1px solid rgba(22, 163, 74, .28);
+      border-radius: 10px;
+    }
+
+    .audit-total-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--tx);
+    }
+
+    .audit-total-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--green-dark);
+    }
+
+    .file-upload-box {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+
+    .correcao-box {
+      margin-top: 14px;
+      padding: 14px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    /* Botões */
+    .btn-primary {
+      background: var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .22);
+      transition: background .15s ease, transform .12s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-dark);
+    }
+
+    .btn-secondary {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
     @media print {
       .guia-header-print {
         border-bottom: 2px solid #000;
@@ -17,177 +326,176 @@
 </head>
 <body>
 
-  <header class="app-header no-print">
-    <a href="index.html" class="brand-badge">
-      <div class="brand-logo">FUSEX</div>
-      <div>
-        <div class="brand-title">Fundo de Saúde do Exército</div>
-        <div class="brand-subtitle">Consulta e Auditoria de Pré-Guia</div>
-      </div>
-    </a>
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <span id="usuarioLogado" style="font-size: 0.84em; color: var(--text-muted);"></span>
-      <a href="guia.html" class="btn btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">Nova consulta</a>
-      <a id="linkPainelMedico" href="medico.html" class="btn btn-secondary" hidden style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">
-        Painel Médico
-      </a>
-      <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 12px; font-size: 0.84em; width: auto;">Sair</button>
+<header class="app-header no-print">
+  <a href="index.html" class="brand-badge">
+    <div class="brand-logo">✚</div>
+    <div>
+      <div class="brand-title">SISMED</div>
+      <div class="brand-subtitle">Sistema Integrado de Saúde Militar</div>
     </div>
-  </header>
+  </a>
+  <div class="header-actions">
+    <span id="usuarioLogado" class="header-user"></span>
+    <a href="guia.html" class="btn btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 12.5px; width: auto;">Nova consulta</a>
+    <a id="linkPainelMedico" href="medico.html" class="btn btn-secondary" hidden style="margin: 0; padding: 6px 12px; font-size: 12.5px; width: auto;">
+      Painel Médico
+    </a>
+    <button type="button" class="btn btn-secondary" onclick="FusexAuth.logout()" style="margin: 0; padding: 6px 12px; font-size: 12.5px; width: auto;">Sair</button>
+  </div>
+</header>
 
-  <main class="app-container wide">
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
-        <div>
-          <h1 class="card-title">Pré-Guia de Encaminhamento</h1>
-          <p class="card-subtitle" style="margin-bottom: 0;">
-            Visão consolidada para conferência cadastral e auditoria de valores antes da emissão definitiva da Guia de Encaminhamento (GE).
-          </p>
+<main class="app-container wide">
+  <div class="card">
+    <div class="card-top">
+      <div>
+        <div class="card-eyebrow">Consulta de Pré-Guia</div>
+        <h1 class="card-title">Pré-Guia de Encaminhamento</h1>
+        <p class="card-subtitle" style="margin-bottom: 0;">
+          Visão consolidada para conferência cadastral e auditoria de valores antes da emissão definitiva da Guia de Encaminhamento (GE).
+        </p>
+      </div>
+      <button type="button" id="btnImprimir" class="btn btn-secondary no-print" style="margin: 0; width: auto; padding: 8px 14px; font-size: 13px; display: none;" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        Imprimir / Salvar PDF
+      </button>
+    </div>
+
+    <div id="loginSection" class="consulta-box no-print">
+      <h2 class="consulta-heading">🔍 Consulta de Pré-Guia</h2>
+      <label for="tokenInput">Código ou link da solicitação *</label>
+      <input type="text" id="tokenInput" placeholder="Cole aqui o link ou o código da solicitação">
+      <button id="consultarBtn" type="button" class="btn btn-primary" style="margin-top: 14px;">
+        Consultar Dados da Pré-Guia
+      </button>
+    </div>
+
+    <div id="loading" class="alert alert-info no-print" hidden style="justify-content: center;">
+      <span>Consultando dados da pré-guia no servidor...</span>
+    </div>
+    <div id="errorMsg" class="alert alert-error no-print" hidden></div>
+
+    <div id="resultado" hidden style="margin-top: 20px;">
+
+      <h2 class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        Dados do Beneficiário
+      </h2>
+      <div class="kv-list">
+        <div class="kv-row">
+          <span class="kv-label">Nome Completo</span>
+          <span class="kv-val" id="benNome">-</span>
         </div>
-        <button type="button" id="btnImprimir" class="btn btn-secondary no-print" style="margin: 0; width: auto; padding: 8px 14px; font-size: 0.85em; display: none;" onclick="window.print()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-            <rect x="6" y="14" width="12" height="8"></rect>
-          </svg>
-          Imprimir / Salvar PDF
-        </button>
+        <div class="kv-row">
+          <span class="kv-label">Idade</span>
+          <span class="kv-val" id="benIdade">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">CPF</span>
+          <span class="kv-val" id="benCpf">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">PREC</span>
+          <span class="kv-val" id="benPrec">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">E-mail</span>
+          <span class="kv-val" id="benEmail">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Telefone de Contato</span>
+          <span class="kv-val" id="benTelefone">-</span>
+        </div>
       </div>
 
-      <div id="loginSection" style="margin-top: 24px; padding: 20px; background: var(--bg-muted); border-radius: var(--radius-md); border: 1px solid var(--border-color);" class="no-print">
-        <h2 style="font-size: 0.95em; font-weight: 600; color: var(--color-primary); margin: 0 0 12px 0;">
-          Consulta de Pré-Guia
-        </h2>
-        <label for="tokenInput" style="margin-top: 0;">Código ou link da solicitação *</label>
-        <input type="text" id="tokenInput" placeholder="Cole aqui o link ou o código da solicitação">
-        <button id="consultarBtn" type="button" class="btn btn-primary" style="margin-top: 14px;">
-          Consultar Dados da Pré-Guia
-        </button>
+      <h2 class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="9" y1="9" x2="15" y2="9"></line>
+          <line x1="9" y1="13" x2="15" y2="13"></line>
+          <line x1="9" y1="17" x2="13" y2="17"></line>
+        </svg>
+        Organização Civil de Saúde (OCS Credenciada)
+      </h2>
+      <div class="kv-list">
+        <div class="kv-row">
+          <span class="kv-label">Razão Social / Nome</span>
+          <span class="kv-val" id="ocsNome">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">CNPJ / Inscrição Federal</span>
+          <span class="kv-val" id="ocsCnpj">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Endereço</span>
+          <span class="kv-val" id="ocsEndereco">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Contato Responsável</span>
+          <span class="kv-val" id="ocsContato">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Telefone</span>
+          <span class="kv-val" id="ocsTelefone">-</span>
+        </div>
       </div>
 
-      <div id="loading" class="alert alert-info no-print" hidden style="justify-content: center;">
-        <span>Consultando dados da pré-guia no servidor...</span>
+      <h2 class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+        Médico Solicitante / Emissor
+      </h2>
+      <div class="kv-list">
+        <div class="kv-row">
+          <span class="kv-label">Nome do Médico</span>
+          <span class="kv-val" id="emissorNome">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Registro Profissional (CRM)</span>
+          <span class="kv-val" id="emissorCrm">-</span>
+        </div>
       </div>
-      <div id="errorMsg" class="alert alert-error no-print" hidden></div>
 
-      <div id="resultado" hidden style="margin-top: 24px;">
+      <h2 class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        Procedimentos
+      </h2>
+      <div id="procedimentosLista"></div>
 
-        <h2 class="section-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          Dados do Beneficiário
-        </h2>
-        <div class="kv-list">
-          <div class="kv-row">
-            <span class="kv-label">Nome Completo</span>
-            <span class="kv-val" id="benNome">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Idade</span>
-            <span class="kv-val" id="benIdade">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">CPF</span>
-            <span class="kv-val" id="benCpf">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">PREC</span>
-            <span class="kv-val" id="benPrec">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">E-mail</span>
-            <span class="kv-val" id="benEmail">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Telefone de Contato</span>
-            <span class="kv-val" id="benTelefone">-</span>
-          </div>
+      <div id="totalAuditBox" class="audit-total-box" style="display: none;">
+        <span class="audit-total-label">Custo Total</span>
+        <span class="audit-total-value" id="totalAuditValor">R$ 0,00</span>
+      </div>
+
+      <h2 class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Informações Gerais
+      </h2>
+      <div class="kv-list">
+        <div class="kv-row">
+          <span class="kv-label">Data de Registro</span>
+          <span class="kv-val" id="infoData">-</span>
         </div>
-
-        <h2 class="section-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="9" y1="9" x2="15" y2="9"></line>
-            <line x1="9" y1="13" x2="15" y2="13"></line>
-            <line x1="9" y1="17" x2="13" y2="17"></line>
-          </svg>
-          Organização Civil de Saúde (OCS Credenciada)
-        </h2>
-        <div class="kv-list">
-          <div class="kv-row">
-            <span class="kv-label">Razão Social / Nome</span>
-            <span class="kv-val" id="ocsNome">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">CNPJ / Inscrição Federal</span>
-            <span class="kv-val" id="ocsCnpj">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Endereço</span>
-            <span class="kv-val" id="ocsEndereco">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Contato Responsável</span>
-            <span class="kv-val" id="ocsContato">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Telefone</span>
-            <span class="kv-val" id="ocsTelefone">-</span>
-          </div>
+        <div class="kv-row">
+          <span class="kv-label">Unidade Gestora de Origem (UG)</span>
+          <span class="kv-val" id="infoUnidade">-</span>
         </div>
+      </div>
 
-        <h2 class="section-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-          </svg>
-          Médico Solicitante / Emissor
-        </h2>
-        <div class="kv-list">
-          <div class="kv-row">
-            <span class="kv-label">Nome do Médico</span>
-            <span class="kv-val" id="emissorNome">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Registro Profissional (CRM)</span>
-            <span class="kv-val" id="emissorCrm">-</span>
-          </div>
-        </div>
-
-        <h2 class="section-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-          </svg>
-          Procedimentos
-        </h2>
-        <div id="procedimentosLista"></div>
-
-        <div id="totalAuditBox" class="audit-total-box" style="display: none;">
-          <span class="audit-total-label">Custo Total</span>
-          <span class="audit-total-value" id="totalAuditValor">R$ 0,00</span>
-        </div>
-
-        <h2 class="section-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          Informações Gerais
-        </h2>
-        <div class="kv-list">
-          <div class="kv-row">
-            <span class="kv-label">Data de Registro</span>
-            <span class="kv-val" id="infoData">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Unidade Gestora de Origem (UG)</span>
-            <span class="kv-val" id="infoUnidade">-</span>
-          </div>
-        </div>
-
-        <div id="importacaoGuiaSection" class="no-print">
+      <div id="importacaoGuiaSection" class="no-print">
         <h2 class="section-title no-print">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -195,7 +503,7 @@
           </svg>
           Importação da Guia Emitida (PDF)
         </h2>
-        <p class="card-subtitle no-print" style="margin-bottom: 8px;">
+        <p class="card-subtitle no-print" style="margin-bottom: 10px;">
           Depois de emitir a guia no sistema externo do governo, importe o PDF aqui para registrar o número e iniciar a contagem do prazo de validade.
         </p>
         <div class="file-upload-box no-print">
@@ -206,138 +514,138 @@
         </button>
         <div id="importGuiaResultado" class="log-box no-print" hidden></div>
 
-        <div id="corrigirNumeroBox" class="no-print" hidden style="margin-top: 12px;">
+        <div id="corrigirNumeroBox" class="correcao-box no-print" hidden>
           <label for="numeroGuiaManual">Corrigir número da guia manualmente</label>
           <input type="text" id="numeroGuiaManual" placeholder="Digite o número correto">
-          <button type="button" id="corrigirNumeroBtn" class="btn btn-secondary">
+          <button type="button" id="corrigirNumeroBtn" class="btn btn-secondary" style="margin-top: 10px;">
             Salvar Número Corrigido
           </button>
         </div>
-        </div>
-
       </div>
+
     </div>
-  </main>
+  </div>
+</main>
 
-  <script src="js/fusex-auth.js"></script>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+<script src="js/fusex-auth.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
 
-    // Permite que o beneficiário consulte a pré-guia pelo link com token mesmo sem estar logado
-    const acessoPublicoPorToken = !FusexAuth.isLoggedIn() && !!token;
-    if (FusexAuth.isLoggedIn() || !token) {
-      FusexAuth.require(['ROLE_EG', 'ROLE_MEDICO', 'ROLE_ADMIN']);
+  // Permite que o beneficiário consulte a pré-guia pelo link com token mesmo sem estar logado
+  const acessoPublicoPorToken = !FusexAuth.isLoggedIn() && !!token;
+  if (FusexAuth.isLoggedIn() || !token) {
+    FusexAuth.require(['ROLE_EG', 'ROLE_MEDICO', 'ROLE_ADMIN']);
+  }
+  document.getElementById('usuarioLogado').textContent = FusexAuth.user() || '';
+  if (FusexAuth.hasAny(['ROLE_MEDICO', 'ROLE_ADMIN'])) document.getElementById('linkPainelMedico').hidden = false;
+  if (!FusexAuth.hasAny(['ROLE_EG', 'ROLE_ADMIN'])) {
+    const importSec = document.getElementById('importacaoGuiaSection');
+    if (importSec) importSec.hidden = true;
+  }
+
+  const loginSection = document.getElementById('loginSection');
+  const tokenInput = document.getElementById('tokenInput');
+  const loading = document.getElementById('loading');
+  const errorMsg = document.getElementById('errorMsg');
+  const resultado = document.getElementById('resultado');
+  const btnImprimir = document.getElementById('btnImprimir');
+  const totalAuditBox = document.getElementById('totalAuditBox');
+  const totalAuditValor = document.getElementById('totalAuditValor');
+
+  function formatarCpf(v) {
+    v = (v || '').replace(/\D/g, '').slice(0, 11);
+    if (v.length === 11) {
+      return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
     }
-    document.getElementById('usuarioLogado').textContent = FusexAuth.user() || '';
-    if (FusexAuth.hasAny(['ROLE_MEDICO', 'ROLE_ADMIN'])) document.getElementById('linkPainelMedico').hidden = false;
-    if (!FusexAuth.hasAny(['ROLE_EG', 'ROLE_ADMIN'])) {
-      const importSec = document.getElementById('importacaoGuiaSection');
-      if (importSec) importSec.hidden = true;
+    return v;
+  }
+
+  function preencher(id, valor, rotuloPendente) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (valor === null || valor === undefined || valor === '') {
+      el.textContent = rotuloPendente || 'Não informado';
+      el.classList.add('pendente');
+    } else {
+      el.textContent = valor;
+      el.classList.remove('pendente');
     }
+  }
 
-    const loginSection = document.getElementById('loginSection');
-    const tokenInput = document.getElementById('tokenInput');
-    const loading = document.getElementById('loading');
-    const errorMsg = document.getElementById('errorMsg');
-    const resultado = document.getElementById('resultado');
-    const btnImprimir = document.getElementById('btnImprimir');
-    const totalAuditBox = document.getElementById('totalAuditBox');
-    const totalAuditValor = document.getElementById('totalAuditValor');
+  async function consultar() {
+    errorMsg.hidden = true;
+    resultado.hidden = true;
+    btnImprimir.style.display = 'none';
 
-    function formatarCpf(v) {
-      v = (v || '').replace(/\D/g, '').slice(0, 11);
-      if (v.length === 11) {
-        return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+    if (!token) {
+      const digitado = tokenInput.value.trim();
+      const m = digitado.match(/[?&]token=([^&#\s]+)/);
+      const codigo = m ? decodeURIComponent(m[1]) : digitado;
+      if (!codigo) {
+        errorMsg.textContent = 'Informe o código ou o link da solicitação.';
+        errorMsg.hidden = false;
+        return;
       }
-      return v;
+      window.location.search = '?token=' + encodeURIComponent(codigo);
+      return;
     }
 
-    function preencher(id, valor, rotuloPendente) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (valor === null || valor === undefined || valor === '') {
-        el.textContent = rotuloPendente || 'Não informado';
-        el.classList.add('pendente');
-      } else {
-        el.textContent = valor;
-        el.classList.remove('pendente');
-      }
-    }
+    const authHeader = FusexAuth.header();
+    const endpointPreGuia = FusexAuth.isLoggedIn()
+            ? `/api/solicitacoes/${encodeURIComponent(token)}/pre-guia`
+            : `/api/solicitacoes/publico/${encodeURIComponent(token)}/pre-guia`;
+    const fetchOptions = FusexAuth.isLoggedIn()
+            ? { headers: { 'Authorization': authHeader } }
+            : {};
 
-    async function consultar() {
-      errorMsg.hidden = true;
-      resultado.hidden = true;
-      btnImprimir.style.display = 'none';
+    loading.hidden = false;
 
-      if (!token) {
-        const digitado = tokenInput.value.trim();
-        const m = digitado.match(/[?&]token=([^&#\s]+)/);
-        const codigo = m ? decodeURIComponent(m[1]) : digitado;
-        if (!codigo) {
-          errorMsg.textContent = 'Informe o código ou o link da solicitação.';
-          errorMsg.hidden = false;
-          return;
-        }
-        window.location.search = '?token=' + encodeURIComponent(codigo);
+    try {
+      const res = await fetch(endpointPreGuia, fetchOptions);
+      const data = await res.json();
+      loading.hidden = true;
+
+      if (!res.ok) {
+        errorMsg.textContent = data.error || 'Não foi possível consultar a pré-guia. Verifique suas credenciais.';
+        errorMsg.hidden = false;
+        loginSection.hidden = false;
         return;
       }
 
-      const authHeader = FusexAuth.header();
-      const endpointPreGuia = FusexAuth.isLoggedIn()
-        ? `/api/solicitacoes/${encodeURIComponent(token)}/pre-guia`
-        : `/api/solicitacoes/publico/${encodeURIComponent(token)}/pre-guia`;
-      const fetchOptions = FusexAuth.isLoggedIn()
-        ? { headers: { 'Authorization': authHeader } }
-        : {};
+      const ben = data.beneficiario || {};
+      preencher('benNome', ben.nome);
+      preencher('benIdade', ben.idade ? `${ben.idade} anos` : null);
+      const cpfFormatado = formatarCpf(ben.cpf || ben.cpfPrec);
+      preencher('benCpf', cpfFormatado);
+      preencher('benPrec', ben.prec);
+      preencher('benEmail', ben.email);
+      preencher('benTelefone', ben.telefone);
 
-      loading.hidden = false;
+      const ocs = data.ocs || {};
+      preencher('ocsNome', ocs.ocsNome);
+      preencher('ocsCnpj', ocs.ocsInscricaoFederal, 'Não cadastrado');
+      const endereco = [ocs.ocsEndereco, ocs.ocsEnderecoNumero, ocs.ocsEnderecoBairro, ocs.ocsEnderecoCidade, ocs.ocsEnderecoUf]
+              .filter(Boolean).join(', ');
+      preencher('ocsEndereco', endereco, 'Não cadastrado');
+      preencher('ocsContato', ocs.ocsContatoNome, 'Não cadastrado');
+      preencher('ocsTelefone', ocs.ocsContatoTelefone, 'Não cadastrado');
 
-      try {
-        const res = await fetch(endpointPreGuia, fetchOptions);
-        const data = await res.json();
-        loading.hidden = true;
+      const emissor = data.medicoEmissor || {};
+      preencher('emissorNome', emissor.nome);
+      preencher('emissorCrm', emissor.crm);
 
-        if (!res.ok) {
-          errorMsg.textContent = data.error || 'Não foi possível consultar a pré-guia. Verifique suas credenciais.';
-          errorMsg.hidden = false;
-          loginSection.hidden = false;
-          return;
-        }
+      const procDiv = document.getElementById('procedimentosLista');
+      procDiv.innerHTML = '';
 
-        const ben = data.beneficiario || {};
-        preencher('benNome', ben.nome);
-        preencher('benIdade', ben.idade ? `${ben.idade} anos` : null);
-        const cpfFormatado = formatarCpf(ben.cpf || ben.cpfPrec);
-        preencher('benCpf', cpfFormatado);
-        preencher('benPrec', ben.prec);
-        preencher('benEmail', ben.email);
-        preencher('benTelefone', ben.telefone);
+      let total = 0;
+      let temValores = false;
 
-        const ocs = data.ocs || {};
-        preencher('ocsNome', ocs.ocsNome);
-        preencher('ocsCnpj', ocs.ocsInscricaoFederal, 'Não cadastrado');
-        const endereco = [ocs.ocsEndereco, ocs.ocsEnderecoNumero, ocs.ocsEnderecoBairro, ocs.ocsEnderecoCidade, ocs.ocsEnderecoUf]
-          .filter(Boolean).join(', ');
-        preencher('ocsEndereco', endereco, 'Não cadastrado');
-        preencher('ocsContato', ocs.ocsContatoNome, 'Não cadastrado');
-        preencher('ocsTelefone', ocs.ocsContatoTelefone, 'Não cadastrado');
-
-        const emissor = data.medicoEmissor || {};
-        preencher('emissorNome', emissor.nome);
-        preencher('emissorCrm', emissor.crm);
-
-        const procDiv = document.getElementById('procedimentosLista');
-        procDiv.innerHTML = '';
-
-        let total = 0;
-        let temValores = false;
-
-        const procedimentos = data.procedimentos || [];
-        if (procedimentos.length > 0) {
-          const table = document.createElement('table');
-          table.className = 'data-table';
-          table.innerHTML = `
+      const procedimentos = data.procedimentos || [];
+      if (procedimentos.length > 0) {
+        const table = document.createElement('table');
+        table.className = 'data-table';
+        table.innerHTML = `
             <thead>
               <tr>
                 <th style="width: 140px;">Código DGP</th>
@@ -348,163 +656,163 @@
             <tbody></tbody>
           `;
 
-          const tbody = table.querySelector('tbody');
-          procedimentos.forEach(p => {
-            const tr = document.createElement('tr');
-            let precoTexto = 'A consultar';
-            if (p.valor !== null && p.valor !== undefined) {
-              const numVal = Number(p.valor);
-              precoTexto = numVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-              total += numVal;
-              temValores = true;
-            }
+        const tbody = table.querySelector('tbody');
+        procedimentos.forEach(p => {
+          const tr = document.createElement('tr');
+          let precoTexto = 'A consultar';
+          if (p.valor !== null && p.valor !== undefined) {
+            const numVal = Number(p.valor);
+            precoTexto = numVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            total += numVal;
+            temValores = true;
+          }
 
-            tr.innerHTML = `
+          tr.innerHTML = `
               <td><strong>${p.procedimentoCodigoDgp}</strong></td>
               <td>${p.procedimentoDescricao}</td>
               <td style="text-align: right; font-weight: 600; color: var(--color-primary);">${precoTexto}</td>
             `;
-            tbody.appendChild(tr);
-          });
+          tbody.appendChild(tr);
+        });
 
-          procDiv.appendChild(table);
+        procDiv.appendChild(table);
 
-          if (temValores) {
-            totalAuditBox.style.display = 'flex';
-            totalAuditValor.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-          } else {
-            totalAuditBox.style.display = 'none';
-          }
+        if (temValores) {
+          totalAuditBox.style.display = 'flex';
+          totalAuditValor.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         } else {
-          procDiv.innerHTML = '<div style="color: var(--text-muted); font-size: 0.88em; padding: 8px 0;">Nenhum procedimento associado a esta solicitação.</div>';
           totalAuditBox.style.display = 'none';
         }
-
-        const dataFormatada = (data.informacoesGerais && data.informacoesGerais.data)
-          ? new Date(data.informacoesGerais.data).toLocaleString('pt-BR')
-          : null;
-        preencher('infoData', dataFormatada);
-        preencher('infoUnidade', data.informacoesGerais && data.informacoesGerais.unidadeGestoraOrigem);
-
-        resultado.hidden = false;
-        btnImprimir.style.display = 'inline-flex';
-        loginSection.hidden = true;
-      } catch (err) {
-        loading.hidden = true;
-        errorMsg.textContent = 'Erro ao consultar a pré-guia no servidor. Tente novamente.';
-        errorMsg.hidden = false;
-        loginSection.hidden = false;
+      } else {
+        procDiv.innerHTML = '<div style="color: var(--text-muted); font-size: 0.88em; padding: 8px 0;">Nenhum procedimento associado a esta solicitação.</div>';
+        totalAuditBox.style.display = 'none';
       }
+
+      const dataFormatada = (data.informacoesGerais && data.informacoesGerais.data)
+              ? new Date(data.informacoesGerais.data).toLocaleString('pt-BR')
+              : null;
+      preencher('infoData', dataFormatada);
+      preencher('infoUnidade', data.informacoesGerais && data.informacoesGerais.unidadeGestoraOrigem);
+
+      resultado.hidden = false;
+      btnImprimir.style.display = 'inline-flex';
+      loginSection.hidden = true;
+    } catch (err) {
+      loading.hidden = true;
+      errorMsg.textContent = 'Erro ao consultar a pré-guia no servidor. Tente novamente.';
+      errorMsg.hidden = false;
+      loginSection.hidden = false;
+    }
+  }
+
+  const guiaPdfInput = document.getElementById('guiaPdfInput');
+  const importarGuiaBtn = document.getElementById('importarGuiaBtn');
+  const importGuiaResultado = document.getElementById('importGuiaResultado');
+  const corrigirNumeroBox = document.getElementById('corrigirNumeroBox');
+  const numeroGuiaManual = document.getElementById('numeroGuiaManual');
+  const corrigirNumeroBtn = document.getElementById('corrigirNumeroBtn');
+
+  function authHeaderAtual() {
+    return FusexAuth.header();
+  }
+
+  async function importarGuiaPdf() {
+    importGuiaResultado.hidden = true;
+    corrigirNumeroBox.hidden = true;
+
+    const arquivo = guiaPdfInput.files[0];
+    if (!arquivo) {
+      importGuiaResultado.className = 'log-box erro';
+      importGuiaResultado.textContent = 'Selecione o PDF da guia emitida.';
+      importGuiaResultado.hidden = false;
+      return;
     }
 
-    const guiaPdfInput = document.getElementById('guiaPdfInput');
-    const importarGuiaBtn = document.getElementById('importarGuiaBtn');
-    const importGuiaResultado = document.getElementById('importGuiaResultado');
-    const corrigirNumeroBox = document.getElementById('corrigirNumeroBox');
-    const numeroGuiaManual = document.getElementById('numeroGuiaManual');
-    const corrigirNumeroBtn = document.getElementById('corrigirNumeroBtn');
-
-    function authHeaderAtual() {
-      return FusexAuth.header();
+    const auth = authHeaderAtual();
+    if (!auth) {
+      importGuiaResultado.className = 'log-box erro';
+      importGuiaResultado.textContent = 'Sessão expirada. Faça login novamente.';
+      importGuiaResultado.hidden = false;
+      return;
     }
 
-    async function importarGuiaPdf() {
-      importGuiaResultado.hidden = true;
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+
+    try {
+      const res = await fetch(`/api/solicitacoes/${token}/guia-pdf`, {
+        method: 'POST',
+        headers: { 'Authorization': auth },
+        body: formData
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        importGuiaResultado.className = 'log-box erro';
+        importGuiaResultado.textContent = data.error || 'Não foi possível importar a guia.';
+        importGuiaResultado.hidden = false;
+        return;
+      }
+
+      importGuiaResultado.className = 'log-box ' + (data.numeroIdentificado ? 'sucesso' : 'erro');
+      importGuiaResultado.textContent = data.mensagem + (data.numeroGuia ? ` (número: ${data.numeroGuia})` : '');
+      importGuiaResultado.hidden = false;
+
+      if (!data.numeroIdentificado) {
+        corrigirNumeroBox.hidden = false;
+      }
+    } catch (err) {
+      importGuiaResultado.className = 'log-box erro';
+      importGuiaResultado.textContent = 'Erro ao importar a guia. Tente novamente.';
+      importGuiaResultado.hidden = false;
+    }
+  }
+
+  async function corrigirNumeroGuia() {
+    const numero = numeroGuiaManual.value.trim();
+    if (!numero) return;
+
+    const auth = authHeaderAtual();
+    if (!auth) return;
+
+    try {
+      const res = await fetch(`/api/solicitacoes/${token}/guia-pdf/numero`, {
+        method: 'PATCH',
+        headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numeroGuia: numero })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        importGuiaResultado.className = 'log-box erro';
+        importGuiaResultado.textContent = data.error || 'Não foi possível corrigir o número.';
+        importGuiaResultado.hidden = false;
+        return;
+      }
+
+      importGuiaResultado.className = 'log-box sucesso';
+      importGuiaResultado.textContent = `${data.mensagem} (número: ${data.numeroGuia})`;
+      importGuiaResultado.hidden = false;
       corrigirNumeroBox.hidden = true;
-
-      const arquivo = guiaPdfInput.files[0];
-      if (!arquivo) {
-        importGuiaResultado.className = 'log-box erro';
-        importGuiaResultado.textContent = 'Selecione o PDF da guia emitida.';
-        importGuiaResultado.hidden = false;
-        return;
-      }
-
-      const auth = authHeaderAtual();
-      if (!auth) {
-        importGuiaResultado.className = 'log-box erro';
-        importGuiaResultado.textContent = 'Sessão expirada. Faça login novamente.';
-        importGuiaResultado.hidden = false;
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('arquivo', arquivo);
-
-      try {
-        const res = await fetch(`/api/solicitacoes/${token}/guia-pdf`, {
-          method: 'POST',
-          headers: { 'Authorization': auth },
-          body: formData
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          importGuiaResultado.className = 'log-box erro';
-          importGuiaResultado.textContent = data.error || 'Não foi possível importar a guia.';
-          importGuiaResultado.hidden = false;
-          return;
-        }
-
-        importGuiaResultado.className = 'log-box ' + (data.numeroIdentificado ? 'sucesso' : 'erro');
-        importGuiaResultado.textContent = data.mensagem + (data.numeroGuia ? ` (número: ${data.numeroGuia})` : '');
-        importGuiaResultado.hidden = false;
-
-        if (!data.numeroIdentificado) {
-          corrigirNumeroBox.hidden = false;
-        }
-      } catch (err) {
-        importGuiaResultado.className = 'log-box erro';
-        importGuiaResultado.textContent = 'Erro ao importar a guia. Tente novamente.';
-        importGuiaResultado.hidden = false;
-      }
+    } catch (err) {
+      importGuiaResultado.className = 'log-box erro';
+      importGuiaResultado.textContent = 'Erro ao corrigir o número. Tente novamente.';
+      importGuiaResultado.hidden = false;
     }
+  }
 
-    async function corrigirNumeroGuia() {
-      const numero = numeroGuiaManual.value.trim();
-      if (!numero) return;
+  importarGuiaBtn.addEventListener('click', importarGuiaPdf);
+  corrigirNumeroBtn.addEventListener('click', corrigirNumeroGuia);
 
-      const auth = authHeaderAtual();
-      if (!auth) return;
+  document.getElementById('consultarBtn').addEventListener('click', consultar);
 
-      try {
-        const res = await fetch(`/api/solicitacoes/${token}/guia-pdf/numero`, {
-          method: 'PATCH',
-          headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ numeroGuia: numero })
-        });
-        const data = await res.json();
+  tokenInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') consultar();
+  });
 
-        if (!res.ok) {
-          importGuiaResultado.className = 'log-box erro';
-          importGuiaResultado.textContent = data.error || 'Não foi possível corrigir o número.';
-          importGuiaResultado.hidden = false;
-          return;
-        }
-
-        importGuiaResultado.className = 'log-box sucesso';
-        importGuiaResultado.textContent = `${data.mensagem} (número: ${data.numeroGuia})`;
-        importGuiaResultado.hidden = false;
-        corrigirNumeroBox.hidden = true;
-      } catch (err) {
-        importGuiaResultado.className = 'log-box erro';
-        importGuiaResultado.textContent = 'Erro ao corrigir o número. Tente novamente.';
-        importGuiaResultado.hidden = false;
-      }
-    }
-
-    importarGuiaBtn.addEventListener('click', importarGuiaPdf);
-    corrigirNumeroBtn.addEventListener('click', corrigirNumeroGuia);
-
-    document.getElementById('consultarBtn').addEventListener('click', consultar);
-
-    tokenInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') consultar();
-    });
-
-    if (token) {
-      consultar();
-    }
-  </script>
+  if (token) {
+    consultar();
+  }
+</script>
 </body>
 </html>
