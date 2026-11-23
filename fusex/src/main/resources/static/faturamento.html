@@ -476,11 +476,17 @@
         return;
       }
       arquivoPrevia = { loteId, tipo, nome: data.nome };
-      $('avisoPrev').hidden = data.linhas.length < 500;
+      const linhas = Array.isArray(data.linhas) ? data.linhas : [];
+      $('avisoPrev').hidden = linhas.length < 500;
       $('pT').textContent = data.nome;
-      const cab = data.linhas.findIndex(l => l.filter(c => c).length >= 3);
-      const colunas = Math.max(...data.linhas.map(l => l.length));
-      $('tbPrev').innerHTML = data.linhas.map((linha, i) => {
+      if (!linhas.length) {
+        $('tbPrev').innerHTML = '<tr><td>Planilha sem registros para exibição.</td></tr>';
+        $('mPrev').classList.add('on');
+        return;
+      }
+      const cab = linhas.findIndex(l => l.filter(c => c).length >= 3);
+      const colunas = Math.max(1, ...linhas.map(l => l.length));
+      $('tbPrev').innerHTML = linhas.map((linha, i) => {
         const preenchidas = linha.filter(c => c).length;
         if (!preenchidas) return '';
         if (preenchidas === 1 && i !== cab) return `<tr><td colspan="${colunas}"><b>${esc(linha.find(c => c))}</b></td></tr>`;
@@ -510,7 +516,17 @@
         return;
       }
       const url = URL.createObjectURL(await res.blob());
-      if (aba) { aba.location = url; } else { window.location = url; }
+      if (aba) {
+        aba.location = url;
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nome || `${tipo}_${loteId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
       if (aba) aba.close();
       $('modalErro').textContent = 'Erro ao abrir o arquivo. Tente novamente.';
@@ -555,6 +571,7 @@
       return;
     }
 
+    $('confirmarBtn').disabled = true;
     try {
       const res = await fetch(`/api/faturamento/fechamentos/${fechamentoAtual.id}/confirmar`, {
         method: 'POST',
@@ -575,6 +592,8 @@
     } catch (err) {
       $('modalErro').textContent = 'Erro ao confirmar o faturamento. Tente novamente.';
       $('modalErro').hidden = false;
+    } finally {
+      $('confirmarBtn').disabled = false;
     }
   }
 
@@ -582,7 +601,17 @@
   $('confirmarBtn').addEventListener('click', confirmar);
   $('baixarPrevBtn').addEventListener('click', baixarArquivo);
   $('fecharPrevBtn').addEventListener('click', () => $('mPrev').classList.remove('on'));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('mPrev').classList.remove('on'); fecharConferencia(); } });
+  $('mPrev').addEventListener('click', e => { if (e.target === $('mPrev')) $('mPrev').classList.remove('on'); });
+  $('mFat').addEventListener('click', e => { if (e.target === $('mFat') && !$('confirmarBtn').disabled) fecharConferencia(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if ($('mPrev').classList.contains('on')) {
+        $('mPrev').classList.remove('on');
+      } else {
+        fecharConferencia();
+      }
+    }
+  });
 
   $('whoRole').textContent = 'Faturamento';
   $('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');

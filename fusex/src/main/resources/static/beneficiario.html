@@ -359,14 +359,14 @@
         </div>
         <div>
           <label for="prec">PREC *</label>
-          <input type="text" id="prec" required placeholder="Ex: 99887766" maxlength="20">
+          <input type="text" id="prec" required placeholder="Ex: 99887766" maxlength="30">
         </div>
       </div>
 
       <div class="row2">
         <div>
           <label for="idade">Idade *</label>
-          <input type="number" id="idade" required min="0" max="130" placeholder="Ex: 35">
+          <input type="number" id="idade" required min="1" max="130" placeholder="Ex: 35">
         </div>
         <div>
           <label for="telefone">Telefone de Contato (WhatsApp) *</label>
@@ -454,12 +454,19 @@
   document.getElementById('btnConsultarGuia').addEventListener('click', irParaPreGuia);
   document.getElementById('btnJaPreenchida').addEventListener('click', irParaPreGuia);
 
+  function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
   async function carregarOcsDisponiveis(tokenSolicitacao) {
     clinicaSelect.disabled = true;
     clinicaSelect.innerHTML = '<option value="">Carregando clínicas credenciadas que cobrem os procedimentos...</option>';
 
     try {
-      const res = await fetch(`/api/solicitacoes/publico/${tokenSolicitacao}/ocs-disponiveis`);
+      const res = await fetch(`/api/solicitacoes/publico/${encodeURIComponent(tokenSolicitacao)}/ocs-disponiveis`);
+      if (!res.ok) throw new Error('Falha ao listar OCS');
       const data = await res.json();
 
       if (!data || data.length === 0) {
@@ -513,8 +520,8 @@
         data.procedimentos.forEach(p => {
           const item = document.createElement('div');
           item.className = 'proc-card-item';
-          item.innerHTML = `<div style="font-weight: 600; font-size: 0.9em; color: var(--blue);">${p.descricao}</div>` +
-                  `<div style="font-size: 0.78em; color: var(--mut); margin-top: 2px;">Código DGP/TUSS: <strong>${p.codigoDgp}</strong></div>`;
+          item.innerHTML = `<div style="font-weight: 600; font-size: 0.9em; color: var(--blue);">${esc(p.descricao)}</div>` +
+                  `<div style="font-size: 0.78em; color: var(--mut); margin-top: 2px;">Código DGP/TUSS: <strong>${esc(p.codigoDgp)}</strong></div>`;
           procLista.appendChild(item);
         });
       } else {
@@ -555,6 +562,12 @@
 
     const cpfLimpo = document.getElementById('cpf').value.replace(/\D/g, '');
     const precLimpo = document.getElementById('prec').value.trim();
+    const ocsIdVal = Number(document.getElementById('clinicaLaboratorio').value);
+
+    if (!ocsIdVal || ocsIdVal <= 0) {
+      alert('Selecione uma clínica / laboratório credenciado disponível.');
+      return;
+    }
 
     const payload = {
       cpf: cpfLimpo,
@@ -562,17 +575,23 @@
       cpfPrec: cpfLimpo,
       idade: Number(document.getElementById('idade').value),
       telefone: document.getElementById('telefone').value.trim(),
-      ocsId: Number(document.getElementById('clinicaLaboratorio').value),
+      ocsId: ocsIdVal,
       aceitoTermos: document.getElementById('aceitoTermos').checked
     };
 
+    const submitBtn = triagemForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+    }
+
     try {
-      const res = await fetch(`/api/solicitacoes/publico/${token}/triagem`, {
+      const res = await fetch(`/api/solicitacoes/publico/${encodeURIComponent(token)}/triagem`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         const msg = data.campos
@@ -586,6 +605,11 @@
       document.getElementById('resultMensagem').textContent = data.mensagem || 'Triagem registrada com sucesso!';
     } catch (err) {
       alert(err.message);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirmar Solicitação';
+      }
     }
   });
 

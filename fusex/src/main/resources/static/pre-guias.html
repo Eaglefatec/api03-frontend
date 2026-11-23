@@ -384,9 +384,12 @@
       ...opcoes,
       headers: { 'Authorization': 'Basic ' + auth, ...(opcoes.headers || {}) }
     });
-    if (resposta.status === 401 || resposta.status === 403) {
+    if (resposta.status === 401) {
       sair();
-      throw new Error('Sessão expirada ou sem permissão.');
+      throw new Error('Sessão expirada.');
+    }
+    if (resposta.status === 403) {
+      throw new Error('Sem permissão para executar esta operação.');
     }
     if (!resposta.ok) {
       let mensagem = 'Falha na comunicação com o servidor (' + resposta.status + ').';
@@ -437,7 +440,7 @@
   function montarFiltroOcs() {
     const select = $('filtroOcs');
     const atual = select.value;
-    const nomes = [...new Set([...estado.pendentes, ...estado.emitidas].map(p => p.ocsNome))].sort();
+    const nomes = [...new Set([...estado.pendentes, ...estado.emitidas].map(p => p.ocsNome).filter(Boolean))].sort();
     select.innerHTML = '<option value="">Todas as OCS</option>' + nomes.map(n => `<option>${esc(n)}</option>`).join('');
     select.value = nomes.includes(atual) ? atual : '';
   }
@@ -609,8 +612,14 @@
       if (janela) {
         janela.location.href = url;
       } else {
-        window.open(url, '_blank');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `encaminhamento_${token}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (e) {
       if (janela) janela.close();
       toast(e.message, true);
@@ -673,8 +682,15 @@
   $('sairBtn').addEventListener('click', sair);
   $('fecharFolhaBtn').addEventListener('click', fecharPreGuia);
   $('preGuiaOv').addEventListener('click', e => { if (e.target === $('preGuiaOv')) fecharPreGuia(); });
+  $('emitirOv').addEventListener('click', e => { if (e.target === $('emitirOv') && !$('confirmarEmissaoBtn').disabled) fecharEmissao(); });
   $('confirmarEmissaoBtn').addEventListener('click', confirmarEmissao);
   $('cancelarEmissaoBtn').addEventListener('click', fecharEmissao);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if ($('emitirOv').classList.contains('on') && !$('confirmarEmissaoBtn').disabled) fecharEmissao();
+      else if ($('preGuiaOv').classList.contains('on')) fecharPreGuia();
+    }
+  });
 
   if (ACESSO_OK) {
     carregar();

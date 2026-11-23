@@ -323,8 +323,17 @@
   }
 
   function atualizarSelecaoInfo() {
+    const todas = document.querySelectorAll('#tbSemLote .sel').length;
     const marcadas = document.querySelectorAll('#tbSemLote .sel:checked').length;
     $('selecaoInfo').textContent = marcadas + (marcadas === 1 ? ' guia selecionada' : ' guias selecionadas');
+    $('selecionarTodas').checked = todas > 0 && marcadas === todas;
+    $('selecionarTodas').indeterminate = marcadas > 0 && marcadas < todas;
+  }
+
+  function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
   }
 
   $('selecionarTodas').addEventListener('change', () => {
@@ -343,10 +352,10 @@
 
     $('tbSemLote').innerHTML = semLote.length
             ? semLote.map(g => `<tr>
-            <td><input type="checkbox" class="sel" data-id="${g.id}" style="width: auto;"></td>
-            <td>${g.numeroGuia}</td>
-            <td>${g.beneficiarioPrecCp}</td>
-            <td>${new Date(g.dataAtendimento + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+            <td><input type="checkbox" class="sel" data-id="${esc(g.id)}" style="width: auto;"></td>
+            <td>${esc(g.numeroGuia)}</td>
+            <td>${esc(g.beneficiarioPrecCp)}</td>
+            <td>${g.dataAtendimento ? new Date(g.dataAtendimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
           </tr>`).join('')
             : '<tr><td colspan="4">Todas as guias já foram relacionadas. Anexe novas guias para continuar.</td></tr>';
 
@@ -361,12 +370,12 @@
 
     $('tbLotes').innerHTML = data.length
             ? data.map(l => `<tr>
-            <td>Lote ${l.numeroLote}</td>
-            <td>${formatarCompetencia(l.competenciaAno, l.competenciaMes)}</td>
-            <td>${new Date(l.dataGeracao).toLocaleString('pt-BR')}</td>
-            <td>${l.quantidadeGuias}</td>
-            <td>${l.faturaNomeArquivo}</td>
-            <td>${l.espelhoNomeArquivo}</td>
+            <td>Lote ${esc(l.numeroLote)}</td>
+            <td>${esc(formatarCompetencia(l.competenciaAno, l.competenciaMes))}</td>
+            <td>${l.dataGeracao ? new Date(l.dataGeracao).toLocaleString('pt-BR') : '—'}</td>
+            <td>${esc(l.quantidadeGuias)}</td>
+            <td>${esc(l.faturaNomeArquivo)}</td>
+            <td>${esc(l.espelhoNomeArquivo)}</td>
           </tr>`).join('')
             : '<tr><td colspan="6">Nenhum lote gerado ainda.</td></tr>';
   }
@@ -413,6 +422,7 @@
     formData.append('fatura', fatura);
     formData.append('espelho', espelho);
 
+    $('gerarLoteBtn').disabled = true;
     try {
       const res = await fetch('/api/lotes', {
         method: 'POST',
@@ -433,6 +443,8 @@
       toast('Lote ' + data.numeroLote + ' gerado com ' + data.quantidadeGuias + ' guias.');
     } catch (err) {
       mostrarErroGlobal('Erro ao gerar o lote. Tente novamente.');
+    } finally {
+      $('gerarLoteBtn').disabled = false;
     }
   }
 

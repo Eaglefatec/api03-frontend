@@ -237,6 +237,7 @@
         .cmp .a { border-color: var(--blue); }
         .cmp .b { border-color: var(--red); }
         .diff { padding: 10px 12px; border-radius: 8px; background: rgba(220, 38, 38, .1); color: #b91c1c; margin-bottom: 14px; font-weight: 600; }
+        .diff.t-ok { background: rgba(22, 163, 74, .12); color: #15803d; }
 
         .ov {
             position: fixed; inset: 0; background: rgba(15, 23, 32, .45);
@@ -496,12 +497,40 @@
     let fechamentoAtualId = null;
     let dadosFechamentoCache = {};
     let guiaSelecionadaAtual = null;
+    let divergenciasPorId = {};
+
+    function esc(t) {
+        return String(t ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function fmtMoeda(v) {
+        const n = Number(v || 0);
+        return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function arredondarCentavos(v) {
+        return Math.round((Number(v || 0) + Number.EPSILON) * 100) / 100;
+    }
 
     document.addEventListener('click', function(event) {
-        if (event.target && event.target.id === 'btnFecharModalEspelho') {
-            const modal = document.getElementById('modalEspelho');
+        const modal = document.getElementById('modalEspelho');
+        if (event.target && (event.target.id === 'btnFecharModalEspelho' || event.target === modal)) {
             if (modal) {
                 modal.classList.remove('on');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('modalEspelho');
+            const drawer = document.getElementById('drawerDivergencia');
+            if (modal && modal.classList.contains('on')) {
+                modal.classList.remove('on');
+            } else if (drawer && drawer.classList.contains('on')) {
+                fecharDrawer();
             }
         }
     });
@@ -524,11 +553,15 @@
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum fechamento em auditoria encontrado.</td></tr>';
                 document.getElementById('lblTotalFechamentos').textContent = '0';
                 document.getElementById('lblTotalDivergencias').textContent = '0';
+                document.getElementById('lblGlosas').textContent = '0';
                 return;
             }
 
             document.getElementById('lblTotalFechamentos').textContent = data.length;
-            document.getElementById('lblTotalDivergencias').textContent = data.length;
+            const emAuditoria = data.filter(f => f.status !== 'CONCLUIDO' && f.status !== 'AUDITADO').length;
+            document.getElementById('lblTotalDivergencias').textContent = emAuditoria;
+            const totalGlosas = data.reduce((acc, f) => acc + Number(f.quantidadeGlosas || 0), 0);
+            document.getElementById('lblGlosas').textContent = totalGlosas;
 
             for (const f of data) {
                 dadosFechamentoCache[f.id] = f;
@@ -541,7 +574,7 @@
                         const guiasCruzadas = await cruzRes.json();
                         if (guiasCruzadas && Array.isArray(guiasCruzadas)) {
                             totalGuias = guiasCruzadas.length;
-                            qtdDivs = guiasCruzadas.filter(d => d.diferenca && d.diferenca !== 0).length;
+                            qtdDivs = guiasCruzadas.filter(d => Math.abs(arredondarCentavos(d.diferenca)) >= 0.01).length;
                         }
                     }
                 } catch (e) {
@@ -550,42 +583,42 @@
 
                 const tr = document.createElement('tr');
                 tr.className = 'click';
-                tr.setAttribute('onclick', `abrirLotes(${f.id})`);
+                tr.addEventListener('click', () => abrirLotes(f.id));
 
                 const dataEnvioFormatada = f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '-';
-                const nomeOcs = f.ocs && f.ocs.ocsNome ? f.ocs.ocsNome : (f.ocsNome || 'N/A');
+                const nomeOcs = (f.ocs && f.ocs.ocsNome) ? f.ocs.ocsNome : (f.ocsNome || 'N/A');
                 const competencia = `${f.competenciaMes}/${f.competenciaAno}`;
                 const lotesCount = f.quantidadeLotes !== undefined ? f.quantidadeLotes : 1;
 
                 let statusTexto = 'Aguardando lisura';
                 let tagClass = 't-bad';
-                if (f.status === 'CONCLUIDO' || f.status === 'AUDITADO' || f.status === 'LISURA_REALIZADA') {
+                if (f.status === 'CONCLUIDO' || f.status === 'AUDITADO') {
                     statusTexto = 'Lisura realizada';
                     tagClass = 't-ok';
                 }
 
                 tr.innerHTML = `
-                    <td><b>${nomeOcs}</b></td>
-                    <td>${competencia}</td>
-                    <td>${dataEnvioFormatada}</td>
-                    <td>${lotesCount} lote(s)</td>
-                    <td><b>${totalGuias}</b></td>
-                    <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${qtdDivs}</span></td>
-                    <td><span class="tag ${tagClass}">${statusTexto}</span></td>
+                    <td><b>${esc(nomeOcs)}</b></td>
+                    <td>${esc(competencia)}</td>
+                    <td>${esc(dataEnvioFormatada)}</td>
+                    <td>${esc(lotesCount)} lote(s)</td>
+                    <td><b>${esc(totalGuias)}</b></td>
+                    <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${esc(qtdDivs)}</span></td>
+                    <td><span class="tag ${tagClass}">${esc(statusTexto)}</span></td>
                 `;
                 tbody.appendChild(tr);
             }
         } catch (error) {
             console.error('Erro ao carregar fechamentos:', error);
             const tbody = document.getElementById('tbFechamentos');
-            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red); text-align:center;">${error.message || 'Erro ao comunicar com a API do banco de dados.'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red); text-align:center;">${esc(error.message || 'Erro ao comunicar com a API do banco de dados.')}</td></tr>`;
         }
     }
 
     async function abrirLotes(id) {
         fechamentoAtualId = id;
         const f = dadosFechamentoCache[id] || {};
-        const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
+        const nomeOcs = (f.ocs && f.ocs.ocsNome) ? f.ocs.ocsNome : 'OCS';
         const competenciaStr = `${f.competenciaMes || ''}/${f.competenciaAno || ''}`;
         const dataEnvioFormatada = f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '-';
 
@@ -597,38 +630,65 @@
 
         let totalGuias = f.quantidadeGuias || 0;
         let qtdDivs = 0;
+        let lotesReais = [];
 
         try {
-            const res = await fetchAutenticado(`/api/lisura/cruzamento/${id}`);
-            const divergencias = await res.json();
-            if (divergencias && Array.isArray(divergencias)) {
-                totalGuias = divergencias.length;
-                qtdDivs = divergencias.filter(d => d.diferenca && d.diferenca !== 0).length;
+            const [resCruz, resLotes] = await Promise.all([
+                fetchAutenticado(`/api/lisura/cruzamento/${id}`),
+                fetchAutenticado(`/api/lisura/fechamento/${id}/lotes`)
+            ]);
+            if (resCruz.ok) {
+                const divergencias = await resCruz.json();
+                if (divergencias && Array.isArray(divergencias)) {
+                    totalGuias = divergencias.length;
+                    qtdDivs = divergencias.filter(d => Math.abs(arredondarCentavos(d.diferenca)) >= 0.01).length;
+                }
+            }
+            if (resLotes.ok) {
+                const listaLotes = await resLotes.json();
+                if (Array.isArray(listaLotes)) {
+                    lotesReais = listaLotes;
+                }
             }
         } catch (err) {
-            console.error('Erro ao carregar totais do lote:', err);
+            console.error('Erro ao carregar lotes do fechamento:', err);
         }
 
-        const numeroFatura = f.fatura || f.numeroFatura || f.codigoFatura || `SF-${f.competenciaAno || '2026'}/${f.competenciaMes || '09'}118`;
         const statusFechamento = f.status || 'AGUARDANDO_LISURA';
-
         let statusTexto = 'Aguardando lisura';
         let tagClass = 't-bad';
-        if (statusFechamento === 'CONCLUIDO' || statusFechamento === 'AUDITADO' || statusFechamento === 'LISURA_REALIZADA') {
+        if (statusFechamento === 'CONCLUIDO' || statusFechamento === 'AUDITADO') {
             statusTexto = 'Lisura realizada';
             tagClass = 't-ok';
         }
 
         const tbody = document.getElementById('tbLotes');
-        tbody.innerHTML = `
-            <tr class="click" onclick="selecionarFechamento(${id})">
-                <td><b>Lote 01</b></td>
-                <td>${numeroFatura}</td>
-                <td>${totalGuias} guias</td>
-                <td><span class="tag t-bad">⚠ ${qtdDivs}</span></td>
-                <td><span class="tag ${tagClass}">${statusTexto}</span></td>
-            </tr>
-        `;
+        if (lotesReais.length > 0) {
+            tbody.innerHTML = lotesReais.map(l => {
+                const numLote = String(l.numeroLote || 1).padStart(2, '0');
+                const sisfat = l.numeroSisfat || 'Não informado';
+                const guiasLote = l.quantidadeGuias !== undefined ? l.quantidadeGuias : totalGuias;
+                return `
+                    <tr class="click" onclick="selecionarFechamento(${Number(id)})">
+                        <td><b>Lote ${esc(numLote)}</b></td>
+                        <td>${esc(sisfat)}</td>
+                        <td>${esc(guiasLote)} guia(s)</td>
+                        <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${esc(qtdDivs)}</span></td>
+                        <td><span class="tag ${tagClass}">${esc(statusTexto)}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr class="click" onclick="selecionarFechamento(${Number(id)})">
+                    <td><b>Lote 01</b></td>
+                    <td>—</td>
+                    <td>${esc(totalGuias)} guia(s)</td>
+                    <td><span class="tag ${qtdDivs > 0 ? 't-bad' : 't-ok'}">⚠ ${esc(qtdDivs)}</span></td>
+                    <td><span class="tag ${tagClass}">${esc(statusTexto)}</span></td>
+                </tr>
+            `;
+        }
     }
 
     async function selecionarFechamento(id) {
@@ -638,23 +698,24 @@
         document.getElementById('sec-auditoria').style.display = 'block';
 
         const f = dadosFechamentoCache[id] || {};
-        const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
+        const nomeOcs = (f.ocs && f.ocs.ocsNome) ? f.ocs.ocsNome : 'OCS';
         document.getElementById('subAuditoria').textContent = `Fechamento #${id} · ${nomeOcs} · Competência: ${f.competenciaMes}/${f.competenciaAno}`;
-        document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `baixarRelatorioPdf(${id})`);
+        document.getElementById('btnBaixarRelatorio').setAttribute('onclick', `baixarRelatorioPdf(${Number(id)})`);
 
         const tbody = document.getElementById('tbCruzamento');
-        tbody.innerHTML = '<tr><td colspan="7">A processar motor de cruzamento e itens do espelho...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7">Processando motor de cruzamento e itens do espelho...</td></tr>';
 
         try {
             const res = await fetchAutenticado(`/api/lisura/cruzamento/${id}`);
             const divergencias = await res.json();
 
             if (!divergencias || !divergencias.length) {
-                tbody.innerHTML = '<tr><td colspan="7">Nenhuma guia registada neste fechamento.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">Nenhuma guia registrada neste fechamento.</td></tr>';
                 document.getElementById('badgeDivergencias').textContent = `0 guias`;
                 return;
             }
 
+            divergenciasPorId = {};
             const divergenciasComSomaReal = await Promise.all(divergencias.map(async (d) => {
                 const idGuia = d.guiaId || d.id;
                 let valorFaturadoReal = Number(d.valorFaturado || 0);
@@ -665,7 +726,7 @@
                         const itens = await resItens.json();
                         if (itens && itens.length > 0) {
                             valorFaturadoReal = itens.reduce((acc, item) => {
-                                return acc + ((item.quantidade || 0) * (item.valorUnitario || 0));
+                                return acc + ((Number(item.quantidade) || 0) * (Number(item.valorUnitario) || 0));
                             }, 0);
                         }
                     }
@@ -673,35 +734,39 @@
                     console.warn(`Erro ao buscar itens da guia ${idGuia}, usando valor padrão.`);
                 }
 
-                const valContratado = Number(d.valorContratado || 0);
-                const diferenca = valContratado - valorFaturadoReal;
+                valorFaturadoReal = arredondarCentavos(valorFaturadoReal);
+                const valContratado = arredondarCentavos(d.valorContratado || 0);
+                // Mesma fórmula do backend e do PDF: Faturado (espelho) - Contratado (guia)
+                const diferenca = arredondarCentavos(valorFaturadoReal - valContratado);
 
-                return { ...d, valorFaturado: valorFaturadoReal, diferenca };
+                const itemFinal = { ...d, guiaId: idGuia, valorContratado: valContratado, valorFaturado: valorFaturadoReal, diferenca };
+                divergenciasPorId[idGuia] = itemFinal;
+                return itemFinal;
             }));
 
-            const qtdDivs = divergenciasComSomaReal.filter(d => d.diferenca !== 0).length;
+            const qtdDivs = divergenciasComSomaReal.filter(d => Math.abs(d.diferenca) >= 0.01).length;
             document.getElementById('badgeDivergencias').textContent = `${qtdDivs} guias divergentes`;
 
             tbody.innerHTML = divergenciasComSomaReal.map(d => {
-                const temDivergencia = d.diferenca !== 0;
+                const temDivergencia = Math.abs(d.diferenca) >= 0.01;
                 const statusTexto = temDivergencia ? 'Divergente' : 'Conferida';
                 const iconeStatus = temDivergencia ? '⚠' : '✓';
                 const nomeBeneficiario = d.beneficiarioNome || 'Não informado';
                 const precCp = d.beneficiarioPrecCp || '';
 
                 let corDiferenca = 'inherit';
-                if (d.diferenca > 0) corDiferenca = 'var(--green)';
-                else if (d.diferenca < 0) corDiferenca = 'var(--red)';
+                if (d.diferenca > 0) corDiferenca = 'var(--red)';
+                else if (d.diferenca < 0) corDiferenca = 'var(--green)';
 
                 return `
-                    <tr class="click ${temDivergencia ? 'div' : ''}" onclick='abrirDrawer(${JSON.stringify(d)})'>
+                    <tr class="click ${temDivergencia ? 'div' : ''}" onclick="abrirDrawerPorId(${Number(d.guiaId)})">
                       <td style="text-align:center; font-weight:bold; color:${temDivergencia ? 'var(--red)' : 'var(--green)'};">${iconeStatus}</td>
-                      <td><b>${d.numeroGuia}</b></td>
-                      <td>${nomeBeneficiario} ${precCp ? '· ' + precCp : ''}</td>
-                      <td class="num">R$ ${Number(d.valorContratado || 0).toFixed(2)}</td>
-                      <td class="num">R$ ${Number(d.valorFaturado || 0).toFixed(2)}</td>
+                      <td><b>${esc(d.numeroGuia)}</b></td>
+                      <td>${esc(nomeBeneficiario)} ${precCp ? '· ' + esc(precCp) : ''}</td>
+                      <td class="num">${fmtMoeda(d.valorContratado)}</td>
+                      <td class="num">${fmtMoeda(d.valorFaturado)}</td>
                       <td class="num" style="color: ${corDiferenca}; font-weight: ${temDivergencia ? '600' : 'normal'}">
-                        ${temDivergencia ? (d.diferenca > 0 ? '+R$ ' : '-R$ ') + Math.abs(d.diferenca).toFixed(2) : '—'}
+                        ${temDivergencia ? (d.diferenca > 0 ? '+' : '-') + fmtMoeda(Math.abs(d.diferenca)) : '—'}
                       </td>
                       <td style="text-align:center;"><span class="tag ${temDivergencia ? 't-bad' : 't-ok'}">${statusTexto}</span></td>
                     </tr>
@@ -711,6 +776,11 @@
             console.error('Erro ao executar cruzamento:', err);
             tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red);">Erro ao comunicar com o motor de cruzamento.</td></tr>';
         }
+    }
+
+    function abrirDrawerPorId(idGuia) {
+        const dto = divergenciasPorId[idGuia];
+        if (dto) abrirDrawer(dto);
     }
 
     function voltarDashboard() {
@@ -724,16 +794,16 @@
         document.getElementById('drawerTitulo').textContent = `Guia Nº ${guiaDto.numeroGuia}`;
         document.getElementById('drawerSub').textContent = `Código TUSS: ${guiaDto.codigoTuss || 'N/A'} · ID Registo: ${guiaDto.guiaId}`;
 
-        const dif = guiaDto.diferenca || 0;
-        const temDiv = dif !== 0;
+        const dif = arredondarCentavos(guiaDto.diferenca || 0);
+        const temDiv = Math.abs(dif) >= 0.01;
 
         document.getElementById('drawerDiffText').className = `diff ${!temDiv ? 't-ok' : ''}`;
         document.getElementById('drawerDiffText').textContent = temDiv
-            ? `Divergência detetada no valor de R$ ${dif.toFixed(2)} entre a guia contratada e o espelho.`
+            ? `Divergência detectada no valor de ${(dif > 0 ? '+' : '-') + fmtMoeda(Math.abs(dif))} entre o espelho e a guia contratada.`
             : `Sem divergência: os valores coincidem perfeitamente.`;
 
-        document.getElementById('cmpContratado').textContent = `R$ ${Number(guiaDto.valorContratado || 0).toFixed(2)}`;
-        document.getElementById('cmpFaturado').textContent = `R$ ${Number(guiaDto.valorFaturado || 0).toFixed(2)}`;
+        document.getElementById('cmpContratado').textContent = fmtMoeda(guiaDto.valorContratado);
+        document.getElementById('cmpFaturado').textContent = fmtMoeda(guiaDto.valorFaturado);
 
         document.getElementById('inputValorRevisado').value = Number(guiaDto.valorContratado || 0).toFixed(2);
         document.getElementById('inputJustificativa').value = '';
@@ -751,13 +821,13 @@
 
         const idGuia = guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id;
         const f = dadosFechamentoCache[fechamentoAtualId] || {};
-        const nomeOcs = f.ocs ? f.ocs.ocsNome : 'OCS';
+        const nomeOcs = (f.ocs && f.ocs.ocsNome) ? f.ocs.ocsNome : 'OCS';
 
         document.getElementById('modalEspelhoTitulo').textContent = `Referência da guia ${guiaSelecionadaAtual.numeroGuia} no espelho`;
         document.getElementById('modalEspelhoSub').textContent = `${nomeOcs} · Competência: ${f.competenciaMes}/${f.competenciaAno}`;
 
         const tbody = document.getElementById('tbItensEspelho');
-        tbody.innerHTML = '<tr><td colspan="9">A carregar itens do espelho...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9">Carregando itens do espelho...</td></tr>';
 
         document.getElementById('modalEspelho').classList.add('on');
 
@@ -766,22 +836,22 @@
             if (!res.ok) throw new Error('Erro na resposta do servidor');
 
             const itens = await res.json();
-            const valContratado = Number(guiaSelecionadaAtual.valorContratado || 0);
+            const valContratado = arredondarCentavos(guiaSelecionadaAtual.valorContratado || 0);
 
             if (!itens || itens.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho. (A exibir valor consolidado da guia)</td></tr>';
-                const valFaturadoConsolidado = Number(guiaSelecionadaAtual.valorFaturado || 0);
-                const diferenca = valContratado - valFaturadoConsolidado;
+                tbody.innerHTML = '<tr><td colspan="9">Nenhum item detalhado encontrado no espelho. (Exibindo valor consolidado da guia)</td></tr>';
+                const valFaturadoConsolidado = arredondarCentavos(guiaSelecionadaAtual.valorFaturado || 0);
+                const diferenca = arredondarCentavos(valFaturadoConsolidado - valContratado);
 
                 let corCardDiff = 'inherit';
-                if (diferenca > 0) corCardDiff = 'var(--green)';
-                else if (diferenca < 0) corCardDiff = 'var(--red)';
+                if (diferenca > 0) corCardDiff = 'var(--red)';
+                else if (diferenca < 0) corCardDiff = 'var(--green)';
 
-                document.getElementById('cardProc').textContent = `R$ 0,00`;
-                document.getElementById('cardInsumos').textContent = `R$ 0,00`;
-                document.getElementById('cardTotalEspelho').textContent = `R$ ${valFaturadoConsolidado.toFixed(2)}`;
-                document.getElementById('cardContratado').textContent = `R$ ${valContratado.toFixed(2)}`;
-                document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+R$ ' : (diferenca < 0 ? '-R$ ' : 'R$ ')}${Math.abs(diferenca).toFixed(2)}`;
+                document.getElementById('cardProc').textContent = fmtMoeda(0);
+                document.getElementById('cardInsumos').textContent = fmtMoeda(0);
+                document.getElementById('cardTotalEspelho').textContent = fmtMoeda(valFaturadoConsolidado);
+                document.getElementById('cardContratado').textContent = fmtMoeda(valContratado);
+                document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+' : (diferenca < 0 ? '-' : '')}${fmtMoeda(Math.abs(diferenca))}`;
                 document.getElementById('cardDiferenca').style.color = corCardDiff;
                 return;
             }
@@ -790,40 +860,44 @@
             let totalInsumos = 0;
 
             tbody.innerHTML = itens.map(item => {
-                const subtotal = (item.quantidade || 0) * (item.valorUnitario || 0);
+                const subtotal = (Number(item.quantidade) || 0) * (Number(item.valorUnitario) || 0);
                 if (item.tipo === 'Insumo') totalInsumos += subtotal;
                 else totalProcedimentos += subtotal;
 
+                const dataFormatada = item.dataItem
+                    ? new Date(String(item.dataItem).slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR')
+                    : 'Data não informada';
+
                 return `
                 <tr>
-                  <td>${guiaSelecionadaAtual.beneficiarioNome || 'Não informado'}</td>
-                  <td>${guiaSelecionadaAtual.beneficiarioPrecCp || ''}</td>
-                  <td><b>${item.codigoTuss || ''}</b></td>
+                  <td>${esc(guiaSelecionadaAtual.beneficiarioNome || 'Não informado')}</td>
+                  <td>${esc(guiaSelecionadaAtual.beneficiarioPrecCp || '')}</td>
+                  <td><b>${esc(item.codigoTuss || '')}</b></td>
                   <td>
-                    <b>${item.descricaoItem || item.descricaoProcedimento || 'Sem descrição'}</b><br>
-                    <small style="color:var(--mut);">Registo detalhado do espelho</small>
+                    <b>${esc(item.descricaoItem || item.descricaoProcedimento || 'Sem descrição')}</b><br>
+                    <small style="color:var(--mut);">Registro detalhado do espelho</small>
                   </td>
-                  <td><span class="tag ${item.tipo === 'Insumo' ? 't-info' : ''}">${item.tipo || 'Procedimento'}</span></td>
-                  <td><b>${guiaSelecionadaAtual.numeroGuia}</b></td>
-                  <td>${item.dataItem ? new Date(item.dataItem).toLocaleDateString('pt-BR') : 'Data não informada'}</td>
-                  <td class="num">${item.quantidade || 0}</td>
-                  <td class="num">R$ ${Number(item.valorUnitario || 0).toFixed(2)}</td>
+                  <td><span class="tag ${item.tipo === 'Insumo' ? 't-info' : ''}">${esc(item.tipo || 'Procedimento')}</span></td>
+                  <td><b>${esc(guiaSelecionadaAtual.numeroGuia)}</b></td>
+                  <td>${esc(dataFormatada)}</td>
+                  <td class="num">${esc(item.quantidade || 0)}</td>
+                  <td class="num">${fmtMoeda(item.valorUnitario)}</td>
                 </tr>
             `;
             }).join('');
 
-            const totalEspelho = totalProcedimentos + totalInsumos;
-            const diferenca = valContratado - totalEspelho;
+            const totalEspelho = arredondarCentavos(totalProcedimentos + totalInsumos);
+            const diferenca = arredondarCentavos(totalEspelho - valContratado);
 
             let corCardDiff = 'inherit';
-            if (diferenca > 0) corCardDiff = 'var(--green)';
-            else if (diferenca < 0) corCardDiff = 'var(--red)';
+            if (diferenca > 0) corCardDiff = 'var(--red)';
+            else if (diferenca < 0) corCardDiff = 'var(--green)';
 
-            document.getElementById('cardProc').textContent = `R$ ${totalProcedimentos.toFixed(2)}`;
-            document.getElementById('cardInsumos').textContent = `R$ ${totalInsumos.toFixed(2)}`;
-            document.getElementById('cardTotalEspelho').textContent = `R$ ${totalEspelho.toFixed(2)}`;
-            document.getElementById('cardContratado').textContent = `R$ ${valContratado.toFixed(2)}`;
-            document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+R$ ' : (diferenca < 0 ? '-R$ ' : 'R$ ')}${Math.abs(diferenca).toFixed(2)}`;
+            document.getElementById('cardProc').textContent = fmtMoeda(totalProcedimentos);
+            document.getElementById('cardInsumos').textContent = fmtMoeda(totalInsumos);
+            document.getElementById('cardTotalEspelho').textContent = fmtMoeda(totalEspelho);
+            document.getElementById('cardContratado').textContent = fmtMoeda(valContratado);
+            document.getElementById('cardDiferenca').textContent = `${diferenca > 0 ? '+' : (diferenca < 0 ? '-' : '')}${fmtMoeda(Math.abs(diferenca))}`;
             document.getElementById('cardDiferenca').style.color = corCardDiff;
         } catch (e) {
             console.error('Erro ao carregar itens do espelho:', e);
@@ -881,20 +955,22 @@
     }
 
     async function salvarGlosaEGerarPdf() {
+        if (!guiaSelecionadaAtual) return;
         const valorRevisado = parseFloat(document.getElementById('inputValorRevisado').value);
         const justificativa = document.getElementById('inputJustificativa').value.trim();
         const conclusao = document.getElementById('inputConclusao').value.trim();
 
-        if (isNaN(valorRevisado) || !justificativa || !conclusao) {
-            alert('Por favor, preencha o valor revisado, a justificativa e a conclusão.');
+        if (isNaN(valorRevisado) || valorRevisado < 0 || !justificativa || !conclusao) {
+            alert('Por favor, preencha um valor revisado válido (>= 0), a justificativa e a conclusão.');
             return;
         }
 
+        const guiaId = guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id;
         try {
             const response = await fetchAutenticado('/api/lisura/glosas', {
                 method: 'POST',
                 body: JSON.stringify({
-                    guiaId: guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id,
+                    guiaId: guiaId,
                     codigoTuss: guiaSelecionadaAtual.codigoTuss,
                     justificativaMilitar: justificativa,
                     valorGlosa: valorRevisado,
@@ -903,11 +979,12 @@
             });
 
             if (response.ok) {
-                const guiaId = guiaSelecionadaAtual.guiaId || guiaSelecionadaAtual.id;
                 fecharDrawer();
+                carregarFechamentos().catch(() => {});
                 await abrirGuiaComRelatorio(guiaId);
             } else {
-                alert('Erro ao registar a glosa no servidor.');
+                const err = await response.json().catch(() => ({}));
+                alert(err.error || 'Erro ao registrar a glosa no servidor.');
             }
         } catch (e) {
             console.error('Erro de comunicação:', e);
@@ -915,7 +992,7 @@
         }
     }
 
-    $('whoRole').textContent = 'Sgt. Ricardo Botan';
+    $('whoRole').textContent = FusexAuth.hasRole('ROLE_ADMIN') ? 'Administração FUSEX' : 'Auditoria de Lisura';
     $('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
 
     if (ACESSO_OK) {

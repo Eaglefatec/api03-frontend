@@ -615,7 +615,7 @@
 
       const ben = data.beneficiario || {};
       preencher('benNome', ben.nome);
-      preencher('benIdade', ben.idade ? `${ben.idade} anos` : null);
+      preencher('benIdade', ben.idade != null ? `${ben.idade} anos` : null);
       const cpfFormatado = formatarCpf(ben.cpf || ben.cpfPrec);
       preencher('benCpf', cpfFormatado);
       preencher('benPrec', ben.prec);
@@ -642,6 +642,9 @@
       let temValores = false;
 
       const procedimentos = data.procedimentos || [];
+      const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
       if (procedimentos.length > 0) {
         const table = document.createElement('table');
         table.className = 'data-table';
@@ -650,6 +653,7 @@
               <tr>
                 <th style="width: 140px;">Código DGP</th>
                 <th>Descrição do Procedimento TUSS</th>
+                <th style="width: 70px; text-align: center;">Qtd.</th>
                 <th style="width: 150px; text-align: right;">Valor Unitário</th>
               </tr>
             </thead>
@@ -659,17 +663,19 @@
         const tbody = table.querySelector('tbody');
         procedimentos.forEach(p => {
           const tr = document.createElement('tr');
+          const qtd = Number(p.quantidade) > 0 ? Number(p.quantidade) : 1;
           let precoTexto = 'A consultar';
           if (p.valor !== null && p.valor !== undefined) {
             const numVal = Number(p.valor);
             precoTexto = numVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            total += numVal;
+            total += numVal * qtd;
             temValores = true;
           }
 
           tr.innerHTML = `
-              <td><strong>${p.procedimentoCodigoDgp}</strong></td>
-              <td>${p.procedimentoDescricao}</td>
+              <td><strong>${esc(p.procedimentoCodigoDgp)}</strong></td>
+              <td>${esc(p.procedimentoDescricao)}</td>
+              <td style="text-align: center;">${esc(qtd)}</td>
               <td style="text-align: right; font-weight: 600; color: var(--color-primary);">${precoTexto}</td>
             `;
           tbody.appendChild(tr);

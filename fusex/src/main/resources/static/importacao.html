@@ -490,6 +490,12 @@
   document.getElementById('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
   FusexAuth.require(['ROLE_ADMIN']);
 
+  function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
   async function importar(alvo, botao) {
     const arquivoInput = inputs[alvo];
     const resultado = resultados[alvo];
@@ -516,15 +522,15 @@
       const data = await res.json();
 
       if (!res.ok) {
-        resultado.innerHTML = `<div class="log-box erro">${data.error || 'Erro ao processar importação.'}</div>`;
+        resultado.innerHTML = `<div class="log-box erro">${esc(data.error || 'Erro ao processar importação.')}</div>`;
         return;
       }
 
-      let html = `<div class="log-box sucesso"><strong>${data.mensagem}</strong>`;
+      let html = `<div class="log-box sucesso"><strong>${esc(data.mensagem)}</strong>`;
       if (data.avisos && data.avisos.length > 0) {
         html += '<div style="margin-top: 8px; font-weight: 600;">Avisos encontrados:</div>';
         data.avisos.forEach(aviso => {
-          html += `<div class="aviso">${aviso}</div>`;
+          html += `<div class="aviso">${esc(aviso)}</div>`;
         });
       }
       html += '</div>';

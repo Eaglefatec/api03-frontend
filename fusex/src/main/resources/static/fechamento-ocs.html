@@ -311,7 +311,15 @@
   const $ = id => document.getElementById(id);
   const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const formatarCompetencia = (ano, mes) => `${MESES[mes]}/${ano}`;
-  const STATUS_LABEL = { AGUARDANDO_FATURAMENTO: 'Aguardando faturamento' };
+  const STATUS_LABEL = {
+    AGUARDANDO_FATURAMENTO: 'Aguardando faturamento',
+    AGUARDANDO_LISURA: 'Aguardando lisura',
+    AUDITADO: 'Auditado',
+    CONCLUIDO: 'Concluído'
+  };
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
   let tt;
 
   const hoje = new Date();
@@ -363,10 +371,10 @@
 
     $('tbResumo').innerHTML = lotesDaCompetencia.length
             ? lotesDaCompetencia.map(l => `<tr>
-            <td>Lote ${l.numeroLote}</td>
-            <td>${l.quantidadeGuias}</td>
-            <td>${l.faturaNomeArquivo}</td>
-            <td>${l.espelhoNomeArquivo}</td>
+            <td>Lote ${esc(l.numeroLote)}</td>
+            <td>${esc(l.quantidadeGuias)}</td>
+            <td>${esc(l.faturaNomeArquivo)}</td>
+            <td>${esc(l.espelhoNomeArquivo)}</td>
           </tr>`).join('')
             : '<tr><td colspan="4">Nenhum lote pendente de envio nesta competência.</td></tr>';
 
@@ -380,11 +388,11 @@
 
     $('tbEnviados').innerHTML = data.length
             ? data.map(f => `<tr>
-            <td>${formatarCompetencia(f.competenciaAno, f.competenciaMes)}</td>
-            <td>${new Date(f.dataEnvio).toLocaleString('pt-BR')}</td>
-            <td>${f.quantidadeLotes}</td>
-            <td>${f.quantidadeGuias}</td>
-            <td><span class="tag t-info">${STATUS_LABEL[f.status] || f.status}</span></td>
+            <td>${esc(formatarCompetencia(f.competenciaAno, f.competenciaMes))}</td>
+            <td>${f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '—'}</td>
+            <td>${esc(f.quantidadeLotes)}</td>
+            <td>${esc(f.quantidadeGuias)}</td>
+            <td><span class="tag ${f.status === 'CONCLUIDO' || f.status === 'AUDITADO' ? 't-ok' : 't-info'}">${esc(STATUS_LABEL[f.status] || f.status)}</span></td>
           </tr>`).join('')
             : '<tr><td colspan="5">Nenhum fechamento enviado ainda.</td></tr>';
   }
@@ -423,6 +431,7 @@
 
     const { ano, mes } = competenciaSelecionada();
 
+    $('confirmarEnvioBtn').disabled = true;
     try {
       const res = await fetch('/api/fechamentos', {
         method: 'POST',
@@ -444,11 +453,14 @@
     } catch (err) {
       $('modalErro').textContent = 'Erro ao enviar o fechamento. Tente novamente.';
       $('modalErro').hidden = false;
+    } finally {
+      $('confirmarEnvioBtn').disabled = false;
     }
   }
 
   $('enviarFechamentoBtn').addEventListener('click', pedirEnvio);
   $('cancelarEnvioBtn').addEventListener('click', fecharConf);
+  $('mConf').addEventListener('click', e => { if (e.target === $('mConf') && !$('confirmarEnvioBtn').disabled) fecharConf(); });
   $('confirmarEnvioBtn').addEventListener('click', confirmarEnvio);
   $('competencia').addEventListener('change', () => {
     const auth = authHeader();
