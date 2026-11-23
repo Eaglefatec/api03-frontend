@@ -1,135 +1,185 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FUSEX - Acesso Médico</title>
-<link rel="stylesheet" href="css/fusex-theme.css">
-<style>
-  .login-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-  }
-  .login-card {
-    max-width: 400px;
-    width: 100%;
-  }
-  .login-header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-  .login-footer-link {
-    text-align: center;
-    margin-top: 24px;
-    font-size: 0.85em;
-  }
-  .login-footer-link a {
-    color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .login-footer-link a:hover {
-    text-decoration: underline;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUSEX - Acesso ao Sistema</title>
+  <link rel="stylesheet" href="css/fusex-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+    }
+
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .login-card {
+      position: relative;
+      max-width: 420px;
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 12px 28px rgba(23, 33, 43, .1);
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .login-logo {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, .22);
+    }
+
+    .login-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+
+    .login-card label {
+      color: var(--mut);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .login-card input[type="text"],
+    .login-card input[type="password"] {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+    }
+
+    .login-card input:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+
+    .login-card .btn-primary {
+      background: var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .2);
+    }
+
+    .login-card .btn-primary:hover {
+      background: #1d4ed8;
+    }
+  </style>
 </head>
 <body>
 <div class="login-wrapper">
   <div class="card login-card">
     <div class="login-header">
-      <div style="margin-bottom: 12px;">
-        <span class="brand-logo" style="font-size: 0.9em; padding: 7px 16px;">FUSEX</span>
-      </div>
-      <h1 class="card-title" style="font-size: 1.3em;">Acesso Médico</h1>
-      <p class="card-subtitle" style="margin-bottom: 0;">Identifique-se com suas credenciais militares/funcionais</p>
+      <div class="login-logo">✚</div>
+      <div class="login-eyebrow">FUSEX · SISMED</div>
+      <h1 class="card-title" style="font-size: 1.3em;">Acesso ao Sistema</h1>
+      <p class="card-subtitle" style="margin-bottom: 0;">Entre com seu e-mail e senha. Você será levado direto à tela do seu perfil.</p>
     </div>
 
     <form id="loginForm">
-      <label for="username">Usuário</label>
-      <input type="text" id="username" placeholder="Digite seu usuário" required autofocus autocomplete="username">
+      <label for="email">E-mail</label>
+      <input type="text" id="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="seu.email@gmail.com" required autofocus autocomplete="username">
 
       <label for="password">Senha</label>
       <input type="password" id="password" placeholder="Digite sua senha" required autocomplete="current-password">
 
-      <button type="submit" class="btn btn-primary" id="loginBtn">Entrar no Sistema</button>
+      <button type="submit" class="btn btn-primary" id="loginBtn">Entrar</button>
     </form>
 
     <div id="errorMsg" class="alert alert-error" hidden></div>
-
-    <div class="login-footer-link">
-      <a href="index.html">← Voltar ao Portal Principal</a>
-    </div>
   </div>
 </div>
 
+<script src="js/fusex-auth.js"></script>
 <script>
   const form = document.getElementById('loginForm');
   const errorBox = document.getElementById('errorMsg');
   const loginBtn = document.getElementById('loginBtn');
 
-  // Limpa sessão antiga ao abrir tela de login
-  sessionStorage.removeItem('fusex_auth');
-  sessionStorage.removeItem('fusex_user');
-  sessionStorage.removeItem('fusex_medico');
+  FusexAuth.clear();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorBox.hidden = true;
-    errorBox.textContent = '';
 
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value;
-
-    if (!user || !pass) {
-      errorBox.textContent = 'Por favor, preencha o usuário e a senha.';
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const senha = document.getElementById('password').value;
+    if (!email || !senha) {
+      errorBox.textContent = 'Informe o e-mail e a senha.';
       errorBox.hidden = false;
       return;
     }
 
-    const token = btoa(user + ':' + pass);
     loginBtn.disabled = true;
     loginBtn.textContent = 'Autenticando...';
-
     try {
-      const res = await fetch('/api/auth/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': 'Basic ' + token
-        }
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          throw new Error('Usuário ou senha incorretos.');
-        } else {
-          throw new Error('Falha de conexão com o servidor (Status ' + res.status + ').');
-        }
-      }
-
-      const data = await res.json();
-      const roles = data.roles || [];
-
-      if (!roles.includes('ROLE_MEDICO') && !roles.includes('ROLE_ADMIN')) {
-        throw new Error('Acesso restrito: este usuário não possui perfil médico credenciado.');
-      }
-
-      // Persistência segura na sessão do navegador
-      sessionStorage.setItem('fusex_auth', token);
-      sessionStorage.setItem('fusex_user', data.username);
-      if (data.medico) {
-        sessionStorage.setItem('fusex_medico', JSON.stringify(data.medico));
-      }
-
-      window.location.href = 'medico.html';
+      const { destino } = await FusexAuth.login(email, senha);
+      const next = FusexAuth.nextSeguro(new URLSearchParams(location.search).get('next'));
+      // Se a página de destino não pertencer ao perfil do usuário, ele será redirecionado para sua tela inicial
+      location.replace(next || destino);
     } catch (err) {
       errorBox.textContent = err.message || 'Erro ao processar login.';
       errorBox.hidden = false;
-    } finally {
       loginBtn.disabled = false;
-      loginBtn.textContent = 'Entrar no Sistema';
+      loginBtn.textContent = 'Entrar';
     }
   });
 </script>

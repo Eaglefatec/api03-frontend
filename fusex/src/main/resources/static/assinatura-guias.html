@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SISMED / FUSEX - Assinatura e envio de guias</title>
+  <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand i {
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      color: #fff;
+      border-radius: 12px;
+      font-style: normal;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+    }
+
+    .brand span {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--tx);
+    }
+
+    .nav button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: var(--mut);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease;
+    }
+    .nav button.on, .nav button:hover {
+      background: rgba(37, 99, 235, .1);
+      color: var(--blue-dark);
+    }
+    .nav button.on {
+      border-left: 3px solid var(--blue);
+    }
+    .nav-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-subtle);
+      font-weight: 700;
+      padding: 14px 12px 4px;
+    }
+    .who {
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    main {
+      max-width: 1440px;
+    }
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .section-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 6px;
+    }
+    .sub {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin: 0;
+      line-height: 1.45;
+    }
+    .page {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+    .card .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+    .card .tw {
+      margin-top: 8px;
+    }
+    .card table th,
+    .card table td {
+      padding: 11px 14px;
+      vertical-align: middle;
+    }
+    .card .hint {
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
+    .card .warn,
+    .card .sign {
+      margin: 12px 0 16px;
+    }
+    .card .acts {
+      margin-top: 16px;
+    }
+    .drop {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 38px 18px;
+      text-align: center;
+      background: var(--bg);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .drop * {
+      pointer-events: none;
+    }
+    .drop:hover, .drop.drag {
+      border-color: var(--blue);
+      background: rgba(37, 99, 235, .06);
+    }
+    .file {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .muted {
+      color: var(--mut);
+    }
+    .small {
+      font-size: 12px;
+    }
+    .stats .stat {
+      position: relative;
+      margin: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .stats .stat::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+    .stats .stat b {
+      color: #000000;
+      font-weight: 800;
+    }
+    .stats .stat span {
+      color: #000000;
+    }
+    .clickable {
+      cursor: pointer;
+    }
+    .clickable:hover td {
+      background: rgba(37, 99, 235, .04);
+    }
+    .tag.t-pending {
+      background: rgba(217, 119, 6, .14);
+      color: #b45309;
+    }
+    .tag.t-info {
+      background: rgba(37, 99, 235, .12);
+      color: #1d4ed8;
+    }
+    .tag.t-ok {
+      background: rgba(22, 163, 74, .12);
+      color: #15803d;
+    }
+    .tag.t-bad {
+      background: rgba(220, 38, 38, .12);
+      color: #b91c1c;
+    }
+    .sigcanvas {
+      width: 100%;
+      height: 150px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      touch-action: none;
+      display: block;
+      cursor: crosshair;
+    }
+    .sig-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+    .reject-box {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel2);
+    }
+    .reject-box textarea {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 76px;
+      resize: vertical;
+      margin-top: 6px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--tx);
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .action-group {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .action-group .btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn.btn-pdf,
+    .btn.btn-justify {
+      white-space: nowrap;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+    .btn.btn-pdf {
+      background: rgba(37, 99, 235, .12);
+      border: 1px solid rgba(37, 99, 235, .32);
+      color: #1d4ed8;
+    }
+    .btn.btn-pdf:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
+    }
+    .btn.btn-justify {
+      background: rgba(220, 38, 38, .11);
+      border: 1px solid rgba(220, 38, 38, .32);
+      color: #b91c1c;
+    }
+    .btn.btn-justify:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: #ffffff;
+    }
+    .pdf-original {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f1f5f9;
+      min-height: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .pdf-original iframe {
+      width: 100%;
+      height: 720px;
+      border: 0;
+      background: #fff;
+    }
+    .modal {
+      max-width: 1000px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+    }
+    .modal.narrow {
+      max-width: 560px;
+    }
+    .queue-row {
+      cursor: pointer;
+    }
+    .queue-row:hover td {
+      background: rgba(37, 99, 235, .04);
+    }
+    @media(max-width: 820px) {
+      aside { width: auto; }
+      .nav { width: 100%; }
+      .nav-label { padding-top: 7px; }
+      main { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<aside>
+  <a class="brand" href="index.html">
+    <i>✚</i>
+    <span>SISMED<small>Sistema Integrado de Saúde Militar</small></span>
+  </a>
+  <nav class="nav" aria-label="Navegação principal">
+    <div id="navEmitterGroup">
+      <div class="nav-label">Emissor de guias</div>
+      <button id="nav-pre-guias" onclick="location.href='pre-guias.html'">▤ &nbsp; Consultar pré-guias <span id="badgePreGuias" class="tag t-pending" style="float:right">0</span></button>
+      <button id="nav-upload" class="on" onclick="go('upload')">⇧ &nbsp; Envio de guias</button>
+      <button id="nav-email" onclick="go('email')">✉ &nbsp; Envio por e-mail <span id="badgeEmail" class="tag t-info" style="float:right">0</span></button>
+    </div>
+    <div id="navMedGroup" class="hidden">
+      <div class="nav-label">Médico Chefe</div>
+      <button id="nav-sign-med" onclick="go('sign-med')">✍ &nbsp; Painel de assinaturas <span id="badgeMed" class="tag t-pending" style="float:right">0</span></button>
+    </div>
+    <div id="navSecGroup" class="hidden">
+      <div class="nav-label">Chefe da Seção</div>
+      <button id="nav-sign-sec" onclick="go('sign-sec')">✍ &nbsp; Painel de assinaturas <span id="badgeSec" class="tag t-pending" style="float:right">0</span></button>
+    </div>
+  </nav>
+  <div class="who">
+    <b id="whoRole"></b>
+    <span id="whoUser"></span><br>
+    <a href="#" class="small" onclick="FusexAuth.logout(); return false;" style="color:inherit;text-decoration:underline;">Sair</a>
+  </div>
+</aside>
+
+<main>
+  <div class="section-title">
+    <div>
+      <h1 id="pageTitle">Envio de guias</h1>
+      <p class="sub" id="pageSub">Anexe somente o PDF. O sistema identifica os dados necessários.</p>
+    </div>
+  </div>
+
+  <section id="upload" class="page">
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Pré-guias liberadas para envio</h2>
+          <p class="small muted">Pré-guias com a emissão confirmada na consulta de pré-guias</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Pré-guia</th>
+            <th>Beneficiário</th>
+            <th>PREC</th>
+            <th>OCS</th>
+            <th>Emissão confirmada em</th>
+            <th>Ação</th>
+          </tr>
+          </thead>
+          <tbody id="liberadas">
+          <tr><td colspan="6">Carregando pré-guias...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Nova guia</h2>
+          <p class="small muted">Selecione uma pré-guia liberada e anexe o PDF da guia emitida.</p>
+        </div>
+      </div>
+      <div id="preGuiaSelecionada" class="warn">Nenhuma pré-guia selecionada. Escolha uma pré-guia liberada na lista acima.</div>
+      <label for="file" id="drop" class="drop" tabindex="0" style="display:block;cursor:pointer">
+        <div style="font-size: 32px;margin-bottom:6px">⇧</div>
+        <b style="font-size:15px">Arraste o PDF da guia para cá</b>
+        <p class="muted small" style="margin:6px 0 14px">ou clique para selecionar um arquivo do seu computador · PDF até 5 MB</p>
+        <span class="btn o" style="margin:0 auto;display:inline-block">Selecionar arquivo PDF...</span>
+      </label>
+      <input id="file" type="file" accept="application/pdf,.pdf" style="display:none">
+      <div id="fileInfo" class="file hidden">
+        <span id="fileName"></span>
+        <button id="clearFileBtn" type="button" class="btn o" onclick="clearFile()">Remover</button>
+      </div>
+      <div id="uploadError" class="erro" hidden></div>
+      <div class="acts">
+        <button id="uploadBtn" type="button" class="btn g" onclick="uploadPdf()" disabled>Enviar guia ao sistema</button>
+      </div>
+      <div id="processing" class="warn hidden">Lendo o PDF e identificando os dados da guia...</div>
+      <div id="success" class="sign hidden" style="border-color: var(--green); background: rgba(22, 163, 74, .08);">
+        <div>
+          <b>✓ PDF processado e guia registrada</b>
+          <p class="small" id="successText"></p>
+          <div id="extracted" class="small"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h2>Acompanhamento das guias</h2>
+        <span class="small muted">Acompanhe o andamento das guias enviadas</span>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Enviada em</th>
+            <th>Médico Chefe</th>
+            <th>Chefe da Seção</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+          </thead>
+          <tbody id="track">
+          <tr><td colspan="8">Carregando guias...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">O número, beneficiário e OCS são identificados automaticamente a partir do PDF.</p>
+    </div>
+  </section>
+
+  <section id="sign-med" class="page hidden">
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Guias aguardando assinatura do Médico Chefe</h2>
+          <p class="small muted">Estas guias foram enviadas pelo Emissor e ainda não receberam a primeira assinatura.</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Enviada em</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody id="pendingMed">
+          <tr><td colspan="6">Carregando pendências...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="signDetailMed" class="card hidden"></div>
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Guias já assinadas</h2>
+          <p class="small muted">Guias que você já assinou como Médico Chefe, disponíveis para consulta futura.</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Assinada em</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+          </thead>
+          <tbody id="signedMed">
+          <tr><td colspan="6">Carregando guias já assinadas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="sign-sec" class="page hidden">
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Guias aguardando assinatura do Chefe da Seção</h2>
+          <p class="small muted">Somente guias já assinadas pelo Médico Chefe aparecem nesta fila.</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Enviada em</th>
+            <th>Assinada pelo Médico em</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody id="pendingSec">
+          <tr><td colspan="7">Carregando pendências...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="signDetailSec" class="card hidden"></div>
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Guias já assinadas</h2>
+          <p class="small muted">Guias que você já assinou como Chefe da Seção, disponíveis para consulta futura.</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Assinada em</th>
+            <th>Válida até</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+          </thead>
+          <tbody id="signedSec">
+          <tr><td colspan="7">Carregando guias já assinadas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="email" class="page hidden">
+    <div class="card">
+      <h2>Guias aguardando envio ao beneficiário</h2>
+      <p class="small muted">Guias totalmente assinadas e prontas para envio.</p>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Assinada em</th>
+            <th>Válida até</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody id="ready">
+          <tr><td colspan="6">Carregando guias prontas para envio...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Já enviadas</h2>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>E-mail</th>
+            <th>Enviada em</th>
+            <th>Ações</th>
+          </tr>
+          </thead>
+          <tbody id="sent">
+          <tr><td colspan="5">Carregando histórico de envios...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="ov" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal narrow">
+    <h2 id="modalTitle">Enviar guia</h2>
+    <div id="modalBody"></div>
+    <div class="acts">
+      <button type="button" class="btn o" onclick="closeModal()">Fechar</button>
+      <button id="sendEmailBtn" type="button" class="btn g" onclick="sendEmail()">Enviar por e-mail e disponibilizar na conta</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="justifyModal" role="dialog" aria-modal="true" aria-labelledby="justifyModalTitle">
+  <div class="modal narrow">
+    <h2 id="justifyModalTitle">Justificativa da rejeição</h2>
+    <div id="justifyModalBody"></div>
+    <div class="acts">
+      <button type="button" class="btn o" onclick="closeJustifyModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="patientModal" role="dialog" aria-modal="true" aria-labelledby="patientModalTitle">
+  <div class="modal narrow">
+    <h2 id="patientModalTitle">Beneficiário não cadastrado</h2>
+    <div id="patientModalBody"></div>
+    <div class="acts" id="patientModalActs">
+      <button type="button" class="btn o" onclick="cancelarCadastroPaciente()">Cancelar e descartar guia</button>
+      <button id="patientConfirmBtn" type="button" class="btn g" onclick="iniciarFormularioCadastroPaciente()">Sim, cadastrar beneficiário</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/fusex-auth.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+
+  const GROUP_LABEL = {
+    emitter: 'Emissor de Guias',
+    med: 'Médico Chefe FUSEX',
+    sec: 'Chefe da Seção FUSEX'
+  };
+  const GROUP_VIEWS = {
+    emitter: ['upload', 'email'],
+    med: ['sign-med'],
+    sec: ['sign-sec']
+  };
+  const GROUP_NAV = { emitter: 'navEmitterGroup', med: 'navMedGroup', sec: 'navSecGroup' };
+
+  const ST = {
+    AM: 'Aguardando Médico Chefe',
+    AS: 'Aguardando Chefe da Seção',
+    PE: 'Aguardando envio ao beneficiário',
+    EN: 'Enviada ao beneficiário',
+    RJ: 'Rejeitada'
+  };
+
+  let role = null;
+  let currentView = 'upload';
+  let guides = [];
+  let signedMedGuides = [];
+  let signedSecGuides = [];
+  let selectedFile = null;
+  let preGuiaSelecionada = null;
+  let preGuiasLiberadas = [];
+  let selectedGuide = null;
+  let profile = 'med';
+  let emailGuideId = null;
+  let draw = false;
+  let hasInk = false;
+  let canvas = null;
+  let ctx = null;
+  let toastTimer = null;
+  let allowedGroups = [];
+
+  function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  async function safeJson(res) {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  }
+
+  function fmt(d) {
+    if (!d) return '—';
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return '—';
+    return dt.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function fmtD(d) {
+    if (!d) return '—';
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const [ano, mes, dia] = d.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return '—';
+    return dt.toLocaleDateString('pt-BR');
+  }
+
+  function getAuthHeader() {
+    return FusexAuth.header();
+  }
+
+  function badge(g) {
+    const code = g.statusCodigo || 'AM';
+    const cls = { AM: 't-pending', AS: 't-info', PE: 't-ok', EN: '', RJ: 't-bad' }[code] || '';
+    const label = g.statusDescricao || ST[code] || code;
+    return `<span class="tag ${cls}">${esc(label)}</span>`;
+  }
+
+  function obterJustificativa(g) {
+    if (!g) return '';
+    return String(g.motivoRejeicao ?? g.justificativaRejeicao ?? g.justificativa ?? '').trim();
+  }
+
+  function calcularGrupos() {
+    const g = [];
+    if (FusexAuth.hasAny(['ROLE_EG', 'ROLE_ADMIN'])) g.push('emitter');
+    if (FusexAuth.hasAny(['ROLE_MEDICO_CHEFE', 'ROLE_ADMIN'])) g.push('med');
+    if (FusexAuth.hasAny(['ROLE_CHEFE_SECAO', 'ROLE_ADMIN'])) g.push('sec');
+    return g;
+  }
+
+  async function aplicarAcesso(targetView) {
+    allowedGroups = calcularGrupos();
+    Object.keys(GROUP_NAV).forEach(k => $(GROUP_NAV[k]).classList.toggle('hidden', !allowedGroups.includes(k)));
+    closeDetail();
+
+    role = allowedGroups[0] || null;
+    $('whoRole').textContent = allowedGroups.length === 1 ? GROUP_LABEL[role] : 'Administração FUSEX';
+    $('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
+
+    await go(targetView || (role ? GROUP_VIEWS[role][0] : 'upload'));
+  }
+
+  async function go(id) {
+    const allowed = allowedGroups.flatMap(g => GROUP_VIEWS[g]);
+    if (!allowed.includes(id)) id = allowed[0];
+    currentView = id;
+
+    document.querySelectorAll('.page').forEach(x => x.classList.toggle('hidden', x.id !== id));
+    ['upload', 'email', 'sign-med', 'sign-sec'].forEach(x => {
+      const b = $('nav-' + x);
+      if (b) b.classList.toggle('on', x === id);
+    });
+
+    const titles = {
+      'upload': ['Envio de guias', 'Anexe somente o PDF. O sistema identifica os dados necessários.'],
+      'email': ['Envio ao beneficiário', 'Envie por e-mail as guias que já receberam as duas assinaturas.'],
+      'sign-med': ['Painel de assinaturas · Médico Chefe', 'Confira as guias encaminhadas pelo Emissor e registre a primeira assinatura.'],
+      'sign-sec': ['Painel de assinaturas · Chefe da Seção', 'Receba as guias já assinadas pelo Médico Chefe e registre a segunda assinatura.']
+    };
+    $('pageTitle').textContent = titles[id][0];
+    $('pageSub').textContent = titles[id][1];
+
+    await refreshData();
+  }
+
+  async function refreshData() {
+    try {
+      const res = await fetch('/api/assinaturas/painel', {
+        headers: { 'Authorization': getAuthHeader() }
+      });
+      const painel = await safeJson(res);
+      if (!res.ok) throw new Error(painel.error || 'Falha ao carregar dados da esteira.');
+
+      guides = painel.guias || [];
+      $('badgeMed').textContent = painel.pendentesMedico ?? 0;
+      $('badgeSec').textContent = painel.pendentesSecao ?? 0;
+      $('badgeEmail').textContent = painel.prontasEnvio ?? 0;
+      if (allowedGroups.includes('emitter')) {
+        fetch('/api/pre-guias?status=PENDENTE', { headers: { 'Authorization': getAuthHeader('emitter') } })
+                .then(r => r.ok ? r.json() : [])
+                .then(lista => { $('badgePreGuias').textContent = lista.length; })
+                .catch(() => {});
+        carregarPreGuiasLiberadas();
+      }
+
+      const signedFetches = [];
+      if (allowedGroups.includes('med')) {
+        signedFetches.push(
+          fetch('/api/assinaturas/guias/assinadas?perfil=med', { headers: { 'Authorization': getAuthHeader('med') } })
+            .then(r => r.ok ? safeJson(r) : [])
+            .then(lista => { signedMedGuides = Array.isArray(lista) ? lista : []; })
+            .catch(() => { signedMedGuides = []; })
+        );
+      }
+      if (allowedGroups.includes('sec')) {
+        signedFetches.push(
+          fetch('/api/assinaturas/guias/assinadas?perfil=sec', { headers: { 'Authorization': getAuthHeader('sec') } })
+            .then(r => r.ok ? safeJson(r) : [])
+            .then(lista => { signedSecGuides = Array.isArray(lista) ? lista : []; })
+            .catch(() => { signedSecGuides = []; })
+        );
+      }
+      if (signedFetches.length) {
+        await Promise.all(signedFetches);
+      }
+
+      renderTables();
+    } catch (err) {
+      toast(err.message || 'Erro de comunicação com o servidor.', true);
+    }
+  }
+
+  function renderTables() {
+    $('track').innerHTML = guides.length
+            ? guides.map(g => {
+              const justificativa = obterJustificativa(g);
+              const podeVerJustificativa = g.statusCodigo === 'RJ' || Boolean(justificativa);
+              const btnJustificativa = podeVerJustificativa
+                      ? `<button type="button" class="btn btn-justify" style="padding:4px 8px;font-size:12px" title="Ver justificativa da rejeição" onclick="openJustifyModal(${g.id})">Ver justificativa</button>`
+                      : '';
+              return `<tr>
+              <td><b>${esc(g.numeroGuia)}</b></td>
+              <td>${esc(g.beneficiarioNome)}</td>
+              <td>${esc(g.ocsNome)}</td>
+              <td>${fmt(g.dataEnvio)}</td>
+              <td>${fmt(g.dataAssinaturaMedico)}</td>
+              <td>${fmt(g.dataAssinaturaSecao)}</td>
+              <td>${badge(g)}</td>
+              <td>
+                <div class="action-group">
+                  <button type="button" class="btn btn-pdf" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF" onclick="visualizarPdfGuia(${g.id})">Ver / Imprimir PDF</button>
+                  ${btnJustificativa}
+                </div>
+              </td>
+            </tr>`;
+            }).join('')
+            : `<tr><td colspan="8">Nenhuma guia enviada ainda.</td></tr>`;
+
+    const medQ = guides.filter(g => g.statusCodigo === 'AM').slice().reverse();
+    $('pendingMed').innerHTML = medQ.length
+            ? medQ.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataEnvio)}</td>
+            <td>${badge(g)}</td>
+            <td><button type="button" class="btn o" onclick="openGuide(${g.id}, 'med')">Abrir guia</button></td>
+          </tr>`).join('')
+            : `<tr><td colspan="6">Nenhuma guia aguardando assinatura do Médico Chefe.</td></tr>`;
+
+    const secQ = guides.filter(g => g.statusCodigo === 'AS').slice().reverse();
+    $('pendingSec').innerHTML = secQ.length
+            ? secQ.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataEnvio)}</td>
+            <td>${fmt(g.dataAssinaturaMedico)}</td>
+            <td>${badge(g)}</td>
+            <td><button type="button" class="btn o" onclick="openGuide(${g.id}, 'sec')">Abrir guia</button></td>
+          </tr>`).join('')
+            : `<tr><td colspan="7">Nenhuma guia aguardando assinatura do Chefe da Seção.</td></tr>`;
+
+    $('signedMed').innerHTML = signedMedGuides.length
+            ? signedMedGuides.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataAssinaturaMedico)}</td>
+            <td>${badge(g)}</td>
+            <td>
+              <div class="action-group">
+                <button type="button" class="btn o" style="padding:4px 8px;font-size:12px" onclick="openSignedGuide(${g.id}, 'med')">Consultar guia</button>
+                <button type="button" class="btn btn-pdf" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF" onclick="visualizarPdfGuia(${g.id}, 'med')">Ver / Imprimir PDF</button>
+              </div>
+            </td>
+          </tr>`).join('')
+            : `<tr><td colspan="6">Você ainda não assinou nenhuma guia como Médico Chefe.</td></tr>`;
+
+    $('signedSec').innerHTML = signedSecGuides.length
+            ? signedSecGuides.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataAssinaturaSecao)}</td>
+            <td>${fmtD(g.dataValidade)}</td>
+            <td>${badge(g)}</td>
+            <td>
+              <div class="action-group">
+                <button type="button" class="btn o" style="padding:4px 8px;font-size:12px" onclick="openSignedGuide(${g.id}, 'sec')">Consultar guia</button>
+                <button type="button" class="btn btn-pdf" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF" onclick="visualizarPdfGuia(${g.id}, 'sec')">Ver / Imprimir PDF</button>
+              </div>
+            </td>
+          </tr>`).join('')
+            : `<tr><td colspan="7">Você ainda não assinou nenhuma guia como Chefe da Seção.</td></tr>`;
+
+    const ready = guides.filter(g => g.statusCodigo === 'PE');
+    $('ready').innerHTML = ready.length
+            ? ready.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataAssinaturaSecao)}</td>
+            <td>${fmtD(g.dataValidade)}</td>
+            <td><button type="button" class="btn g" onclick="openEmail(${g.id})">Preparar envio</button></td>
+          </tr>`).join('')
+            : `<tr><td colspan="6">Nenhuma guia aguardando envio.</td></tr>`;
+
+    const sent = guides.filter(g => g.statusCodigo === 'EN');
+    $('sent').innerHTML = sent.length
+            ? sent.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.beneficiarioEmail)}</td>
+            <td>${fmt(g.dataEnvioEmail)}</td>
+            <td>
+              <button type="button" class="btn btn-pdf" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF da Guia" onclick="visualizarPdfGuia(${g.id})">Ver / Imprimir PDF</button>
+            </td>
+          </tr>`).join('')
+            : `<tr><td colspan="5">Nenhuma guia enviada ainda.</td></tr>`;
+  }
+
+  function openJustifyModal(id) {
+    const g = guides.find(x => x.id === id);
+    if (!g) return;
+    const textoJustificativa = obterJustificativa(g) || 'Nenhuma justificativa registrada para esta rejeição.';
+
+    $('justifyModalTitle').textContent = 'Justificativa da rejeição · Guia ' + (g.numeroGuia || '');
+    $('justifyModalBody').innerHTML = `
+        <p class="small muted" style="margin-bottom:8px">
+          <b>Beneficiário:</b> ${esc(g.beneficiarioNome || '—')} &nbsp;·&nbsp; <b>OCS:</b> ${esc(g.ocsNome || '—')}
+        </p>
+        <div style="background:var(--panel2);padding:14px;border:1px solid var(--line);border-radius:8px;white-space:pre-line;line-height:1.5">${esc(textoJustificativa)}</div>
+      `;
+    $('justifyModal').classList.add('on');
+  }
+
+  function closeJustifyModal() {
+    $('justifyModal').classList.remove('on');
+  }
+
+  const drop = $('drop');
+  const fileInput = $('file');
+
+  drop.onkeydown = e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  };
+
+  fileInput.onchange = e => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  window.addEventListener('dragover', e => e.preventDefault());
+  window.addEventListener('drop', e => e.preventDefault());
+
+  drop.addEventListener('dragenter', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.add('drag');
+  });
+
+  drop.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    drop.classList.add('drag');
+  });
+
+  drop.addEventListener('dragleave', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.remove('drag');
+  });
+
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.remove('drag');
+    const files = (e.dataTransfer && e.dataTransfer.files) ? e.dataTransfer.files : null;
+    if (files && files.length > 0) {
+      setFile(files[0]);
+    }
+  });
+
+  function codigoPreGuia(p) {
+    const ano = p.dataRegistro ? new Date(p.dataRegistro).getFullYear() : new Date().getFullYear();
+    return 'PG-' + ano + '-' + String(p.id).padStart(4, '0');
+  }
+
+  async function carregarPreGuiasLiberadas() {
+    try {
+      const res = await fetch('/api/pre-guias?status=LIBERADA', { headers: { 'Authorization': getAuthHeader('emitter') } });
+      preGuiasLiberadas = res.ok ? await safeJson(res) : [];
+    } catch (err) {
+      preGuiasLiberadas = [];
+    }
+    const doLink = new URLSearchParams(window.location.search).get('preGuia');
+    if (preGuiaSelecionada && !preGuiasLiberadas.some(p => p.token === preGuiaSelecionada.token)) {
+      preGuiaSelecionada = null;
+    }
+    if (!preGuiaSelecionada && doLink) {
+      preGuiaSelecionada = preGuiasLiberadas.find(p => p.token === doLink) || null;
+    }
+    renderPreGuiasLiberadas();
+  }
+
+  function renderPreGuiasLiberadas() {
+    const atual = preGuiaSelecionada ? preGuiaSelecionada.token : null;
+    $('liberadas').innerHTML = preGuiasLiberadas.map(p => `
+        <tr${p.token === atual ? ' style="background:rgba(37, 99, 235, .08)"' : ''}>
+          <td><b>${codigoPreGuia(p)}</b></td>
+          <td>${esc(p.beneficiarioNome)}</td>
+          <td>${esc(p.beneficiarioPrec)}</td>
+          <td>${esc(p.ocsNome)}</td>
+          <td>${fmtD(p.dataEmissao)}</td>
+          <td><button type="button" class="btn o" data-token="${esc(p.token)}">${p.token === atual ? 'Selecionada' : 'Selecionar'}</button></td>
+        </tr>`).join('') || '<tr><td colspan="6">Nenhuma pré-guia liberada. Confirme a emissão em Consultar pré-guias.</td></tr>';
+
+    const box = $('preGuiaSelecionada');
+    if (preGuiaSelecionada) {
+      box.className = 'sign';
+      box.innerHTML = `<div><b>Pré-guia ${codigoPreGuia(preGuiaSelecionada)}</b> · ${esc(preGuiaSelecionada.beneficiarioNome)} · ${esc(preGuiaSelecionada.ocsNome)}</div>`;
+    } else {
+      box.className = 'warn';
+      box.textContent = 'Nenhuma pré-guia selecionada. Escolha uma pré-guia liberada na lista acima.';
+    }
+    $('uploadBtn').disabled = !(selectedFile && preGuiaSelecionada);
+  }
+
+  function selecionarPreGuia(token) {
+    preGuiaSelecionada = preGuiasLiberadas.find(p => p.token === token) || null;
+    $('uploadError').hidden = true;
+    renderPreGuiasLiberadas();
+  }
+
+  function setFile(f) {
+    if (!f) return;
+    $('uploadError').hidden = true;
+    if (!preGuiaSelecionada) {
+      $('file').value = '';
+      return uploadErr('Selecione primeiro a pré-guia liberada à qual esta guia pertence.');
+    }
+    if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
+      return uploadErr('Selecione um arquivo PDF.');
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      return uploadErr('O arquivo excede o limite de 5 MB.');
+    }
+    selectedFile = f;
+    $('fileName').textContent = '📄 ' + f.name + ' · ' + Math.max(1, Math.round(f.size / 1024)) + ' KB';
+    $('fileInfo').classList.remove('hidden');
+    $('uploadBtn').disabled = !preGuiaSelecionada;
+    $('success').classList.add('hidden');
+  }
+
+  document.addEventListener('click', e => {
+    const botao = e.target.closest('#liberadas button[data-token]');
+    if (botao) selecionarPreGuia(botao.dataset.token);
+  });
+
+  function uploadErr(m) {
+    $('uploadError').textContent = m;
+    $('uploadError').hidden = false;
+  }
+
+  function clearFile() {
+    selectedFile = null;
+    $('file').value = '';
+    $('fileInfo').classList.add('hidden');
+    $('uploadBtn').disabled = true;
+    if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
+  }
+
+  async function uploadPdf() {
+    if (!selectedFile || !preGuiaSelecionada) return;
+    const uploadedName = selectedFile.name;
+    $('uploadError').hidden = true;
+    $('processing').classList.remove('hidden');
+    $('uploadBtn').disabled = true;
+    if ($('clearFileBtn')) $('clearFileBtn').disabled = true;
+
+    const formData = new FormData();
+    formData.append('arquivo', selectedFile);
+
+    try {
+      const res = await fetch('/api/pre-guias/' + encodeURIComponent(preGuiaSelecionada.token) + '/guia-assinatura', {
+        method: 'POST',
+        headers: { 'Authorization': getAuthHeader('emitter') },
+        body: formData
+      });
+      const data = await safeJson(res);
+      $('processing').classList.add('hidden');
+
+      if (!res.ok) {
+        if (data.codigo === 'PACIENTE_NAO_ENCONTRADO' || (res.status === 422 && data.dadosExtraidos)) {
+          abrirModalPacienteNaoEncontrado(data.dadosExtraidos, data.error);
+          return;
+        }
+        uploadErr(data.error || 'Não foi possível enviar o PDF da guia.');
+        $('uploadBtn').disabled = false;
+        if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
+        return;
+      }
+
+      $('successText').textContent = data.mensagem || ('Arquivo ' + uploadedName + ' recebido.');
+      $('extracted').innerHTML = `
+          <p><b>Nº da guia:</b> ${esc(data.numeroGuia)} &nbsp; <b>Beneficiário:</b> ${esc(data.beneficiarioNome)} &nbsp; <b>OCS:</b> ${esc(data.ocsNome)}</p>
+          <p class="muted">Beneficiário e OCS vinculados a partir da pré-guia selecionada.</p>
+        `;
+      $('success').classList.remove('hidden');
+      clearFile();
+      preGuiaSelecionada = null;
+      await refreshData();
+      toast('Guia enviada para assinatura do Médico Chefe.');
+    } catch (err) {
+      $('processing').classList.add('hidden');
+      $('uploadBtn').disabled = false;
+      if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
+      uploadErr('Erro ao comunicar com o servidor para envio da guia.');
+    }
+  }
+
+  let pendingExtractedData = null;
+
+  function abrirModalPacienteNaoEncontrado(dados, msg) {
+    pendingExtractedData = dados || {};
+    $('patientModalTitle').textContent = 'Beneficiário não cadastrado';
+    $('patientModalBody').innerHTML = `
+        <div style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 14px;border-radius:6px;margin-bottom:14px;font-size:0.9rem">
+          ⚠️ <b>Atenção:</b> O beneficiário identificado nesta guia não foi localizado no cadastro do FuSEx. Para prosseguir no fluxo de emissão e envio da guia, é necessário incluí-lo na base de dados.
+        </div>
+        <div style="background:var(--panel2);padding:12px 16px;border:1px solid var(--line);border-radius:8px;margin-bottom:16px;font-size:0.9rem;line-height:1.6">
+          <p style="margin:2px 0"><b>Nº da Guia:</b> ${esc(pendingExtractedData.numeroGuia || 'Identificado no PDF')}</p>
+          <p style="margin:2px 0"><b>Beneficiário:</b> ${esc(pendingExtractedData.beneficiarioNome || 'Não identificado')}</p>
+          <p style="margin:2px 0"><b>Prec CP:</b> ${esc(pendingExtractedData.beneficiarioPrecCp || 'Não identificado')}</p>
+          <p style="margin:2px 0"><b>OCS:</b> ${esc(pendingExtractedData.ocsNome || 'Não identificada')}</p>
+        </div>
+        <p style="margin-bottom:6px">Deseja cadastrar este beneficiário agora utilizando os dados extraídos da guia?</p>
+      `;
+    $('patientModalActs').innerHTML = `
+        <button type="button" class="btn o" onclick="cancelarCadastroPaciente()">Cancelar e descartar guia</button>
+        <button type="button" class="btn g" onclick="iniciarFormularioCadastroPaciente()">Sim, cadastrar beneficiário</button>
+      `;
+    $('patientModal').classList.add('on');
+  }
+
+  function cancelarCadastroPaciente() {
+    $('patientModal').classList.remove('on');
+    pendingExtractedData = null;
+    clearFile();
+    if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
+    uploadErr('Operação cancelada. A guia não foi registrada e o beneficiário não foi cadastrado.');
+  }
+
+  function iniciarFormularioCadastroPaciente() {
+    const d = pendingExtractedData || {};
+    $('patientModalTitle').textContent = 'Cadastrar Beneficiário no FuSEx';
+    $('patientModalBody').innerHTML = `
+        <p class="small muted" style="margin-bottom:12px">Confira os dados extraídos da guia e informe o e-mail do beneficiário para prosseguir com a emissão:</p>
+        <form id="cadPacienteForm" onsubmit="event.preventDefault(); submeterCadastroPaciente();" style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label class="small muted" style="display:block;margin-bottom:4px">Nome Completo *</label>
+            <input type="text" id="cadNome" value="${esc(d.beneficiarioNome || '')}" required style="width:100%;box-sizing:border-box">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">Prec CP *</label>
+              <input type="text" id="cadPrec" value="${esc(d.beneficiarioPrecCp || '')}" required style="width:100%;box-sizing:border-box">
+            </div>
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">CPF</label>
+              <input type="text" id="cadCpf" value="${esc(d.beneficiarioPrecCp || '')}" style="width:100%;box-sizing:border-box">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">OM (Organização Militar) *</label>
+              <input type="text" id="cadOm" value="FUSEX" required style="width:100%;box-sizing:border-box">
+            </div>
+            <div>
+              <label class="small muted" style="display:block;margin-bottom:4px">Telefone</label>
+              <input type="text" id="cadTelefone" placeholder="(XX) XXXXX-XXXX" style="width:100%;box-sizing:border-box">
+            </div>
+          </div>
+          <div>
+            <label class="small muted" style="display:block;margin-bottom:4px"><b>E-mail do Beneficiário *</b> (onde receberá a guia assinada)</label>
+            <input type="email" id="cadEmail" placeholder="exemplo@email.com.br" required style="width:100%;box-sizing:border-box;border-color:var(--blue)">
+            <p class="hint" style="margin-top:4px">Este e-mail será salvo no cadastro oficial e utilizado para o envio da guia.</p>
+          </div>
+          <div id="cadPacienteMsg" class="hidden" style="color:var(--red);font-size:0.88rem"></div>
+        </form>
+      `;
+    $('patientModalActs').innerHTML = `
+        <button type="button" class="btn o" onclick="cancelarCadastroPaciente()">Cancelar</button>
+        <button id="btnSalvarPac" type="button" class="btn g" onclick="submeterCadastroPaciente()">Cadastrar Beneficiário e Emitir Guia</button>
+      `;
+    setTimeout(() => {
+      const emailEl = $('cadEmail');
+      if (emailEl) emailEl.focus();
+    }, 100);
+  }
+
+  async function submeterCadastroPaciente() {
+    const msgBox = $('cadPacienteMsg');
+    if (!selectedFile) {
+      if (msgBox) {
+        msgBox.textContent = 'O arquivo da guia não está mais selecionado. Por favor, feche e anexe o arquivo novamente.';
+        msgBox.classList.remove('hidden');
+      }
+      return;
+    }
+    const nome = ($('cadNome') ? $('cadNome').value : '').trim();
+    const prec = ($('cadPrec') ? $('cadPrec').value : '').trim();
+    const cpf = ($('cadCpf') ? $('cadCpf').value : '').trim();
+    const om = ($('cadOm') ? $('cadOm').value : '').trim();
+    const email = ($('cadEmail') ? $('cadEmail').value : '').trim();
+    const telefone = ($('cadTelefone') ? $('cadTelefone').value : '').trim();
+
+    if (!nome || !prec || !email) {
+      if (msgBox) {
+        msgBox.textContent = 'Por favor, preencha os campos obrigatórios (Nome, Prec CP e E-mail).';
+        msgBox.classList.remove('hidden');
+      }
+      return;
+    }
+    if (!email.includes('@') || !email.includes('.')) {
+      if (msgBox) {
+        msgBox.textContent = 'Informe um endereço de e-mail válido.';
+        msgBox.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if ($('btnSalvarPac')) {
+      $('btnSalvarPac').disabled = true;
+      $('btnSalvarPac').textContent = 'Processando e emitindo...';
+    }
+
+    const formData = new FormData();
+    formData.append('arquivo', selectedFile);
+    formData.append('confirmarCadastro', 'true');
+    formData.append('pacienteNome', nome);
+    formData.append('pacientePrec', prec);
+    formData.append('pacienteCpf', cpf || prec);
+    formData.append('pacienteOm', om || 'FUSEX');
+    formData.append('pacienteEmail', email);
+    if (telefone) formData.append('pacienteTelefone', telefone);
+
+    const endpointUrl = (preGuiaSelecionada && preGuiaSelecionada.token)
+      ? '/api/pre-guias/' + encodeURIComponent(preGuiaSelecionada.token) + '/guia-assinatura'
+      : '/api/assinaturas/guias';
+
+    try {
+      const res = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: { 'Authorization': getAuthHeader('emitter') },
+        body: formData
+      });
+      const data = await safeJson(res);
+
+      if (!res.ok) {
+        if ($('btnSalvarPac')) {
+          $('btnSalvarPac').disabled = false;
+          $('btnSalvarPac').textContent = 'Cadastrar Beneficiário e Emitir Guia';
+        }
+        if (msgBox) {
+          msgBox.textContent = data.error || 'Erro ao cadastrar paciente e emitir guia.';
+          msgBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      $('patientModal').classList.remove('on');
+      pendingExtractedData = null;
+
+      $('successText').textContent = data.mensagem || 'Guia emitida e paciente cadastrado com sucesso!';
+      $('extracted').innerHTML = `
+          <p><b>Nº da guia:</b> ${esc(data.numeroGuia)} &nbsp; <b>Beneficiário:</b> ${esc(data.beneficiarioNome)} &nbsp; <b>OCS:</b> ${esc(data.ocsNome)}</p>
+          <p class="muted">Beneficiário cadastrado no banco com o e-mail: <b>${esc(data.beneficiarioEmail)}</b></p>
+        `;
+      $('success').classList.remove('hidden');
+      clearFile();
+      preGuiaSelecionada = null;
+      await refreshData();
+      toast('Beneficiário cadastrado e guia enviada para assinatura do Médico Chefe!');
+    } catch (err) {
+      if ($('btnSalvarPac')) {
+        $('btnSalvarPac').disabled = false;
+        $('btnSalvarPac').textContent = 'Cadastrar Beneficiário e Emitir Guia';
+      }
+      if (msgBox) {
+        msgBox.textContent = 'Erro ao comunicar com o servidor.';
+        msgBox.classList.remove('hidden');
+      }
+    }
+  }
+
+  async function openGuide(id, who) {
+    profile = who;
+    let data;
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${id}/detalhes`, {
+        headers: { 'Authorization': getAuthHeader(who) }
+      });
+      data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || 'Não foi possível abrir os detalhes da guia.');
+    } catch (err) {
+      toast(err.message, true);
+      return;
+    }
+
+    closeDetail();
+    selectedGuide = data;
+
+    const detail = $(who === 'med' ? 'signDetailMed' : 'signDetailSec');
+    detail.classList.remove('hidden');
+    detail.innerHTML = `
+        <div class="section-title">
+          <div>
+            <h2>Guia ${esc(selectedGuide.numeroGuia)} · ${who === 'med' ? 'Assinatura do Médico Chefe' : 'Assinatura do Chefe da Seção'}</h2>
+            <p class="small muted">PDF original da guia anexado pelo Emissor de Guias.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn o" onclick="baixarPdfGuia(${selectedGuide.id}, '${who}')">Abrir em nova aba</button>
+            <button type="button" class="btn o" onclick="closeDetail()">Fechar detalhes</button>
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1.4">
+            <div id="pdfPreview" class="pdf-original"><p class="small muted">Carregando o PDF original da guia...</p></div>
+          </div>
+          <div style="flex:1">
+            <div class="card" style="background:var(--bg);box-shadow:none">
+              <h2>Conferência e assinatura</h2>
+              <div id="guideData" class="small"></div>
+              <div class="sign">
+                <input id="confirmCheck" type="checkbox">
+                <label for="confirmCheck" style="margin:0;color:var(--tx)">Confirmo que conferi os dados da guia e autorizo a assinatura.</label>
+              </div>
+              <label>Desenhe sua assinatura no campo abaixo</label>
+              <canvas id="signature" class="sigcanvas" width="600" height="150"></canvas>
+              <div class="sig-actions">
+                <button type="button" class="btn o" onclick="clearSignature()">Limpar assinatura</button>
+              </div>
+              <p class="hint">Use o mouse, touchpad ou tela sensível ao toque.</p>
+              <button id="signBtn" type="button" class="btn g" style="width:100%;margin-top:12px" disabled onclick="signGuide()">Confirmar assinatura</button>
+              <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+              <div class="reject-box">
+                <label for="rejectReason" style="margin:0;color:var(--tx)"><b>Justificativa da rejeição</b> (obrigatória ao rejeitar)</label>
+                <textarea id="rejectReason" placeholder="Informe o motivo da rejeição da guia..."></textarea>
+                <div id="rejectError" class="erro" hidden style="margin-top:8px"></div>
+                <button id="rejectBtn" type="button" class="btn o" style="width:100%;margin-top:10px" onclick="rejectGuide()">Rejeitar guia</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+    $('guideData').innerHTML = `
+        <p><b>Beneficiário:</b> ${esc(selectedGuide.beneficiarioNome)}</p>
+        <p><b>OCS:</b> ${esc(selectedGuide.ocsNome)}</p>
+        <p><b>Enviada em:</b> ${fmt(selectedGuide.dataEnvio)}</p>
+        <p><b>Validade:</b> 60 dias a partir da assinatura do Chefe da Seção</p>
+      `;
+
+    carregarPdfOriginal(selectedGuide.id, who);
+
+    initSignature();
+    $('confirmCheck').checked = false;
+    $('signBtn').disabled = true;
+    $('confirmCheck').onchange = validateSign;
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function openSignedGuide(id, who) {
+    profile = who;
+    let data;
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${id}/detalhes`, {
+        headers: { 'Authorization': getAuthHeader(who) }
+      });
+      data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || 'Não foi possível abrir os detalhes da guia.');
+    } catch (err) {
+      toast(err.message, true);
+      return;
+    }
+
+    closeDetail();
+    selectedGuide = data;
+
+    const detail = $(who === 'med' ? 'signDetailMed' : 'signDetailSec');
+    detail.classList.remove('hidden');
+    detail.innerHTML = `
+        <div class="section-title">
+          <div>
+            <h2>Guia ${esc(selectedGuide.numeroGuia)} · Consulta de guia já assinada</h2>
+            <p class="small muted">Visualização somente leitura do documento e dos dados de assinatura.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn o" onclick="baixarPdfGuia(${selectedGuide.id}, '${who}')">Abrir em nova aba</button>
+            <button type="button" class="btn o" onclick="closeDetail()">Fechar consulta</button>
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1.4">
+            <div id="pdfPreview" class="pdf-original"><p class="small muted">Carregando o PDF da guia assinada...</p></div>
+          </div>
+          <div style="flex:1">
+            <div class="card" style="background:var(--bg);box-shadow:none">
+              <h2>Dados da guia</h2>
+              <div class="small" style="line-height:1.8">
+                <p><b>Status atual:</b> ${badge(selectedGuide)}</p>
+                <p><b>Beneficiário:</b> ${esc(selectedGuide.beneficiarioNome)}</p>
+                <p><b>Prec CP:</b> ${esc(selectedGuide.beneficiarioPrecCp || '—')}</p>
+                <p><b>OCS:</b> ${esc(selectedGuide.ocsNome)}</p>
+                <p><b>Enviada em:</b> ${fmt(selectedGuide.dataEnvio)}</p>
+                <p><b>Assinatura do Médico Chefe:</b> ${fmt(selectedGuide.dataAssinaturaMedico)}${selectedGuide.medicoChefeUsuario ? ' (' + esc(selectedGuide.medicoChefeUsuario) + ')' : ''}</p>
+                <p><b>Assinatura do Chefe da Seção:</b> ${fmt(selectedGuide.dataAssinaturaSecao)}${selectedGuide.chefeSecaoUsuario ? ' (' + esc(selectedGuide.chefeSecaoUsuario) + ')' : ''}</p>
+                <p><b>Validade:</b> ${selectedGuide.dataValidade ? fmtD(selectedGuide.dataValidade) : '60 dias a partir da assinatura do Chefe da Seção'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+    carregarPdfOriginal(selectedGuide.id, who);
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  let pdfPreviewUrl = null;
+
+  function liberarPdfPreview() {
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+      pdfPreviewUrl = null;
+    }
+  }
+
+  async function carregarPdfOriginal(id, who) {
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${id}/pdf`, {
+        headers: { 'Authorization': getAuthHeader(who) }
+      });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const box = $('pdfPreview');
+      if (!box || !selectedGuide || selectedGuide.id !== id) return;
+      liberarPdfPreview();
+      pdfPreviewUrl = URL.createObjectURL(blob);
+      box.innerHTML = `<iframe src="${pdfPreviewUrl}#view=FitH" title="PDF original da guia ${esc(selectedGuide.numeroGuia)}"></iframe>`;
+    } catch (_) {
+      const box = $('pdfPreview');
+      if (box) box.innerHTML = '<div class="warn">Não foi possível carregar o PDF original da guia. Use "Abrir em nova aba".</div>';
+    }
+  }
+
+  async function baixarPdfGuia(id, roleOverride) {
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${id}/pdf`, {
+        headers: { 'Authorization': getAuthHeader(roleOverride || role || profile) }
+      });
+      if (!res.ok) throw new Error('Não foi possível abrir o PDF.');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      if (!win) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `guia_${id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast(err.message || 'Erro ao abrir PDF.', true);
+    }
+  }
+
+  const visualizarPdfGuia = baixarPdfGuia;
+
+  async function imprimirPdfGuia(id, roleOverride) {
+    try {
+      toast('Carregando guia para impressão...');
+      const res = await fetch(`/api/assinaturas/guias/${id}/pdf`, {
+        headers: { 'Authorization': getAuthHeader(roleOverride || role || profile) }
+      });
+      if (!res.ok) throw new Error('Não foi possível carregar o PDF para impressão.');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      if (win) {
+        win.onload = () => {
+          try { win.print(); } catch (_) {}
+        };
+        toast('Guia aberta para impressão.');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `guia_${id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast('Arquivo baixado. Abra para imprimir.');
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+    } catch (err) {
+      toast(err.message || 'Erro ao imprimir PDF.', true);
+    }
+  }
+
+  function closeDetail() {
+    liberarPdfPreview();
+    ['signDetailMed', 'signDetailSec'].forEach(id => {
+      const el = $(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+      }
+    });
+    canvas = null;
+    ctx = null;
+    draw = false;
+    selectedGuide = null;
+    hasInk = false;
+  }
+
+  function initSignature() {
+    canvas = $('signature');
+    ctx = canvas.getContext('2d');
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#17212b';
+    hasInk = false;
+
+    canvas.addEventListener('pointerdown', e => {
+      draw = true;
+      if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+      const p = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 0.1, p.y);
+      ctx.stroke();
+      hasInk = true;
+      validateSign();
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (!draw) return;
+      const p = pos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      hasInk = true;
+      validateSign();
+    });
+
+    ['pointerup', 'pointercancel'].forEach(ev => canvas.addEventListener(ev, () => {
+      draw = false;
+    }));
+  }
+
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * canvas.width / r.width,
+      y: (e.clientY - r.top) * canvas.height / r.height
+    };
+  }
+
+  function clearSignature() {
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    hasInk = false;
+    if ($('signBtn')) validateSign();
+  }
+
+  function validateSign() {
+    if ($('signBtn')) {
+      $('signBtn').disabled = !($('confirmCheck').checked && hasInk && selectedGuide);
+    }
+  }
+
+  async function signGuide() {
+    if (!selectedGuide || !hasInk || !$('confirmCheck').checked) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    $('signBtn').disabled = true;
+    if ($('rejectBtn')) $('rejectBtn').disabled = true;
+
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${selectedGuide.id}/decisao`, {
+        method: 'POST',
+        headers: {
+          'Authorization': getAuthHeader(profile),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          decisao: 'APROVAR',
+          perfil: profile,
+          confirmado: true,
+          assinaturaBase64: dataUrl
+        })
+      });
+      const data = await safeJson(res);
+      if (!res.ok) {
+        toast(data.error || 'Erro ao registrar assinatura.', true);
+        validateSign();
+        if ($('rejectBtn')) $('rejectBtn').disabled = false;
+        return;
+      }
+      closeDetail();
+      await refreshData();
+      toast('Assinatura registrada com sucesso.');
+    } catch (err) {
+      toast('Erro de comunicação ao registrar assinatura.', true);
+      validateSign();
+      if ($('rejectBtn')) $('rejectBtn').disabled = false;
+    }
+  }
+
+  async function rejectGuide() {
+    if (!selectedGuide) return;
+    const reasonEl = $('rejectReason');
+    const errEl = $('rejectError');
+    const motivo = reasonEl ? reasonEl.value.trim() : '';
+
+    if (!motivo) {
+      if (errEl) {
+        errEl.textContent = 'Informe uma justificativa para rejeitar a guia.';
+        errEl.hidden = false;
+      }
+      if (reasonEl) reasonEl.focus();
+      return;
+    }
+    if (errEl) errEl.hidden = true;
+
+    if (!confirm('Deseja realmente rejeitar esta guia com a justificativa informada?')) return;
+    if ($('signBtn')) $('signBtn').disabled = true;
+    if ($('rejectBtn')) $('rejectBtn').disabled = true;
+
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${selectedGuide.id}/decisao`, {
+        method: 'POST',
+        headers: {
+          'Authorization': getAuthHeader(profile),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          decisao: 'REJEITAR',
+          perfil: profile,
+          confirmado: false,
+          motivoRejeicao: motivo
+        })
+      });
+      const data = await safeJson(res);
+      if (!res.ok) {
+        toast(data.error || 'Erro ao rejeitar guia.', true);
+        validateSign();
+        if ($('rejectBtn')) $('rejectBtn').disabled = false;
+        return;
+      }
+      closeDetail();
+      await refreshData();
+      toast('Guia rejeitada.');
+    } catch (err) {
+      toast('Erro de comunicação ao rejeitar guia.', true);
+      validateSign();
+      if ($('rejectBtn')) $('rejectBtn').disabled = false;
+    }
+  }
+
+  function openEmail(id) {
+    emailGuideId = id;
+    const g = guides.find(x => x.id === id);
+    if (!g) return;
+
+    $('modalTitle').textContent = 'Enviar guia ' + g.numeroGuia;
+    $('modalBody').innerHTML = `
+        <p class="small muted">E-mail do beneficiário (cadastro)</p>
+        <p><b>${esc(g.beneficiarioEmail)}</b></p>
+        <p class="small muted" style="margin-top:16px">Mensagem pronta</p>
+        <div id="readyMessageText" style="background:var(--panel2);padding:14px;border:1px solid var(--line);border-radius:8px;white-space:pre-line">${esc(g.mensagemPronta)}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button type="button" class="btn o" onclick="copyMessage()">Copiar mensagem</button>
+          <button type="button" class="btn o" onclick="baixarPdfGuia(${g.id}, 'emitter')">Ver / Imprimir PDF</button>
+        </div>
+      `;
+    $('modal').classList.add('on');
+  }
+
+  function copyMessage() {
+    const g = guides.find(x => x.id === emailGuideId);
+    if (!g) return;
+    const t = g.mensagemPronta;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(() => toast('Mensagem copiada.')).catch(() => fallbackCopy(t));
+    } else {
+      fallbackCopy(t);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Mensagem copiada.');
+  }
+
+  async function sendEmail() {
+    if (!emailGuideId) return;
+    $('sendEmailBtn').disabled = true;
+
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${emailGuideId}/enviar-email`, {
+        method: 'POST',
+        headers: { 'Authorization': getAuthHeader('emitter') }
+      });
+      const data = await safeJson(res);
+      if (!res.ok) {
+        toast(data.error || 'Não foi possível enviar o e-mail.', true);
+        $('sendEmailBtn').disabled = false;
+        return;
+      }
+      closeModal();
+      await refreshData();
+      toast('E-mail enviado e guia disponibilizada na conta do beneficiário.');
+    } catch (err) {
+      toast('Erro de comunicação ao enviar o e-mail.', true);
+    } finally {
+      $('sendEmailBtn').disabled = false;
+    }
+  }
+
+  function closeModal() {
+    $('modal').classList.remove('on');
+    emailGuideId = null;
+  }
+
+  $('modal').addEventListener('click', e => {
+    if (e.target === $('modal') && !$('sendEmailBtn').disabled) {
+      closeModal();
+    }
+  });
+
+  $('justifyModal').addEventListener('click', e => {
+    if (e.target === $('justifyModal')) {
+      closeJustifyModal();
+    }
+  });
+
+  window.addEventListener('pointerup', () => {
+    draw = false;
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if ($('justifyModal').classList.contains('on')) closeJustifyModal();
+      else if ($('patientModal').classList.contains('on') && !($('btnSalvarPac') && $('btnSalvarPac').disabled)) cancelarCadastroPaciente();
+      else if ($('modal').classList.contains('on') && !$('sendEmailBtn').disabled) closeModal();
+      else if (selectedGuide) closeDetail();
+    }
+  });
+
+  function toast(m, isErr) {
+    const t = $('toast');
+    t.textContent = m;
+    t.className = 'toast on' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('on'), 3000);
+  }
+
+  (async function init() {
+    if (!FusexAuth.require(['ROLE_EG', 'ROLE_MEDICO_CHEFE', 'ROLE_CHEFE_SECAO', 'ROLE_ADMIN'])) return;
+    const urlView = new URLSearchParams(window.location.search).get('view');
+    await aplicarAcesso(urlView);
+  })();
+</script>
+</body>
+</html>

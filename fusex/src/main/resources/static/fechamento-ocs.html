@@ -3,244 +3,474 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FUSEX - Fechamento Mensal</title>
+  <title>SISMED / FUSEX - Fechamento Mensal</title>
   <link rel="stylesheet" href="css/ocs-mockup-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: var(--blue-dark);
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand i {
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      color: #fff;
+      border-radius: 12px;
+      font-style: normal;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+    }
+
+    .brand span {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--tx);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-subtle);
+      font-weight: 700;
+      padding: 14px 12px 4px;
+    }
+
+    .nav a {
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .nav a.on {
+      background: rgba(37, 99, 235, .1);
+      color: var(--blue-dark);
+      border-left: 3px solid var(--blue);
+    }
+
+    .who {
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .who b {
+      display: block;
+    }
+
+    main {
+      max-width: 1440px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .section-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 6px;
+    }
+
+    .sub {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+
+    .card .tw {
+      margin-top: 8px;
+    }
+
+    .card table th,
+    .card table td {
+      padding: 11px 14px;
+      vertical-align: middle;
+    }
+
+    .card .acts {
+      margin-top: 16px;
+    }
+
+    select#competencia {
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      min-width: 170px;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    select#competencia:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+      outline: none;
+    }
+
+    .tag.t-info {
+      background: rgba(37, 99, 235, .12);
+      color: #1d4ed8;
+    }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+    }
+
+    @media(max-width: 820px) {
+      aside { width: auto; }
+      .nav { width: 100%; }
+      .nav-label { padding-top: 7px; }
+      main { padding: 18px; }
+    }
+  </style>
 </head>
 <body>
 
-  <aside>
-    <a href="index.html" class="brand"><i>✚</i><span>FUSEX<small>Guias, Lotes e Fechamento (OCS)</small></span></a>
-    <nav class="nav">
-      <a href="guias-ocs.html">Guias do mês</a>
-      <a href="lotes-ocs.html">Lotes de fatura</a>
-      <a href="fechamento-ocs.html" class="on">Fechamento mensal</a>
-    </nav>
-    <div class="who" id="who">
-      <b>Não autenticado</b>
-      Faça login para continuar
+<aside>
+  <a href="index.html" class="brand"><i>✚</i><span>SISMED<small>Sistema Integrado de Saúde Militar</small></span></a>
+  <nav class="nav">
+    <div class="nav-label">Área da OCS</div>
+    <a href="validade-guia.html">Consulta de validade</a>
+    <a href="guias-ocs.html">Guias do mês</a>
+    <a href="lotes-ocs.html">Lotes de fatura</a>
+    <a href="fechamento-ocs.html" class="on">Fechamento mensal</a>
+  </nav>
+  <div class="who">
+    <b id="whoRole">OCS</b>
+    <span id="whoUser"></span><br>
+    <a href="#" class="small" onclick="FusexAuth.logout(); return false;" style="color:inherit;text-decoration:underline;">Sair</a>
+  </div>
+</aside>
+
+<main>
+  <div class="section-title">
+    <div>
+      <h1>Fechamento Mensal</h1>
+      <p class="sub">Envie para a Fusex, de uma só vez, todos os lotes gerados em uma competência.</p>
     </div>
-  </aside>
+  </div>
+  <div class="warn">⚠ Atenção: os envios mensais devem ocorrer até o 15º dia útil do mês.</div>
 
-  <main>
-    <h1>Fechamento Mensal</h1>
-    <p class="sub">Envie para a Fusex, de uma só vez, todos os lotes gerados em uma competência.</p>
-    <div class="warn">⚠ Atenção: os envios mensais devem ocorrer até o 15º dia útil do mês.</div>
+  <div id="erroGlobal" class="erro" hidden></div>
 
-    <div class="card">
-      <h2>Autenticação</h2>
-      <div class="row">
-        <div><label for="user">Usuário</label><input id="user" value="ocs"></div>
-        <div><label for="pass">Senha</label><input id="pass" type="password" placeholder="••••••••"></div>
-        <div style="display: flex; align-items: flex-end;">
-          <button id="carregarBtn" class="btn" style="width: 100%;">Entrar e Carregar</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="erroGlobal" class="erro" hidden></div>
-
-    <div class="card">
-      <h2>Enviar fechamento do mês</h2>
-      <div class="row">
-        <div><label for="competencia">Competência</label><input type="month" id="competencia"></div>
-      </div>
-
-      <div class="tw" style="margin-top: 12px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Lote</th>
-              <th>Guias</th>
-              <th>Fatura (PDF)</th>
-              <th>Espelho</th>
-            </tr>
-          </thead>
-          <tbody id="tbResumo">
-            <tr><td colspan="4">Entre com usuário e senha para carregar os lotes.</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="acts">
-        <button id="enviarFechamentoBtn" class="btn g" disabled>Enviar fechamento do mês</button>
-      </div>
+  <div class="card">
+    <h2>Enviar fechamento do mês</h2>
+    <div class="row">
+      <div><label for="competencia">Competência</label><select id="competencia"></select></div>
     </div>
 
-    <div class="card">
-      <h2>Fechamentos enviados</h2>
-      <div class="tw">
-        <table>
-          <thead>
-            <tr>
-              <th>Competência</th>
-              <th>Enviado em</th>
-              <th>Lotes</th>
-              <th>Guias</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="tbEnviados">
-            <tr><td colspan="5">Nenhum fechamento enviado ainda.</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="tw" style="margin-top: 12px;">
+      <table>
+        <thead>
+        <tr>
+          <th>Lote</th>
+          <th>Guias</th>
+          <th>Fatura (PDF)</th>
+          <th>Espelho</th>
+        </tr>
+        </thead>
+        <tbody id="tbResumo">
+        <tr><td colspan="4">Carregando lotes...</td></tr>
+        </tbody>
+      </table>
     </div>
-  </main>
 
-  <div class="ov" id="mConf" role="dialog" aria-modal="true" aria-labelledby="cfT">
-    <div class="modal" style="max-width: 460px;">
-      <h2 id="cfT">Confirmar envio do fechamento do mês</h2>
-      <p id="cfTxt"></p>
-      <div id="modalErro" class="erro" hidden></div>
-      <div class="acts">
-        <button class="btn o" id="cancelarEnvioBtn">Voltar</button>
-        <button class="btn g" id="confirmarEnvioBtn">Confirmar envio</button>
-      </div>
+    <div class="acts">
+      <button id="enviarFechamentoBtn" class="btn g" disabled>Enviar fechamento do mês</button>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="card">
+    <h2>Fechamentos enviados</h2>
+    <div class="tw">
+      <table>
+        <thead>
+        <tr>
+          <th>Competência</th>
+          <th>Enviado em</th>
+          <th>Lotes</th>
+          <th>Guias</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+        <tbody id="tbEnviados">
+        <tr><td colspan="5">Nenhum fechamento enviado ainda.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
 
-  <script>
-    const $ = id => document.getElementById(id);
-    const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const formatarCompetencia = (ano, mes) => `${MESES[mes]}/${ano}`;
-    const STATUS_LABEL = { AGUARDANDO_FATURAMENTO: 'Aguardando faturamento' };
-    let tt;
+<div class="ov" id="mConf" role="dialog" aria-modal="true" aria-labelledby="cfT">
+  <div class="modal" style="max-width: 460px;">
+    <h2 id="cfT">Confirmar envio do fechamento do mês</h2>
+    <p id="cfTxt"></p>
+    <div id="modalErro" class="erro" hidden></div>
+    <div class="acts">
+      <button class="btn o" id="cancelarEnvioBtn">Voltar</button>
+      <button class="btn g" id="confirmarEnvioBtn">Confirmar envio</button>
+    </div>
+  </div>
+</div>
 
-    const hoje = new Date();
-    $('competencia').value = hoje.toISOString().slice(0, 7);
+<div class="toast" id="toast"></div>
 
-    function toast(m, err) {
-      const t = $('toast');
-      t.textContent = m;
-      t.className = 'toast on' + (err ? ' err' : '');
-      clearTimeout(tt);
-      tt = setTimeout(() => t.classList.remove('on'), 3600);
+<script src="js/fusex-auth.js"></script>
+<script>
+  const ACESSO_OK = FusexAuth.require(['ROLE_OCS','ROLE_ADMIN']);
+  const $ = id => document.getElementById(id);
+  const MESES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const formatarCompetencia = (ano, mes) => `${MESES[mes]}/${ano}`;
+  const STATUS_LABEL = {
+    AGUARDANDO_FATURAMENTO: 'Aguardando faturamento',
+    AGUARDANDO_LISURA: 'Aguardando lisura',
+    AUDITADO: 'Auditado',
+    CONCLUIDO: 'Concluído'
+  };
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+  let tt;
+
+  const hoje = new Date();
+  function popularCompetencias() {
+    const sel = $('competencia');
+    const opcoes = [];
+    for (let offset = -12; offset <= 6; offset++) {
+      const dt = new Date(hoje.getFullYear(), hoje.getMonth() + offset, 1);
+      const ano = dt.getFullYear();
+      const mes = dt.getMonth() + 1;
+      const val = `${ano}-${String(mes).padStart(2, '0')}`;
+      opcoes.push({ val, label: formatarCompetencia(ano, mes) });
     }
+    sel.innerHTML = opcoes.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
+    sel.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  }
+  popularCompetencias();
 
-    function authHeader() {
-      const user = $('user').value.trim();
-      const pass = $('pass').value;
-      if (!user || !pass) return null;
-      return 'Basic ' + btoa(user + ':' + pass);
-    }
+  function toast(m, err) {
+    const t = $('toast');
+    t.textContent = m;
+    t.className = 'toast on' + (err ? ' err' : '');
+    clearTimeout(tt);
+    tt = setTimeout(() => t.classList.remove('on'), 3600);
+  }
 
-    function mostrarErroGlobal(msg) {
-      const el = $('erroGlobal');
-      el.textContent = msg;
-      el.hidden = false;
-    }
+  function authHeader() {
+    return FusexAuth.header();
+  }
 
-    function competenciaSelecionada() {
-      const [ano, mes] = $('competencia').value.split('-').map(Number);
-      return { ano, mes };
-    }
+  function mostrarErroGlobal(msg) {
+    const el = $('erroGlobal');
+    el.textContent = msg;
+    el.hidden = false;
+  }
 
-    async function carregarResumo(auth) {
-      const { ano, mes } = competenciaSelecionada();
-      const res = await fetch('/api/lotes', { headers: { 'Authorization': auth } });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Não foi possível carregar os lotes.');
+  function competenciaSelecionada() {
+    const [ano, mes] = $('competencia').value.split('-').map(Number);
+    return { ano, mes };
+  }
 
-      const lotesDaCompetencia = data.filter(l => l.competenciaAno === ano && l.competenciaMes === mes);
+  async function carregarResumo(auth) {
+    const { ano, mes } = competenciaSelecionada();
+    const res = await fetch('/api/lotes', { headers: { 'Authorization': auth } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Não foi possível carregar os lotes.');
 
-      $('tbResumo').innerHTML = lotesDaCompetencia.length
-        ? lotesDaCompetencia.map(l => `<tr>
-            <td>Lote ${l.numeroLote}</td>
-            <td>${l.quantidadeGuias}</td>
-            <td>${l.faturaNomeArquivo}</td>
-            <td>${l.espelhoNomeArquivo}</td>
+    const lotesDaCompetencia = data.filter(l => l.competenciaAno === ano && l.competenciaMes === mes);
+
+    $('tbResumo').innerHTML = lotesDaCompetencia.length
+            ? lotesDaCompetencia.map(l => `<tr>
+            <td>Lote ${esc(l.numeroLote)}</td>
+            <td>${esc(l.quantidadeGuias)}</td>
+            <td>${esc(l.faturaNomeArquivo)}</td>
+            <td>${esc(l.espelhoNomeArquivo)}</td>
           </tr>`).join('')
-        : '<tr><td colspan="4">Nenhum lote pendente de envio nesta competência.</td></tr>';
+            : '<tr><td colspan="4">Nenhum lote pendente de envio nesta competência.</td></tr>';
 
-      $('enviarFechamentoBtn').disabled = lotesDaCompetencia.length === 0;
-    }
+    $('enviarFechamentoBtn').disabled = lotesDaCompetencia.length === 0;
+  }
 
-    async function carregarEnviados(auth) {
-      const res = await fetch('/api/fechamentos', { headers: { 'Authorization': auth } });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Não foi possível carregar os fechamentos.');
+  async function carregarEnviados(auth) {
+    const res = await fetch('/api/fechamentos', { headers: { 'Authorization': auth } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Não foi possível carregar os fechamentos.');
 
-      $('tbEnviados').innerHTML = data.length
-        ? data.map(f => `<tr>
-            <td>${formatarCompetencia(f.competenciaAno, f.competenciaMes)}</td>
-            <td>${new Date(f.dataEnvio).toLocaleString('pt-BR')}</td>
-            <td>${f.quantidadeLotes}</td>
-            <td>${f.quantidadeGuias}</td>
-            <td><span class="tag t-info">${STATUS_LABEL[f.status] || f.status}</span></td>
+    $('tbEnviados').innerHTML = data.length
+            ? data.map(f => `<tr>
+            <td>${esc(formatarCompetencia(f.competenciaAno, f.competenciaMes))}</td>
+            <td>${f.dataEnvio ? new Date(f.dataEnvio).toLocaleString('pt-BR') : '—'}</td>
+            <td>${esc(f.quantidadeLotes)}</td>
+            <td>${esc(f.quantidadeGuias)}</td>
+            <td><span class="tag ${f.status === 'CONCLUIDO' || f.status === 'AUDITADO' ? 't-ok' : 't-info'}">${esc(STATUS_LABEL[f.status] || f.status)}</span></td>
           </tr>`).join('')
-        : '<tr><td colspan="5">Nenhum fechamento enviado ainda.</td></tr>';
+            : '<tr><td colspan="5">Nenhum fechamento enviado ainda.</td></tr>';
+  }
+
+  async function carregarTudo() {
+    $('erroGlobal').hidden = true;
+    const auth = authHeader();
+    if (!auth) {
+      mostrarErroGlobal('Sessão expirada. Faça login novamente.');
+      return;
     }
 
-    async function carregarTudo() {
-      $('erroGlobal').hidden = true;
-      const auth = authHeader();
-      if (!auth) {
-        mostrarErroGlobal('Informe usuário e senha.');
+    try {
+      await carregarResumo(auth);
+      await carregarEnviados(auth);
+    } catch (err) {
+      mostrarErroGlobal(err.message || 'Erro ao carregar os dados. Tente novamente.');
+    }
+  }
+
+  function pedirEnvio() {
+    if ($('enviarFechamentoBtn').disabled) return;
+    const { ano, mes } = competenciaSelecionada();
+    $('cfTxt').innerHTML = `Você está prestes a enviar o fechamento de <b>${formatarCompetencia(ano, mes)}</b> para a Fusex. Depois do envio os lotes não podem ser alterados. Confirma o envio?`;
+    $('modalErro').hidden = true;
+    $('mConf').classList.add('on');
+  }
+
+  function fecharConf() {
+    $('mConf').classList.remove('on');
+  }
+
+  async function confirmarEnvio() {
+    const auth = authHeader();
+    if (!auth) return;
+
+    const { ano, mes } = competenciaSelecionada();
+
+    $('confirmarEnvioBtn').disabled = true;
+    try {
+      const res = await fetch('/api/fechamentos', {
+        method: 'POST',
+        headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ competenciaAno: ano, competenciaMes: mes })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        $('modalErro').textContent = data.error || 'Não foi possível enviar o fechamento.';
+        $('modalErro').hidden = false;
         return;
       }
 
-      try {
-        $('who').innerHTML = `<b>${$('user').value.trim()}</b>Autenticado`;
-        await carregarResumo(auth);
-        await carregarEnviados(auth);
-      } catch (err) {
-        mostrarErroGlobal(err.message || 'Erro ao carregar os dados. Tente novamente.');
-      }
+      fecharConf();
+      await carregarResumo(auth);
+      await carregarEnviados(auth);
+      toast('Fechamento de ' + formatarCompetencia(ano, mes) + ' enviado para a Fusex.');
+    } catch (err) {
+      $('modalErro').textContent = 'Erro ao enviar o fechamento. Tente novamente.';
+      $('modalErro').hidden = false;
+    } finally {
+      $('confirmarEnvioBtn').disabled = false;
     }
+  }
 
-    function pedirEnvio() {
-      if ($('enviarFechamentoBtn').disabled) return;
-      const { ano, mes } = competenciaSelecionada();
-      $('cfTxt').innerHTML = `Você está prestes a enviar o fechamento de <b>${formatarCompetencia(ano, mes)}</b> para a Fusex. Depois do envio os lotes não podem ser alterados. Confirma o envio?`;
-      $('modalErro').hidden = true;
-      $('mConf').classList.add('on');
-    }
+  $('enviarFechamentoBtn').addEventListener('click', pedirEnvio);
+  $('cancelarEnvioBtn').addEventListener('click', fecharConf);
+  $('mConf').addEventListener('click', e => { if (e.target === $('mConf') && !$('confirmarEnvioBtn').disabled) fecharConf(); });
+  $('confirmarEnvioBtn').addEventListener('click', confirmarEnvio);
+  $('competencia').addEventListener('change', () => {
+    const auth = authHeader();
+    if (auth) carregarResumo(auth).catch(() => {});
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharConf(); });
 
-    function fecharConf() {
-      $('mConf').classList.remove('on');
-    }
-
-    async function confirmarEnvio() {
-      const auth = authHeader();
-      if (!auth) return;
-
-      const { ano, mes } = competenciaSelecionada();
-
-      try {
-        const res = await fetch('/api/fechamentos', {
-          method: 'POST',
-          headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ competenciaAno: ano, competenciaMes: mes })
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          $('modalErro').textContent = data.error || 'Não foi possível enviar o fechamento.';
-          $('modalErro').hidden = false;
-          return;
-        }
-
-        fecharConf();
-        await carregarResumo(auth);
-        await carregarEnviados(auth);
-        toast('Fechamento de ' + formatarCompetencia(ano, mes) + ' enviado para a Fusex.');
-      } catch (err) {
-        $('modalErro').textContent = 'Erro ao enviar o fechamento. Tente novamente.';
-        $('modalErro').hidden = false;
-      }
-    }
-
-    $('carregarBtn').addEventListener('click', carregarTudo);
-    $('enviarFechamentoBtn').addEventListener('click', pedirEnvio);
-    $('cancelarEnvioBtn').addEventListener('click', fecharConf);
-    $('confirmarEnvioBtn').addEventListener('click', confirmarEnvio);
-    $('competencia').addEventListener('change', () => {
-      const auth = authHeader();
-      if (auth) carregarResumo(auth).catch(() => {});
-    });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharConf(); });
-  </script>
+  $('whoRole').textContent = 'OCS';
+  $('whoUser').textContent = 'Usuário: ' + (FusexAuth.user() || '');
+  if (ACESSO_OK) carregarTudo();
+</script>
 </body>
 </html>

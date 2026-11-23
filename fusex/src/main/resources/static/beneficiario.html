@@ -5,305 +5,615 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FUSEX - Atendimento e Triagem do Beneficiário</title>
   <link rel="stylesheet" href="css/fusex-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: #1d4ed8;
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Cabeçalho no padrão do sistema */
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--tx);
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 12.5px;
+      color: var(--mut);
+    }
+
+    .header-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .08);
+      border: 1px solid rgba(37, 99, 235, .2);
+      padding: 6px 12px;
+      border-radius: 99px;
+    }
+
+    /* Container e Card principal */
+    .app-container {
+      max-width: 920px;
+      margin: 28px auto 48px;
+      padding: 0 20px;
+    }
+
+    .app-container > .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .app-container > .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+
+    .card-subtitle {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin-bottom: 20px;
+    }
+
+    /* Seções e Inputs */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tx);
+      padding-bottom: 8px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    label {
+      color: var(--mut);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.4;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="email"]:focus,
+    select:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+      outline: none;
+    }
+
+    select:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* Bloco de dados da solicitação */
+    .kv-list {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+
+    .proc-card-item {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      transition: border-color .15s ease;
+    }
+
+    .proc-card-item:hover {
+      border-color: var(--blue);
+    }
+
+    .obs-box {
+      margin-top: 14px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .obs-box-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--mut);
+      margin-bottom: 4px;
+    }
+
+    .terms-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 18px;
+      padding: 12px 14px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    /* Botões */
+    .btn-primary {
+      background: var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .22);
+      transition: background .15s ease, transform .12s ease;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Header Institucional -->
-  <header class="app-header">
-    <a href="index.html" class="brand-badge">
-      <div class="brand-logo">FUSEX</div>
-      <div>
-        <div class="brand-title">Fundo de Saúde do Exército</div>
-        <div class="brand-subtitle">Atendimento e Triagem do Beneficiário</div>
-      </div>
-    </a>
-  </header>
-
-  <main class="app-container">
-    <div class="card">
-      <h1 class="card-title">Solicitação de Procedimento Médico</h1>
-      <p class="card-subtitle">Verifique os dados da solicitação encaminhada pelo médico e complete a triagem para agendamento.</p>
-
-      <!-- Estado: Carregando -->
-      <div id="loading" class="alert alert-info" style="justify-content: center;">
-        <span>Carregando dados da solicitação...</span>
-      </div>
-
-      <!-- Estado: Erro -->
-      <div id="errorSection" class="alert alert-error" hidden></div>
-
-      <!-- Estado: Já Preenchida -->
-      <div id="jaPreenchida" class="alert alert-warning" style="display: none; flex-direction: column; gap: 12px;">
-        <div style="font-weight: 600;">Esta solicitação já foi preenchida anteriormente.</div>
-        <div style="font-size: 0.9em;">Os dados de triagem e a escolha da clínica já foram registrados no sistema.</div>
-        <button type="button" id="btnJaPreenchida" class="btn btn-primary" style="margin-top: 4px;">Consultar Pré-Guia</button>
-      </div>
-
-      <!-- Resumo da Solicitação Médica -->
-      <div id="infoSection" style="display: none; margin-top: 16px;">
-        <h2 class="section-title">Dados da Solicitação Médica</h2>
-        <div class="kv-list">
-          <div class="kv-row">
-            <span class="kv-label">Paciente</span>
-            <span class="kv-val" id="nomePaciente">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Organização Militar (OM)</span>
-            <span class="kv-val" id="om">-</span>
-          </div>
-          <div class="kv-row">
-            <span class="kv-label">Especialidades</span>
-            <span class="kv-val" id="especialidades">-</span>
-          </div>
-        </div>
-
-        <div style="margin-top: 16px;">
-          <label style="margin-bottom: 8px;">Procedimentos Solicitados</label>
-          <div id="procedimentosInfoLista" style="display: flex; flex-direction: column; gap: 8px;"></div>
-        </div>
-
-        <div class="kv-row" style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <span class="kv-label">Observação Médica</span>
-          <span class="kv-val" id="observacao" style="font-weight: normal; font-size: 0.92em;">-</span>
-        </div>
-      </div>
-
-      <!-- Formulário de Triagem -->
-      <form id="triagemForm" style="display: none; margin-top: 24px;">
-        <h2 class="section-title">Complete seus dados para encaminhamento</h2>
-
-        <div class="row2">
-          <div>
-            <label for="cpfPrec">CPF / PREC</label>
-            <input type="text" id="cpfPrec" required placeholder="000.000.000-00 ou PREC">
-          </div>
-          <div>
-            <label for="idade">Idade</label>
-            <input type="number" id="idade" required min="0" max="130" placeholder="Ex: 35">
-          </div>
-        </div>
-
-        <label for="telefone">Telefone de Contato (WhatsApp)</label>
-        <input type="text" id="telefone" required placeholder="(00) 00000-0000" maxlength="15">
-
-        <label for="clinicaLaboratorio">Clínica / Laboratório (OCS Credenciada)</label>
-        <select id="clinicaLaboratorio" required disabled>
-          <option value="">Carregando clínicas credenciadas...</option>
-        </select>
-
-        <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; padding: 12px; background: var(--bg-muted); border-radius: var(--radius-sm);">
-          <input type="checkbox" id="aceitoTermos" required style="width: auto; margin-top: 3px; accent-color: var(--color-primary);">
-          <label for="aceitoTermos" style="margin: 0; font-size: 0.85em; font-weight: normal; color: var(--text-main); cursor: pointer;">
-            Declaro que as informações acima são verídicas e estou ciente de que esta solicitação passará por auditoria regulamentar do FUSEX.
-          </label>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Confirmar Solicitação</button>
-      </form>
-
-      <!-- Seção de Confirmação e Resultado -->
-      <div id="resultSection" style="display: none; margin-top: 24px;">
-        <div class="alert alert-success">
-          <div style="flex: 1;">
-            <div id="resultMensagem" style="font-weight: 600; font-size: 1.05em; margin-bottom: 4px;"></div>
-            <div style="font-size: 0.9em;">Sua triagem foi concluída e o encaminhamento está registrado.</div>
-          </div>
-        </div>
-
-        <div id="opcoes" style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;"></div>
-
-        <button type="button" id="btnConsultarGuia" class="btn btn-primary" style="margin-top: 20px;">
-          Visualizar Pré-Guia Médica
-        </button>
-      </div>
-
+<header class="app-header">
+  <a href="index.html" class="brand-badge">
+    <div class="brand-logo">✚</div>
+    <div>
+      <div class="brand-title">SISMED</div>
+      <div class="brand-subtitle">Sistema Integrado de Saúde Militar</div>
     </div>
-  </main>
+  </a>
+  <div class="header-tag">🩺 Atendimento e Triagem do Beneficiário</div>
+</header>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+<main class="app-container">
+  <div class="card">
+    <div class="card-eyebrow">Portal do Beneficiário</div>
+    <h1 class="card-title">Solicitação de Procedimento Médico</h1>
+    <p class="card-subtitle">Verifique os dados da solicitação encaminhada pelo médico e complete a triagem para agendamento.</p>
 
-    const loading = document.getElementById('loading');
-    const infoSection = document.getElementById('infoSection');
-    const errorSection = document.getElementById('errorSection');
-    const jaPreenchida = document.getElementById('jaPreenchida');
-    const triagemForm = document.getElementById('triagemForm');
-    const resultSection = document.getElementById('resultSection');
-    const clinicaSelect = document.getElementById('clinicaLaboratorio');
-    const telInput = document.getElementById('telefone');
+    <div id="loading" class="alert alert-info" style="justify-content: center;">
+      <span>Carregando dados da solicitação...</span>
+    </div>
 
-    // Máscara de telefone interativa
-    telInput.addEventListener('input', (e) => {
-      let v = e.target.value.replace(/\D/g, '');
-      if (v.length > 11) v = v.slice(0, 11);
-      if (v.length > 10) {
-        v = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
-      } else if (v.length > 6) {
-        v = `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
-      } else if (v.length > 2) {
-        v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
-      } else if (v.length > 0) {
-        v = `(${v}`;
-      }
-      e.target.value = v;
-    });
+    <div id="errorSection" class="alert alert-error" hidden></div>
 
-    function irParaPreGuia() {
-      window.location.href = `guia.html?token=${encodeURIComponent(token)}`;
+    <div id="jaPreenchida" class="alert alert-warning" style="display: none; flex-direction: column; gap: 12px;">
+      <div style="font-weight: 600;">Esta solicitação já foi preenchida anteriormente.</div>
+      <div style="font-size: 0.9em;">Os dados de triagem e a escolha da clínica já foram registrados no sistema.</div>
+      <button type="button" id="btnJaPreenchida" class="btn btn-primary" style="margin-top: 4px;">Consultar Pré-Guia</button>
+    </div>
+
+    <div id="infoSection" style="display: none; margin-top: 16px;">
+      <div class="section-title">📋 Dados da Solicitação Médica</div>
+      <div class="kv-list">
+        <div class="kv-row">
+          <span class="kv-label">Paciente</span>
+          <span class="kv-val" id="nomePaciente">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Organização Militar (OM)</span>
+          <span class="kv-val" id="om">-</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-label">Especialidades</span>
+          <span class="kv-val" id="especialidades">-</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <label style="display: block; margin-bottom: 8px;">🔬 Procedimentos Solicitados</label>
+        <div id="procedimentosInfoLista" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <div class="obs-box">
+        <div class="obs-box-label">📝 Observação Médica</div>
+        <div class="kv-val" id="observacao" style="font-weight: normal; font-size: 0.92em; color: var(--tx);">-</div>
+      </div>
+    </div>
+
+    <form id="triagemForm" style="display: none; margin-top: 24px;">
+      <div class="section-title">👤 Complete seus dados para encaminhamento</div>
+
+      <div class="row2">
+        <div>
+          <label for="cpf">CPF *</label>
+          <input type="text" id="cpf" required placeholder="000.000.000-00" maxlength="14">
+        </div>
+        <div>
+          <label for="prec">PREC *</label>
+          <input type="text" id="prec" required placeholder="Ex: 99887766" maxlength="30">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="idade">Idade *</label>
+          <input type="number" id="idade" required min="1" max="130" placeholder="Ex: 35">
+        </div>
+        <div>
+          <label for="telefone">Telefone de Contato (WhatsApp) *</label>
+          <input type="text" id="telefone" required placeholder="(00) 00000-0000" maxlength="15">
+        </div>
+      </div>
+
+      <div class="section-title">🏥 Escolha da Clínica / Laboratório (OCS)</div>
+      <label for="clinicaLaboratorio">OCS Credenciada que atende todos os procedimentos solicitados *</label>
+      <select id="clinicaLaboratorio" required disabled>
+        <option value="">Carregando clínicas credenciadas...</option>
+      </select>
+
+      <div class="terms-box">
+        <input type="checkbox" id="aceitoTermos" required style="width: auto; margin-top: 3px; accent-color: var(--blue);">
+        <label for="aceitoTermos" style="margin: 0; font-size: 0.85em; font-weight: normal; color: var(--tx); cursor: pointer;">
+          Declaro que as informações acima são verídicas e estou ciente de que esta solicitação passará por auditoria regulamentar do FUSEX.
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Confirmar Solicitação</button>
+    </form>
+
+    <div id="resultSection" style="display: none; margin-top: 24px;">
+      <div class="alert alert-success">
+        <div style="flex: 1;">
+          <div id="resultMensagem" style="font-weight: 600; font-size: 1.05em; margin-bottom: 4px;"></div>
+          <div style="font-size: 0.9em;">Sua triagem foi concluída e o encaminhamento está registrado.</div>
+        </div>
+      </div>
+
+      <button type="button" id="btnConsultarGuia" class="btn btn-primary" style="margin-top: 20px;">
+        Visualizar Pré-Guia Médica
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+
+  const loading = document.getElementById('loading');
+  const infoSection = document.getElementById('infoSection');
+  const errorSection = document.getElementById('errorSection');
+  const jaPreenchida = document.getElementById('jaPreenchida');
+  const triagemForm = document.getElementById('triagemForm');
+  const resultSection = document.getElementById('resultSection');
+  const clinicaSelect = document.getElementById('clinicaLaboratorio');
+  const cpfInput = document.getElementById('cpf');
+  const telInput = document.getElementById('telefone');
+
+  function formatarCpf(v) {
+    v = (v || '').replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9) return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+    if (v.length > 6) return `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+    if (v.length > 3) return `${v.slice(0, 3)}.${v.slice(3)}`;
+    return v;
+  }
+
+  cpfInput.addEventListener('input', (e) => {
+    e.target.value = formatarCpf(e.target.value);
+  });
+
+  telInput.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 10) {
+      v = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+    } else if (v.length > 6) {
+      v = `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+    } else if (v.length > 2) {
+      v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+    } else if (v.length > 0) {
+      v = `(${v}`;
     }
+    e.target.value = v;
+  });
 
-    document.getElementById('btnConsultarGuia').addEventListener('click', irParaPreGuia);
-    document.getElementById('btnJaPreenchida').addEventListener('click', irParaPreGuia);
+  function irParaPreGuia() {
+    window.location.href = `guia.html?token=${encodeURIComponent(token)}`;
+  }
 
-    async function carregarOcsPorEspecialidades(especialidades) {
-      clinicaSelect.disabled = true;
-      clinicaSelect.innerHTML = '<option value="">Carregando clínicas credenciadas...</option>';
+  document.getElementById('btnConsultarGuia').addEventListener('click', irParaPreGuia);
+  document.getElementById('btnJaPreenchida').addEventListener('click', irParaPreGuia);
 
-      if (!especialidades || especialidades.length === 0) {
-        clinicaSelect.innerHTML = '<option value="">Especialidades da solicitação não encontradas</option>';
+  function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  async function carregarOcsDisponiveis(tokenSolicitacao) {
+    clinicaSelect.disabled = true;
+    clinicaSelect.innerHTML = '<option value="">Carregando clínicas credenciadas que cobrem os procedimentos...</option>';
+
+    try {
+      const res = await fetch(`/api/solicitacoes/publico/${encodeURIComponent(tokenSolicitacao)}/ocs-disponiveis`);
+      if (!res.ok) throw new Error('Falha ao listar OCS');
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        clinicaSelect.innerHTML = '<option value="">Nenhuma clínica credenciada disponível que cubra todos os procedimentos solicitados.</option>';
         return;
       }
 
-      try {
-        const query = especialidades.map(encodeURIComponent).join(',');
-        const res = await fetch(`/api/ocs?especialidades=${query}`);
-        const data = await res.json();
+      clinicaSelect.innerHTML = '<option value="">Selecione a clínica / laboratório desejado...</option>';
+      data.forEach(o => {
+        const option = document.createElement('option');
+        option.value = o.ocsId;
+        const local = (o.ocsEnderecoCidade && o.ocsEnderecoUf) ? ` (${o.ocsEnderecoCidade}/${o.ocsEnderecoUf})` : '';
+        option.textContent = `${o.ocsNome}${local}`;
+        clinicaSelect.appendChild(option);
+      });
+      clinicaSelect.disabled = false;
+    } catch (err) {
+      clinicaSelect.innerHTML = '<option value="">Erro ao carregar clínicas credenciadas</option>';
+    }
+  }
 
-        if (data.length === 0) {
-          clinicaSelect.innerHTML = '<option value="">Nenhuma clínica credenciada encontrada para estas especialidades</option>';
-          return;
-        }
-
-        clinicaSelect.innerHTML = '<option value="">Selecione a clínica / laboratório desejado...</option>';
-        data.forEach(o => {
-          const option = document.createElement('option');
-          option.value = o.ocsId;
-          const local = (o.ocsEnderecoCidade && o.ocsEnderecoUf) ? ` (${o.ocsEnderecoCidade}/${o.ocsEnderecoUf})` : '';
-          option.textContent = `${o.ocsNome}${local}`;
-          clinicaSelect.appendChild(option);
-        });
-        clinicaSelect.disabled = false;
-      } catch (err) {
-        clinicaSelect.innerHTML = '<option value="">Erro ao carregar clínicas</option>';
-      }
+  async function carregarSolicitacao() {
+    if (!token) {
+      loading.style.display = 'none';
+      errorSection.hidden = false;
+      errorSection.textContent = 'Link inválido: token de solicitação não informado na URL.';
+      return;
     }
 
-    async function carregarSolicitacao() {
-      if (!token) {
-        loading.style.display = 'none';
+    try {
+      const res = await fetch(`/api/solicitacoes/publico/${token}`);
+      const data = await res.json();
+      loading.style.display = 'none';
+
+      if (!res.ok) {
         errorSection.hidden = false;
-        errorSection.textContent = 'Link inválido: token de solicitação não informado na URL.';
+        errorSection.textContent = data.error || 'Solicitação médica não encontrada ou expirada.';
         return;
       }
 
-      try {
-        const res = await fetch(`/api/solicitacoes/publico/${token}`);
-        const data = await res.json();
-        loading.style.display = 'none';
+      infoSection.style.display = 'block';
+      document.getElementById('nomePaciente').textContent = data.nomePaciente || '-';
+      document.getElementById('om').textContent = data.om || '-';
+      document.getElementById('especialidades').textContent = (data.especialidades && data.especialidades.length > 0)
+              ? data.especialidades.join(', ')
+              : '-';
 
-        if (!res.ok) {
-          errorSection.hidden = false;
-          errorSection.textContent = data.error || 'Solicitação médica não encontrada ou expirada.';
-          return;
-        }
-
-        infoSection.style.display = 'block';
-        document.getElementById('nomePaciente').textContent = data.nomePaciente || '-';
-        document.getElementById('om').textContent = data.om || '-';
-        document.getElementById('especialidades').textContent = (data.especialidades && data.especialidades.length > 0)
-          ? data.especialidades.join(', ')
-          : '-';
-
-        const procLista = document.getElementById('procedimentosInfoLista');
-        procLista.innerHTML = '';
-        if (data.procedimentos && data.procedimentos.length > 0) {
-          data.procedimentos.forEach(p => {
-            const item = document.createElement('div');
-            item.style.background = 'var(--bg-subtle)';
-            item.style.border = '1px solid var(--border-color)';
-            item.style.borderRadius = 'var(--radius-sm)';
-            item.style.padding = '8px 12px';
-            item.innerHTML = `<div style="font-weight: 600; font-size: 0.9em; color: var(--color-primary);">${p.descricao}</div>` +
-                             `<div style="font-size: 0.78em; color: var(--text-muted); margin-top: 2px;">Código DGP: <strong>${p.codigoDgp}</strong></div>`;
-            procLista.appendChild(item);
-          });
-        } else {
-          procLista.innerHTML = '<span style="color: var(--text-muted); font-size: 0.88em;">Nenhum procedimento informado.</span>';
-        }
-
-        document.getElementById('observacao').textContent = data.observacao || 'Nenhuma observação registrada.';
-
-        if (data.triagemPreenchida) {
-          jaPreenchida.style.display = 'flex';
-        } else {
-          triagemForm.style.display = 'block';
-          if (data.cpfPrec) {
-            document.getElementById('cpfPrec').value = data.cpfPrec;
-          }
-          if (data.idade) {
-            document.getElementById('idade').value = data.idade;
-          }
-          if (data.telefone) {
-            document.getElementById('telefone').value = data.telefone;
-          }
-          carregarOcsPorEspecialidades(data.especialidades);
-        }
-      } catch (err) {
-        loading.style.display = 'none';
-        errorSection.hidden = false;
-        errorSection.textContent = 'Erro de comunicação ao carregar a solicitação. Tente novamente.';
+      const procLista = document.getElementById('procedimentosInfoLista');
+      procLista.innerHTML = '';
+      if (data.procedimentos && data.procedimentos.length > 0) {
+        data.procedimentos.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'proc-card-item';
+          item.innerHTML = `<div style="font-weight: 600; font-size: 0.9em; color: var(--blue);">${esc(p.descricao)}</div>` +
+                  `<div style="font-size: 0.78em; color: var(--mut); margin-top: 2px;">Código DGP/TUSS: <strong>${esc(p.codigoDgp)}</strong></div>`;
+          procLista.appendChild(item);
+        });
+      } else {
+        procLista.innerHTML = '<span style="color: var(--mut); font-size: 0.88em;">Nenhum procedimento informado.</span>';
       }
+
+      document.getElementById('observacao').textContent = data.observacao || 'Nenhuma observação registrada.';
+
+      if (data.triagemPreenchida) {
+        jaPreenchida.style.display = 'flex';
+      } else {
+        triagemForm.style.display = 'block';
+        if (data.cpf) {
+          document.getElementById('cpf').value = formatarCpf(data.cpf);
+        } else if (data.cpfPrec) {
+          document.getElementById('cpf').value = formatarCpf(data.cpfPrec);
+        }
+        if (data.prec) {
+          document.getElementById('prec').value = data.prec;
+        }
+        if (data.idade) {
+          document.getElementById('idade').value = data.idade;
+        }
+        if (data.telefone) {
+          document.getElementById('telefone').value = data.telefone;
+        }
+        carregarOcsDisponiveis(token);
+      }
+    } catch (err) {
+      loading.style.display = 'none';
+      errorSection.hidden = false;
+      errorSection.textContent = 'Erro de comunicação ao carregar a solicitação. Tente novamente.';
+    }
+  }
+
+  triagemForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const cpfLimpo = document.getElementById('cpf').value.replace(/\D/g, '');
+    const precLimpo = document.getElementById('prec').value.trim();
+    const ocsIdVal = Number(document.getElementById('clinicaLaboratorio').value);
+
+    if (!ocsIdVal || ocsIdVal <= 0) {
+      alert('Selecione uma clínica / laboratório credenciado disponível.');
+      return;
     }
 
-    triagemForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    const payload = {
+      cpf: cpfLimpo,
+      prec: precLimpo,
+      cpfPrec: cpfLimpo,
+      idade: Number(document.getElementById('idade').value),
+      telefone: document.getElementById('telefone').value.trim(),
+      ocsId: ocsIdVal,
+      aceitoTermos: document.getElementById('aceitoTermos').checked
+    };
 
-      const payload = {
-        cpfPrec: document.getElementById('cpfPrec').value.trim(),
-        idade: Number(document.getElementById('idade').value),
-        telefone: document.getElementById('telefone').value.trim(),
-        ocsId: Number(document.getElementById('clinicaLaboratorio').value),
-        aceitoTermos: document.getElementById('aceitoTermos').checked
-      };
+    const submitBtn = triagemForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+    }
 
-      try {
-        const res = await fetch(`/api/solicitacoes/publico/${token}/triagem`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
+    try {
+      const res = await fetch(`/api/solicitacoes/publico/${encodeURIComponent(token)}/triagem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
 
-        if (!res.ok) {
-          const msg = data.campos
-            ? Object.entries(data.campos).map(([k, v]) => `${k}: ${v}`).join(' | ')
-            : (data.error || 'Erro ao processar dados de triagem');
-          throw new Error(msg);
-        }
-
-        triagemForm.style.display = 'none';
-        resultSection.style.display = 'block';
-        document.getElementById('resultMensagem').textContent = data.mensagem || 'Triagem registrada com sucesso!';
-
-        const opcoesDiv = document.getElementById('opcoes');
-        opcoesDiv.innerHTML = '';
-        (data.opcoes || []).forEach(o => {
-          const div = document.createElement('div');
-          div.style.background = 'var(--bg-surface)';
-          div.style.border = '1px solid var(--color-success-border)';
-          div.style.borderRadius = 'var(--radius-sm)';
-          div.style.padding = '10px 14px';
-          div.innerHTML = `<div style="font-weight: 600; color: var(--color-success-text); font-size: 0.9em;">${o.tipo}</div>` +
-                          `<div style="font-size: 0.86em; color: var(--text-main); margin-top: 2px;">${o.descricao}</div>`;
-          opcoesDiv.appendChild(div);
-        });
-      } catch (err) {
-        alert(err.message);
+      if (!res.ok) {
+        const msg = data.campos
+                ? Object.entries(data.campos).map(([k, v]) => `${k}: ${v}`).join(' | ')
+                : (data.error || 'Erro ao processar dados de triagem');
+        throw new Error(msg);
       }
-    });
 
-    carregarSolicitacao();
-  </script>
+      triagemForm.style.display = 'none';
+      resultSection.style.display = 'block';
+      document.getElementById('resultMensagem').textContent = data.mensagem || 'Triagem registrada com sucesso!';
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirmar Solicitação';
+      }
+    }
+  });
+
+  carregarSolicitacao();
+</script>
 </body>
 </html>

@@ -1,45 +1,356 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FUSEX - Nova Solicitação Médica</title>
-<link rel="stylesheet" href="css/fusex-theme.css">
-<style>
-  .procedimentos-lista {
-    list-style: none;
-    margin: 12px 0 0 0;
-    padding: 0;
-  }
-  .procedimento-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-muted);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 9px 12px;
-    margin-bottom: 8px;
-    font-size: 0.88em;
-  }
-  .procedimento-item-nome {
-    font-weight: 500;
-    color: var(--text-main);
-  }
-  .procedimento-item-cod {
-    font-size: 0.8em;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUSEX - Painel Médico</title>
+  <link rel="stylesheet" href="css/fusex-theme.css">
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --panel: #ffffff;
+      --panel2: #eef2f7;
+      --line: #d6dee8;
+      --tx: #17212b;
+      --mut: #5b6b7c;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber: #d97706;
+      --r: 10px;
+      --bg-app: var(--bg);
+      --bg-surface: var(--panel);
+      --bg-muted: var(--panel2);
+      --bg-subtle: var(--bg);
+      --color-primary: var(--blue);
+      --color-primary-hover: #1d4ed8;
+      --color-primary-light: rgba(37, 99, 235, .1);
+      --color-primary-border: rgba(37, 99, 235, .28);
+      --text-main: var(--tx);
+      --text-muted: var(--mut);
+      --text-subtle: #8794a3;
+      --border-color: var(--line);
+      --border-focus: var(--blue);
+      --radius-sm: 8px;
+      --radius-md: var(--r);
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(23, 33, 43, .05);
+      --shadow-md: 0 12px 28px rgba(23, 33, 43, .1);
+      --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-family);
+      color: var(--tx);
+      background:
+              radial-gradient(900px 380px at 50% -120px, rgba(37, 99, 235, .13), transparent 70%),
+              radial-gradient(700px 300px at 85% 0, rgba(22, 163, 74, .09), transparent 70%),
+              var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Cabeçalho no padrão do sistema */
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .22);
+      flex-shrink: 0;
+    }
+
+    .brand-eyebrow {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 2px 9px;
+      border-radius: 99px;
+      margin-bottom: 4px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tx);
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 12.5px;
+      color: var(--mut);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+
+    .user-profile .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, .12);
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+    }
+
+    .user-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tx);
+    }
+
+    .user-role {
+      font-size: 12px;
+      color: var(--mut);
+    }
+
+    /* Container e Card principal */
+    .app-container {
+      max-width: 920px;
+      margin: 28px auto 48px;
+      padding: 0 20px;
+    }
+
+    .app-container > .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .app-container > .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+
+    .card-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(37, 99, 235, .1);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx);
+      margin: 0 0 4px;
+    }
+
+    .card-subtitle {
+      color: var(--mut);
+      font-size: 13.5px;
+      margin-bottom: 20px;
+    }
+
+    /* Seções e Inputs */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tx);
+      padding-bottom: 8px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    label {
+      color: var(--mut);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.4;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+      background: var(--panel);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+      outline: none;
+    }
+
+    /* Pills de especialidades */
+    .pill-checkbox {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      color: var(--tx);
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s ease;
+    }
+
+    .pill-checkbox:hover {
+      border-color: var(--blue);
+      background: rgba(37, 99, 235, .06);
+    }
+
+    .pill-checkbox.active {
+      background: rgba(37, 99, 235, .12);
+      border-color: var(--blue);
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* Dropdown autocomplete e lista de procedimentos */
+    .autocomplete-dropdown {
+      max-height: 280px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .autocomplete-dropdown li:hover {
+      background: rgba(37, 99, 235, .07);
+    }
+
+    .procedimento-item {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    /* Botões */
+    .btn-primary {
+      background: var(--blue);
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .22);
+      transition: background .15s ease, transform .12s ease;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--tx);
+      font-weight: 600;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-outline-danger {
+      border-radius: 8px !important;
+      font-weight: 600;
+    }
+
+    .pulldown-toggle-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      font-size: 0.85em;
+      color: var(--blue);
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .pulldown-toggle-btn:hover {
+      background: var(--panel2);
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }
+    }
+  </style>
 </head>
 <body>
 <header class="app-header">
   <div class="brand-badge">
-    <span class="brand-logo">FUSEX</span>
+    <div class="brand-logo">✚</div>
     <div>
-      <div class="brand-title">Módulo Médico</div>
-      <div class="brand-subtitle">Emissão de Solicitações</div>
+      <div class="brand-title" style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em;">SISMED</div>
+      <div class="brand-subtitle">Sistema Integrado de Saúde Militar</div>
     </div>
   </div>
 
@@ -48,12 +359,13 @@
       <div class="user-profile-name" id="medicoNome">Carregando...</div>
       <div class="user-profile-crm" id="medicoCrm">CRM: -</div>
     </div>
-    <button type="button" class="btn-outline-danger" id="logoutBtn" style="cursor: pointer; border-radius: 4px;">Sair</button>
+    <button type="button" class="btn-outline-danger" id="logoutBtn" style="cursor: pointer; border-radius: 8px;">Sair</button>
   </div>
 </header>
 
 <div class="app-container">
   <div class="card">
+    <div class="card-eyebrow">Atendimento Clínico</div>
     <h1 class="card-title">Nova Solicitação Médica</h1>
     <p class="card-subtitle">Insira as informações clínicas e selecione a OCS indicada</p>
 
@@ -78,7 +390,7 @@
       </div>
 
       <div id="cadastroPacienteArea" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;" hidden>
-        <button type="button" id="btnCadastrarPaciente" class="btn btn-secondary" style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.85em; border-color: var(--color-primary); color: var(--color-primary);">
+        <button type="button" id="btnCadastrarPaciente" class="btn btn-secondary" style="width: auto; margin: 0; padding: 6px 14px; font-size: 0.85em; border-color: var(--blue); color: var(--blue);">
           ➕ Cadastrar Paciente no Banco de Dados
         </button>
         <span id="cadastroPacienteStatus" style="font-size: 0.85em; font-weight: 600; color: var(--color-success-text);" hidden></span>
@@ -107,40 +419,58 @@
       <div class="section-title">📝 Observações Clínicas (Opcional)</div>
       <textarea id="observacao" placeholder="Informações clínicas complementares, justificativa ou histórico breve..."></textarea>
 
+      <div class="section-title">📎 Encaminhamento Médico (PDF)</div>
+      <input type="file" id="arquivoEncaminhamento" accept="application/pdf,.pdf,image/png,image/jpeg">
+
       <button type="submit" class="btn btn-primary" id="submitBtn">Criar Solicitação Médica</button>
     </form>
 
     <div id="result" class="alert alert-success alert-column" hidden>
-      <div><strong>✅ Solicitação gerada com sucesso!</strong></div>
-      <div style="font-size: 0.9em;">Copie o link abaixo e forneça ao paciente para o preenchimento da triagem e escolha da clínica (OCS):</div>
-      <input type="text" id="linkOutput" readonly style="background:#fff; margin-top:4px;">
-      <button id="copyBtn" type="button" class="btn btn-success" style="margin-top:4px;">📋 Copiar Link de Acesso</button>
+      <div style="font-size: 1.1em;"><strong>✅ Solicitação gerada com sucesso!</strong></div>
+      <div id="emailStatusMsg" style="font-size: 0.9em; margin-top: 4px; font-weight: 500;"></div>
+      <div id="encaminhamentoMsg" style="font-size: 0.9em; margin-top: 4px; font-weight: 500;"></div>
+
+      <div id="printArea" style="text-align: center; margin: 16px auto; background: #fff; padding: 16px; border-radius: 10px; border: 1px solid var(--line); max-width: 320px;">
+        <div style="font-weight: bold; color: #0b3d1b; margin-bottom: 8px; font-size: 0.95em;">ACESSO DO BENEFICIÁRIO</div>
+        <img id="qrCodeImg" src="" alt="QR Code de Acesso" title="Clique no QR Code para copiar o link" style="width: 200px; height: 200px; margin: 0 auto; display: block; border: 1px solid #eee; border-radius: 6px; cursor: pointer; transition: transform 0.15s ease-in-out;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size: 0.8em; color: #555; margin-top: 8px;">Aponte a câmera do celular ou <strong>clique no QR Code para copiar o link</strong></div>
+        <div id="qrCopyToast" style="display: none; margin-top: 8px; font-size: 0.85em; font-weight: bold; color: #155724; background: #d4edda; padding: 6px 10px; border-radius: 6px; border: 1px solid #c3e6cb;">✅ Link de acesso copiado!</div>
+        <button id="printQrBtn" type="button" class="btn btn-secondary no-print" style="width: 100%; margin-top: 12px; padding: 8px 14px; font-size: 0.85em;">🖨️ Imprimir QR Code</button>
+      </div>
+
+      <div id="areaReenvioEmail" style="margin-top: 16px; padding: 14px; background: #ffffff; border: 1px solid var(--line); border-radius: 10px; text-align: left;">
+        <div style="font-weight: 600; font-size: 0.92em; color: var(--tx); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+          <span>📧 Gerenciamento de Envio por E-mail</span>
+          <span id="badgeStatusEmail" style="font-size: 0.78em; padding: 2px 8px; border-radius: 12px; font-weight: bold; background: #e2e3e5; color: #383d41;">SIMULADO</span>
+        </div>
+        <div id="detalheErroEmail" style="font-size: 0.84em; color: var(--mut); margin-bottom: 10px; line-height: 1.4;"></div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="email" id="inputNovoEmail" placeholder="Corrigir ou confirmar e-mail do paciente..." style="flex: 1; margin: 0; padding: 8px 12px; font-size: 0.88em; border: 1px solid var(--line); border-radius: 8px;">
+          <button type="button" id="btnReenviarEmail" class="btn btn-primary" style="margin: 0; padding: 8px 14px; font-size: 0.85em; width: auto; white-space: nowrap;">
+            🔄 Reenviar E-mail
+          </button>
+        </div>
+        <div id="feedbackReenvio" style="font-size: 0.84em; margin-top: 6px; font-weight: 500;" hidden></div>
+      </div>
     </div>
 
     <div id="errorMsg" class="alert alert-error" hidden></div>
   </div>
 </div>
 
+<script src="js/fusex-auth.js"></script>
 <script>
-  // 1. Verificação de Sessão
+  FusexAuth.require(['ROLE_MEDICO', 'ROLE_ADMIN']);
   const auth = sessionStorage.getItem('fusex_auth');
   const medicoStr = sessionStorage.getItem('fusex_medico');
 
-  if (!auth) {
-    window.location.href = 'login.html';
-  }
-
-  const medico = medicoStr ? JSON.parse(medicoStr) : { id: 1, nome: 'Dr. João Silva', crm: '123456' };
+  const medico = medicoStr ? JSON.parse(medicoStr) : { id: 1, nome: 'Médico', crm: '123456' };
 
   document.getElementById('medicoNome').textContent = medico.nome || 'Médico Conectado';
   document.getElementById('medicoCrm').textContent = medico.crm ? 'CRM: ' + medico.crm : '';
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('fusex_auth');
-    sessionStorage.removeItem('fusex_user');
-    sessionStorage.removeItem('fusex_medico');
-    window.location.href = 'login.html';
-  });
+  document.getElementById('logoutBtn').addEventListener('click', () => FusexAuth.logout());
 
   // Highlight pill checkboxes on change
   document.querySelectorAll('.pill-checkbox input').forEach(input => {
@@ -154,8 +484,27 @@
   const errorBox = document.getElementById('errorMsg');
   const linkOutput = document.getElementById('linkOutput');
   const submitBtn = document.getElementById('submitBtn');
+  let linkBeneficiarioAtual = '';
 
-  // 2. Autocomplete e Cadastro de Pacientes
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+  }
+
+  const cpfInput = document.getElementById('cpf');
+  cpfInput.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9) v = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9)}`;
+    else if (v.length > 6) v = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+    else if (v.length > 3) v = `${v.slice(0, 3)}.${v.slice(3)}`;
+    e.target.value = v;
+  });
+
   const nomePacienteInput = document.getElementById('nomePaciente');
   const pacienteSugestoes = document.getElementById('pacienteSugestoes');
   const omInput = document.getElementById('om');
@@ -200,15 +549,24 @@
     }
 
     pacienteDebounce = setTimeout(async () => {
+      if (document.activeElement !== nomePacienteInput) {
+        pacienteSugestoes.hidden = true;
+        return;
+      }
+
       try {
         const res = await fetch('/api/pacientes?busca=' + encodeURIComponent(termo), {
           headers: { 'Authorization': 'Basic ' + auth }
         });
-        if (!res.ok) {
+        if (!res.ok || document.activeElement !== nomePacienteInput) {
           pacienteSugestoes.hidden = true;
           return;
         }
         const lista = await res.json();
+        if (document.activeElement !== nomePacienteInput) {
+          pacienteSugestoes.hidden = true;
+          return;
+        }
         pacienteSugestoes.innerHTML = '';
 
         if (!lista || lista.length === 0) {
@@ -225,7 +583,7 @@
 
         lista.forEach(p => {
           const li = document.createElement('li');
-          li.innerHTML = `<strong>${p.nome}</strong><div class="meta">OM: <strong>${p.om || 'Não informada'}</strong> &bull; CPF/PREC: <strong>${p.cpfPrec || 'Não informado'}</strong></div>`;
+          li.innerHTML = `<strong>${escapeHtml(p.nome)}</strong><div class="meta">OM: <strong>${escapeHtml(p.om || 'Não informada')}</strong> &bull; CPF: <strong>${escapeHtml(p.cpf || '-')}</strong> &bull; PREC: <strong>${escapeHtml(p.prec || '-')}</strong></div>`;
           li.addEventListener('click', () => {
             nomePacienteInput.value = p.nome;
             if (p.om) omInput.value = p.om;
@@ -296,22 +654,21 @@
   });
 
   nomePacienteInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' || e.key === 'Tab') {
+      clearTimeout(pacienteDebounce);
       pacienteSugestoes.hidden = true;
     }
   });
 
-  // Fechar dropdowns de sugestões ao clicar fora
-  document.addEventListener('click', (e) => {
-    if (!nomePacienteInput.contains(e.target) && !pacienteSugestoes.contains(e.target)) {
-      pacienteSugestoes.hidden = true;
-    }
-    if (!procedimentoBusca.contains(e.target) && !procedimentoSugestoes.contains(e.target)) {
-      procedimentoSugestoes.hidden = true;
-    }
+  nomePacienteInput.addEventListener('blur', () => {
+    clearTimeout(pacienteDebounce);
+    setTimeout(() => {
+      if (!pacienteSugestoes.contains(document.activeElement)) {
+        pacienteSugestoes.hidden = true;
+      }
+    }, 150);
   });
 
-  // 3. Autocomplete de Procedimentos TUSS
   const procedimentoBusca = document.getElementById('procedimentoBusca');
   const procedimentoSugestoes = document.getElementById('procedimentoSugestoes');
   const listaProcedimentos = document.getElementById('listaProcedimentos');
@@ -323,18 +680,50 @@
     clearTimeout(procedimentoDebounce);
     const texto = procedimentoBusca.value.trim();
 
-    if (texto.length < 3) {
+    // Só busca sugestões quando houver texto digitado ou alguma especialidade marcada
+    if (!abrirPulldown && texto.length < 2 && especialidades.length === 0) {
       procedimentoSugestoes.hidden = true;
       procedimentoSugestoes.innerHTML = '';
       return;
     }
 
-    procedimentoDebounce = setTimeout(async () => {
-      try {
-        const res = await fetch('/api/procedimentos?busca=' + encodeURIComponent(texto));
-        const data = await res.json();
-        procedimentoSugestoes.innerHTML = '';
-        if (!data || data.length === 0) {
+    try {
+      let url = '/api/procedimentos?';
+      const parts = [];
+      if (texto) {
+        parts.push('busca=' + encodeURIComponent(texto));
+      }
+      if (especialidades.length > 0) {
+        parts.push('especialidades=' + especialidades.map(encodeURIComponent).join(','));
+      }
+      url += parts.join('&');
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Falha ao buscar procedimentos');
+      const data = await res.json();
+      procedimentoSugestoes.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        const li = document.createElement('li');
+        li.style.cursor = 'default';
+        li.style.color = 'var(--text-muted)';
+        li.style.padding = '10px 14px';
+        if (especialidades.length === 0 && !texto) {
+          li.innerHTML = '<em>💡 Dica: Selecione ao menos uma especialidade acima para listar todos os exames disponíveis, ou digite o nome/código TUSS (ex: eco, 409...).</em>';
+        } else {
+          li.innerHTML = '<em>Nenhum procedimento encontrado para o termo "' + escapeHtml(texto || '') + '" e especialidade(s) selecionada(s).</em>';
+        }
+        procedimentoSugestoes.appendChild(li);
+        procedimentoSugestoes.hidden = false;
+        return;
+      }
+
+      data.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${escapeHtml(p.procDescricao)}</strong><div class="meta">Código DGP/TUSS: <strong>${escapeHtml(p.procCodigoDgp)}</strong></div>`;
+        li.addEventListener('click', () => {
+          adicionarProcedimento(p);
+          procedimentoBusca.value = '';
           procedimentoSugestoes.hidden = true;
           return;
         }
@@ -348,16 +737,48 @@
           });
           procedimentoSugestoes.appendChild(li);
         });
-        procedimentoSugestoes.hidden = false;
-      } catch (err) {
-        procedimentoSugestoes.hidden = true;
+        procedimentoSugestoes.appendChild(li);
+      });
+      procedimentoSugestoes.hidden = false;
+    } catch (err) {
+      procedimentoSugestoes.hidden = true;
+    }
+  }
+
+  function dispararBuscaProcedimentos() {
+    clearTimeout(procedimentoDebounce);
+    procedimentoDebounce = setTimeout(() => carregarProcedimentos(false), 150);
+  }
+
+  procedimentoBusca.addEventListener('input', dispararBuscaProcedimentos);
+
+  procedimentoBusca.addEventListener('focus', () => {
+    carregarProcedimentos(true);
+  });
+
+  btnPulldownProcedimentos.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!procedimentoSugestoes.hidden) {
+      procedimentoSugestoes.hidden = true;
+    } else if (document.activeElement === procedimentoBusca) {
+      carregarProcedimentos(true);
+    } else {
+      procedimentoBusca.focus();
+    }
+  });
+
+  document.querySelectorAll('.pill-checkbox input').forEach(input => {
+    input.addEventListener('change', () => {
+      input.closest('.pill-checkbox').classList.toggle('active', input.checked);
+      if (!procedimentoSugestoes.hidden || procedimentoBusca.value.trim().length > 0) {
+        carregarProcedimentos(true);
       }
     }, 250);
   });
 
   function adicionarProcedimento(p) {
     if (procedimentosAdicionados.some(item => item.procedimentoCodigoDgp === p.procCodigoDgp)) {
-      return; // Já adicionado
+      return;
     }
     procedimentosAdicionados.push({
       procedimentoCodigoDgp: p.procCodigoDgp,
@@ -375,7 +796,7 @@
       li.className = 'procedimento-item';
 
       const infoDiv = document.createElement('div');
-      infoDiv.innerHTML = `<div class="procedimento-item-nome">${p.procDescricao}</div><div class="procedimento-item-cod">TUSS: ${p.procedimentoCodigoDgp}</div>`;
+      infoDiv.innerHTML = `<div class="procedimento-item-nome">${escapeHtml(p.procDescricao)}</div><div class="procedimento-item-cod">TUSS: ${escapeHtml(p.procedimentoCodigoDgp)}</div>`;
 
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -392,7 +813,6 @@
     });
   }
 
-  // Fechar dropdowns ao clicar fora
   document.addEventListener('click', (e) => {
     if (!nomePacienteInput.contains(e.target) && !pacienteSugestoes.contains(e.target)) {
       pacienteSugestoes.hidden = true;
@@ -402,7 +822,6 @@
     }
   });
 
-  // 4. Submissão do Formulário
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorBox.hidden = true;
@@ -452,13 +871,20 @@
 
       if (!res.ok) {
         const msg = data.campos
-          ? Object.entries(data.campos).map(([k, v]) => `${k}: ${v}`).join(' | ')
-          : (data.error || 'Erro ao criar solicitação médica');
+                ? Object.entries(data.campos).map(([k, v]) => `${k}: ${v}`).join(' | ')
+                : (data.error || 'Erro ao criar solicitação médica');
         throw new Error(msg);
       }
 
+      ultimaSolicitacaoId = data.id;
+      await enviarEncaminhamento(data.id, Number(medico.id || 1));
       const beneficiarioLink = window.location.origin + '/api/beneficiario.html?token=' + data.tokenPublico;
-      linkOutput.value = beneficiarioLink;
+      linkBeneficiarioAtual = beneficiarioLink;
+
+      qrCodeImg.src = '/api/solicitacoes/publico/' + data.tokenPublico + '/qrcode';
+
+      atualizarPainelEmail(data, payload.email);
+
       resultBox.hidden = false;
       errorBox.hidden = true;
       form.reset();
@@ -475,13 +901,135 @@
     }
   });
 
-  document.getElementById('copyBtn').addEventListener('click', () => {
-    linkOutput.select();
-    navigator.clipboard.writeText(linkOutput.value).then(() => {
-      const btn = document.getElementById('copyBtn');
-      const original = btn.textContent;
-      btn.textContent = '✅ Link Copiado!';
-      setTimeout(() => { btn.textContent = original; }, 2000);
+  let ultimaSolicitacaoId = null;
+
+  async function enviarEncaminhamento(solicitacaoId, medicoId) {
+    const campo = document.getElementById('arquivoEncaminhamento');
+    const msg = document.getElementById('encaminhamentoMsg');
+    const arquivo = campo.files[0];
+    if (!arquivo) {
+      msg.textContent = 'Nenhum encaminhamento anexado.';
+      return;
+    }
+    const formulario = new FormData();
+    formulario.append('arquivo', arquivo);
+    formulario.append('medicoId', medicoId);
+    formulario.append('solicitacaoId', solicitacaoId);
+    try {
+      const res = await fetch('/api/encaminhamentos', {
+        method: 'POST',
+        headers: { 'Authorization': 'Basic ' + auth },
+        body: formulario
+      });
+      if (!res.ok) {
+        const corpo = await res.json().catch(() => ({}));
+        throw new Error(corpo.error || 'falha ao enviar o arquivo');
+      }
+      msg.textContent = 'Encaminhamento anexado à solicitação.';
+    } catch (err) {
+      msg.textContent = 'A solicitação foi criada, mas o encaminhamento não foi anexado: ' + err.message;
+    }
+  }
+
+  function atualizarPainelEmail(data, emailDigitado) {
+    const status = data.statusEmail || (data.emailEnviado ? 'ENVIADO' : 'SIMULADO');
+    const destinatario = data.emailDestinatario || emailDigitado;
+    const badge = document.getElementById('badgeStatusEmail');
+    const detalhe = document.getElementById('detalheErroEmail');
+    const inputEmail = document.getElementById('inputNovoEmail');
+    const feedback = document.getElementById('feedbackReenvio');
+
+    feedback.hidden = true;
+    inputEmail.value = destinatario || '';
+
+    if (status === 'ENVIADO') {
+      badge.textContent = 'ENVIADO COM SUCESSO';
+      badge.style.background = '#d4edda';
+      badge.style.color = '#155724';
+      detalhe.innerHTML = 'O e-mail foi transmitido ao servidor SMTP e encaminhado com sucesso para <strong>' + escapeHtml(destinatario) + '</strong>.';
+      emailStatusMsg.innerHTML = '📧 <strong>E-mail institucional enviado com sucesso</strong> para <u>' + escapeHtml(destinatario) + '</u> (com link direto e QR Code anexado).';
+      emailStatusMsg.style.color = '#155724';
+    } else if (status === 'PENDENTE_REENVIO') {
+      badge.textContent = 'AGENDAMENTO AUTOMÁTICO ATIVO';
+      badge.style.background = '#fff3cd';
+      badge.style.color = '#856404';
+      detalhe.innerHTML = '⚠️ <strong>Aviso Importante:</strong> Devido a uma falha na comunicação/rede com o servidor de e-mail, o reenvio para <u>' + escapeHtml(destinatario) + '</u> <strong>foi agendado</strong>.<br><br>🔄 <em>Assim que a comunicação for restabelecida, o disparo acontecerá automaticamente em segundo plano.</em><br><br><small style="color: #666;">Caso deseje corrigir o endereço de e-mail ou tentar reenviar manualmente agora, utilize os campos abaixo:</small>';
+      emailStatusMsg.innerHTML = '⚠️ <strong>Reenvio Agendado:</strong> Devido a uma falha na comunicação, o reenvio do e-mail para <u>' + escapeHtml(destinatario) + '</u> foi agendado e acontecerá automaticamente assim que a comunicação for restabelecida.';
+      emailStatusMsg.style.color = '#856404';
+    } else if (status === 'FALHA_ENVIO') {
+      badge.textContent = 'FALHA DEFINITIVA';
+      badge.style.background = '#f8d7da';
+      badge.style.color = '#721c24';
+      detalhe.innerHTML = '❌ <strong>Endereço recusado ou inválido:</strong> ' + escapeHtml(data.emailMensagem || 'Verifique a digitação do e-mail do paciente e tente novamente.');
+      emailStatusMsg.innerHTML = '❌ <strong>Falha no e-mail:</strong> Não foi possível entregar em <u>' + escapeHtml(destinatario) + '</u>. Corrija o endereço abaixo.';
+      emailStatusMsg.style.color = '#721c24';
+    } else {
+      badge.textContent = 'MODO SIMULAÇÃO';
+      badge.style.background = '#e2e3e5';
+      badge.style.color = '#383d41';
+      detalhe.innerHTML = 'ℹ️ O envio real SMTP está inativo no servidor local. O e-mail foi registrado para <strong>' + escapeHtml(destinatario) + '</strong> e o link foi gerado no console do servidor.<br><br><small style="color: #666;">💡 <em>Em ambiente de produção com servidor SMTP real, se houver qualquer queda de internet/comunicação, este painel exibirá automaticamente o aviso de reenvio agendado e o agendador em background fará as tentativas até restabelecer.</em></small>';
+      emailStatusMsg.innerHTML = 'ℹ️ <strong>E-mail registrado para:</strong> <u>' + escapeHtml(destinatario) + '</u> (Modo Simulação / SMTP local inativo).';
+      emailStatusMsg.style.color = '#856404';
+    }
+  }
+
+  document.getElementById('btnReenviarEmail').addEventListener('click', async () => {
+    if (!ultimaSolicitacaoId) return;
+
+    const inputEmail = document.getElementById('inputNovoEmail');
+    const btn = document.getElementById('btnReenviarEmail');
+    const feedback = document.getElementById('feedbackReenvio');
+    const novoEmail = inputEmail.value.trim();
+
+    if (!novoEmail || !novoEmail.includes('@')) {
+      feedback.textContent = 'Por favor, informe um endereço de e-mail válido.';
+      feedback.style.color = '#721c24';
+      feedback.hidden = false;
+      return;
+    }
+
+    btn.disabled = true;
+    const txtOriginal = btn.textContent;
+    btn.textContent = 'Enviando...';
+    feedback.hidden = true;
+
+    try {
+      const res = await fetch('/api/solicitacoes/' + ultimaSolicitacaoId + '/reenviar-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Basic ' + auth
+        },
+        body: JSON.stringify({ novoEmail: novoEmail })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao processar reenvio de e-mail.');
+      }
+
+      atualizarPainelEmail(data, novoEmail);
+      feedback.textContent = data.mensagem || 'Tentativa de reenvio finalizada!';
+      feedback.style.color = data.emailEnviado ? '#155724' : '#856404';
+      feedback.hidden = false;
+    } catch (err) {
+      feedback.textContent = 'Erro ao reenviar: ' + err.message;
+      feedback.style.color = '#721c24';
+      feedback.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = txtOriginal;
+    }
+  });
+
+  qrCodeImg.addEventListener('click', () => {
+    if (!linkBeneficiarioAtual) return;
+    navigator.clipboard.writeText(linkBeneficiarioAtual).then(() => {
+      const toast = document.getElementById('qrCopyToast');
+      if (toast) {
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+      }
     });
   });
 </script>
