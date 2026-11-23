@@ -538,6 +538,31 @@
       </div>
     </div>
     <div id="signDetailMed" class="card hidden"></div>
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Guias já assinadas</h2>
+          <p class="small muted">Guias que você já assinou como Médico Chefe, disponíveis para consulta futura.</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Assinada em</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+          </thead>
+          <tbody id="signedMed">
+          <tr><td colspan="6">Carregando guias já assinadas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <section id="sign-sec" class="page hidden">
@@ -568,6 +593,32 @@
       </div>
     </div>
     <div id="signDetailSec" class="card hidden"></div>
+    <div class="card">
+      <div class="section-title">
+        <div>
+          <h2>Guias já assinadas</h2>
+          <p class="small muted">Guias que você já assinou como Chefe da Seção, disponíveis para consulta futura.</p>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+          <tr>
+            <th>Guia</th>
+            <th>Beneficiário</th>
+            <th>OCS</th>
+            <th>Assinada em</th>
+            <th>Válida até</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+          </thead>
+          <tbody id="signedSec">
+          <tr><td colspan="7">Carregando guias já assinadas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <section id="email" class="page hidden">
@@ -676,6 +727,8 @@
   let role = null;
   let currentView = 'upload';
   let guides = [];
+  let signedMedGuides = [];
+  let signedSecGuides = [];
   let selectedFile = null;
   let preGuiaSelecionada = null;
   let preGuiasLiberadas = [];
@@ -802,6 +855,27 @@
         carregarPreGuiasLiberadas();
       }
 
+      const signedFetches = [];
+      if (allowedGroups.includes('med')) {
+        signedFetches.push(
+          fetch('/api/assinaturas/guias/assinadas?perfil=med', { headers: { 'Authorization': getAuthHeader('med') } })
+            .then(r => r.ok ? safeJson(r) : [])
+            .then(lista => { signedMedGuides = Array.isArray(lista) ? lista : []; })
+            .catch(() => { signedMedGuides = []; })
+        );
+      }
+      if (allowedGroups.includes('sec')) {
+        signedFetches.push(
+          fetch('/api/assinaturas/guias/assinadas?perfil=sec', { headers: { 'Authorization': getAuthHeader('sec') } })
+            .then(r => r.ok ? safeJson(r) : [])
+            .then(lista => { signedSecGuides = Array.isArray(lista) ? lista : []; })
+            .catch(() => { signedSecGuides = []; })
+        );
+      }
+      if (signedFetches.length) {
+        await Promise.all(signedFetches);
+      }
+
       renderTables();
     } catch (err) {
       toast(err.message || 'Erro de comunicação com o servidor.', true);
@@ -858,6 +932,39 @@
             <td><button type="button" class="btn o" onclick="openGuide(${g.id}, 'sec')">Abrir guia</button></td>
           </tr>`).join('')
             : `<tr><td colspan="7">Nenhuma guia aguardando assinatura do Chefe da Seção.</td></tr>`;
+
+    $('signedMed').innerHTML = signedMedGuides.length
+            ? signedMedGuides.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataAssinaturaMedico)}</td>
+            <td>${badge(g)}</td>
+            <td>
+              <div class="action-group">
+                <button type="button" class="btn o" style="padding:4px 8px;font-size:12px" onclick="openSignedGuide(${g.id}, 'med')">Consultar guia</button>
+                <button type="button" class="btn btn-pdf" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF" onclick="visualizarPdfGuia(${g.id}, 'med')">Ver / Imprimir PDF</button>
+              </div>
+            </td>
+          </tr>`).join('')
+            : `<tr><td colspan="6">Você ainda não assinou nenhuma guia como Médico Chefe.</td></tr>`;
+
+    $('signedSec').innerHTML = signedSecGuides.length
+            ? signedSecGuides.map(g => `<tr>
+            <td><b>${esc(g.numeroGuia)}</b></td>
+            <td>${esc(g.beneficiarioNome)}</td>
+            <td>${esc(g.ocsNome)}</td>
+            <td>${fmt(g.dataAssinaturaSecao)}</td>
+            <td>${fmtD(g.dataValidade)}</td>
+            <td>${badge(g)}</td>
+            <td>
+              <div class="action-group">
+                <button type="button" class="btn o" style="padding:4px 8px;font-size:12px" onclick="openSignedGuide(${g.id}, 'sec')">Consultar guia</button>
+                <button type="button" class="btn btn-pdf" style="padding:4px 8px;font-size:12px" title="Ver ou imprimir PDF" onclick="visualizarPdfGuia(${g.id}, 'sec')">Ver / Imprimir PDF</button>
+              </div>
+            </td>
+          </tr>`).join('')
+            : `<tr><td colspan="7">Você ainda não assinou nenhuma guia como Chefe da Seção.</td></tr>`;
 
     const ready = guides.filter(g => g.statusCodigo === 'PE');
     $('ready').innerHTML = ready.length
@@ -1120,7 +1227,6 @@
     $('patientModal').classList.remove('on');
     pendingExtractedData = null;
     clearFile();
-    $('uploadBtn').disabled = false;
     if ($('clearFileBtn')) $('clearFileBtn').disabled = false;
     uploadErr('Operação cancelada. A guia não foi registrada e o beneficiário não foi cadastrado.');
   }
@@ -1157,10 +1263,10 @@
           </div>
           <div>
             <label class="small muted" style="display:block;margin-bottom:4px"><b>E-mail do Beneficiário *</b> (onde receberá a guia assinada)</label>
-            <input type="email" id="cadEmail" placeholder="exemplo@email.com.br" required style="width:100%;box-sizing:border-box;border-color:var(--pri)">
+            <input type="email" id="cadEmail" placeholder="exemplo@email.com.br" required style="width:100%;box-sizing:border-box;border-color:var(--blue)">
             <p class="hint" style="margin-top:4px">Este e-mail será salvo no cadastro oficial e utilizado para o envio da guia.</p>
           </div>
-          <div id="cadPacienteMsg" class="hidden" style="color:var(--err);font-size:0.88rem"></div>
+          <div id="cadPacienteMsg" class="hidden" style="color:var(--red);font-size:0.88rem"></div>
         </form>
       `;
     $('patientModalActs').innerHTML = `
@@ -1219,8 +1325,12 @@
     formData.append('pacienteEmail', email);
     if (telefone) formData.append('pacienteTelefone', telefone);
 
+    const endpointUrl = (preGuiaSelecionada && preGuiaSelecionada.token)
+      ? '/api/pre-guias/' + encodeURIComponent(preGuiaSelecionada.token) + '/guia-assinatura'
+      : '/api/assinaturas/guias';
+
     try {
-      const res = await fetch('/api/assinaturas/guias', {
+      const res = await fetch(endpointUrl, {
         method: 'POST',
         headers: { 'Authorization': getAuthHeader('emitter') },
         body: formData
@@ -1253,7 +1363,10 @@
       await refreshData();
       toast('Beneficiário cadastrado e guia enviada para assinatura do Médico Chefe!');
     } catch (err) {
-      if ($('btnSalvarPac')) $('btnSalvarPac').disabled = false;
+      if ($('btnSalvarPac')) {
+        $('btnSalvarPac').disabled = false;
+        $('btnSalvarPac').textContent = 'Cadastrar Beneficiário e Emitir Guia';
+      }
       if (msgBox) {
         msgBox.textContent = 'Erro ao comunicar com o servidor.';
         msgBox.classList.remove('hidden');
@@ -1335,6 +1448,62 @@
     $('confirmCheck').checked = false;
     $('signBtn').disabled = true;
     $('confirmCheck').onchange = validateSign;
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function openSignedGuide(id, who) {
+    profile = who;
+    let data;
+    try {
+      const res = await fetch(`/api/assinaturas/guias/${id}/detalhes`, {
+        headers: { 'Authorization': getAuthHeader(who) }
+      });
+      data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || 'Não foi possível abrir os detalhes da guia.');
+    } catch (err) {
+      toast(err.message, true);
+      return;
+    }
+
+    closeDetail();
+    selectedGuide = data;
+
+    const detail = $(who === 'med' ? 'signDetailMed' : 'signDetailSec');
+    detail.classList.remove('hidden');
+    detail.innerHTML = `
+        <div class="section-title">
+          <div>
+            <h2>Guia ${esc(selectedGuide.numeroGuia)} · Consulta de guia já assinada</h2>
+            <p class="small muted">Visualização somente leitura do documento e dos dados de assinatura.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn o" onclick="baixarPdfGuia(${selectedGuide.id}, '${who}')">Abrir em nova aba</button>
+            <button type="button" class="btn o" onclick="closeDetail()">Fechar consulta</button>
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1.4">
+            <div id="pdfPreview" class="pdf-original"><p class="small muted">Carregando o PDF da guia assinada...</p></div>
+          </div>
+          <div style="flex:1">
+            <div class="card" style="background:var(--bg);box-shadow:none">
+              <h2>Dados da guia</h2>
+              <div class="small" style="line-height:1.8">
+                <p><b>Status atual:</b> ${badge(selectedGuide)}</p>
+                <p><b>Beneficiário:</b> ${esc(selectedGuide.beneficiarioNome)}</p>
+                <p><b>Prec CP:</b> ${esc(selectedGuide.beneficiarioPrecCp || '—')}</p>
+                <p><b>OCS:</b> ${esc(selectedGuide.ocsNome)}</p>
+                <p><b>Enviada em:</b> ${fmt(selectedGuide.dataEnvio)}</p>
+                <p><b>Assinatura do Médico Chefe:</b> ${fmt(selectedGuide.dataAssinaturaMedico)}${selectedGuide.medicoChefeUsuario ? ' (' + esc(selectedGuide.medicoChefeUsuario) + ')' : ''}</p>
+                <p><b>Assinatura do Chefe da Seção:</b> ${fmt(selectedGuide.dataAssinaturaSecao)}${selectedGuide.chefeSecaoUsuario ? ' (' + esc(selectedGuide.chefeSecaoUsuario) + ')' : ''}</p>
+                <p><b>Validade:</b> ${selectedGuide.dataValidade ? fmtD(selectedGuide.dataValidade) : '60 dias a partir da assinatura do Chefe da Seção'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+    carregarPdfOriginal(selectedGuide.id, who);
     detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -1670,7 +1839,9 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if ($('justifyModal').classList.contains('on')) closeJustifyModal();
-      else if (!$('sendEmailBtn').disabled) closeModal();
+      else if ($('patientModal').classList.contains('on') && !($('btnSalvarPac') && $('btnSalvarPac').disabled)) cancelarCadastroPaciente();
+      else if ($('modal').classList.contains('on') && !$('sendEmailBtn').disabled) closeModal();
+      else if (selectedGuide) closeDetail();
     }
   });
 

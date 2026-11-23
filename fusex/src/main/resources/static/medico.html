@@ -599,7 +599,7 @@
 
         lista.forEach(p => {
           const li = document.createElement('li');
-          li.innerHTML = `<strong>${p.nome}</strong><div class="meta">OM: <strong>${p.om || 'Não informada'}</strong> &bull; CPF: <strong>${p.cpf || '-'}</strong> &bull; PREC: <strong>${p.prec || '-'}</strong></div>`;
+          li.innerHTML = `<strong>${escapeHtml(p.nome)}</strong><div class="meta">OM: <strong>${escapeHtml(p.om || 'Não informada')}</strong> &bull; CPF: <strong>${escapeHtml(p.cpf || '-')}</strong> &bull; PREC: <strong>${escapeHtml(p.prec || '-')}</strong></div>`;
           li.addEventListener('click', () => {
             nomePacienteInput.value = p.nome;
             if (p.om) omInput.value = p.om;
@@ -710,6 +710,7 @@
       url += parts.join('&');
 
       const res = await fetch(url);
+      if (!res.ok) throw new Error('Falha ao buscar procedimentos');
       const data = await res.json();
       procedimentoSugestoes.innerHTML = '';
 
@@ -721,7 +722,7 @@
         if (especialidades.length === 0 && !texto) {
           li.innerHTML = '<em>💡 Dica: Selecione ao menos uma especialidade acima para listar todos os exames disponíveis, ou digite o nome/código TUSS (ex: eco, 409...).</em>';
         } else {
-          li.innerHTML = '<em>Nenhum procedimento encontrado para o termo "' + (texto || '') + '" e especialidade(s) selecionada(s).</em>';
+          li.innerHTML = '<em>Nenhum procedimento encontrado para o termo "' + escapeHtml(texto || '') + '" e especialidade(s) selecionada(s).</em>';
         }
         procedimentoSugestoes.appendChild(li);
         procedimentoSugestoes.hidden = false;
@@ -730,7 +731,7 @@
 
       data.forEach(p => {
         const li = document.createElement('li');
-        li.innerHTML = `<strong>${p.procDescricao}</strong><div class="meta">Código DGP/TUSS: <strong>${p.procCodigoDgp}</strong></div>`;
+        li.innerHTML = `<strong>${escapeHtml(p.procDescricao)}</strong><div class="meta">Código DGP/TUSS: <strong>${escapeHtml(p.procCodigoDgp)}</strong></div>`;
         li.addEventListener('click', () => {
           adicionarProcedimento(p);
           procedimentoBusca.value = '';
@@ -759,9 +760,10 @@
     e.stopPropagation();
     if (!procedimentoSugestoes.hidden) {
       procedimentoSugestoes.hidden = true;
+    } else if (document.activeElement === procedimentoBusca) {
+      carregarProcedimentos(true);
     } else {
       procedimentoBusca.focus();
-      carregarProcedimentos(true);
     }
   });
 
@@ -794,7 +796,7 @@
       li.className = 'procedimento-item';
 
       const infoDiv = document.createElement('div');
-      infoDiv.innerHTML = `<div class="procedimento-item-nome">${p.procDescricao}</div><div class="procedimento-item-cod">TUSS: ${p.procedimentoCodigoDgp}</div>`;
+      infoDiv.innerHTML = `<div class="procedimento-item-nome">${escapeHtml(p.procDescricao)}</div><div class="procedimento-item-cod">TUSS: ${escapeHtml(p.procedimentoCodigoDgp)}</div>`;
 
       const btn = document.createElement('button');
       btn.type = 'button';

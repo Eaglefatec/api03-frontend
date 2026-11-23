@@ -331,7 +331,10 @@
 <script>
   const ACESSO_OK = FusexAuth.require(['ROLE_OCS','ROLE_ADMIN']);
   const $ = id => document.getElementById(id);
-  const STATUS_LABEL = { SEM_LOTE: 'Sem lote', EM_LOTE: 'Em lote' };
+  const STATUS_LABEL = { SEM_LOTE: 'Sem lote', EM_LOTE: 'Em lote', PENDENTE: 'Pendente' };
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
   let tt;
 
   function toast(m, err) {
@@ -371,17 +374,18 @@
 
       $('tbGuias').innerHTML = data.length
               ? data.map(g => `<tr>
-              <td>${g.numeroGuia}</td>
-              <td>${g.beneficiarioPrecCp}</td>
-              <td>${new Date(g.dataAtendimento + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-              <td>${g.nomeArquivo}</td>
-              <td><span class="tag ${g.status === 'SEM_LOTE' ? 't-wait' : 't-ok'}">${STATUS_LABEL[g.status] || g.status}</span></td>
+              <td>${esc(g.numeroGuia)}</td>
+              <td>${esc(g.beneficiarioPrecCp)}</td>
+              <td>${g.dataAtendimento ? new Date(g.dataAtendimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+              <td>${esc(g.nomeArquivo)}</td>
+              <td><span class="tag ${g.status === 'EM_LOTE' ? 't-ok' : 't-wait'}">${esc(STATUS_LABEL[g.status] || g.status)}</span></td>
             </tr>`).join('')
               : '<tr><td colspan="5">Nenhuma guia anexada ainda.</td></tr>';
 
       $('sGuias').textContent = data.length;
       $('sSemLote').textContent = data.filter(g => g.status === 'SEM_LOTE').length;
     } catch (err) {
+      $('tbGuias').innerHTML = '<tr><td colspan="5">Não foi possível carregar as guias.</td></tr>';
       mostrarErroGlobal('Erro ao carregar as guias. Tente novamente.');
     }
   }
@@ -425,6 +429,7 @@
     formData.append('dataAtendimento', dataAtendimento);
     formData.append('arquivo', arquivo);
 
+    $('gSend').disabled = true;
     try {
       const res = await fetch('/api/guias', {
         method: 'POST',
@@ -436,6 +441,7 @@
       if (!res.ok) {
         $('modalErro').textContent = data.error || 'Não foi possível anexar a guia.';
         $('modalErro').hidden = false;
+        $('gSend').disabled = !$('gSign').checked;
         return;
       }
 
@@ -445,11 +451,13 @@
     } catch (err) {
       $('modalErro').textContent = 'Erro ao anexar a guia. Tente novamente.';
       $('modalErro').hidden = false;
+      $('gSend').disabled = !$('gSign').checked;
     }
   }
 
   $('abrirModalBtn').addEventListener('click', abrirModal);
   $('cancelarAnexoBtn').addEventListener('click', fecharModal);
+  $('mAnexo').addEventListener('click', e => { if (e.target === $('mAnexo')) fecharModal(); });
   $('gSign').addEventListener('change', () => { $('gSend').disabled = !$('gSign').checked; });
   $('gSend').addEventListener('click', enviarGuia);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
